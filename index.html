@@ -3,61 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#2b231f">
+<meta name="theme-color" content="#0c0b0b">
 <title>Aschenthron</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700;900&family=EB+Garamond:ital,wght@0,500;0,600;1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,500;0,600;0,700;1,500&family=Vollkorn:wght@600;700;800&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <div id="stage">
-  <!-- Thronhalle: Steinwand, Spitzbogenfenster, Eiserner Thron, Hausbanner -->
-  <svg id="scene" viewBox="0 0 400 520" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
-    <defs>
-      <pattern id="blk" width="64" height="32" patternUnits="userSpaceOnUse"><rect width="64" height="32" fill="#2e2621"/><path d="M0 .5H64M0 16.5H64M32 .5V16.5M0 16.5V32M64 16.5V32" stroke="#17100c" stroke-width="2" fill="none"/><path d="M2 2H30M34 18H62" stroke="#473a30" stroke-width="1" opacity=".6"/></pattern>
-      <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1d3a"/><stop offset=".45" stop-color="#8a3a2a"/><stop offset=".8" stop-color="#f0a040"/><stop offset="1" stop-color="#ffd27a"/></linearGradient>
-      <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".5" stop-color="#000" stop-opacity=".1"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient>
-      <linearGradient id="cl1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient>
-    </defs>
-    <rect width="400" height="520" fill="url(#blk)"/>
-    <!-- Fenster -->
-    <path d="M140 220V92Q140 36 200 24Q260 36 260 92V220Z" fill="#0d0806" stroke="#5a4636" stroke-width="7"/>
-    <path d="M148 216V94Q148 44 200 33Q252 44 252 94V216Z" fill="url(#dusk)"/>
-    <!-- ferne Berge -->
-    <path d="M148 216V170L168 150L184 168L204 140L226 166L244 152L252 172V216Z" fill="#2a1822"/>
-    <!-- Eiserner Thron: Schwerter-Silhouette -->
-    <g fill="#0d0907">
-      <path d="M160 216L166 168L172 214zM172 216L176 150L184 214zM184 216L190 128L196 214zM194 216L200 104L206 214zM206 216L212 132L216 214zM216 216L224 156L228 214zM228 216L236 176L240 214zM152 216L158 190L162 216zM240 216L246 192L250 216z"/>
-      <path d="M170 216L172 190L228 190L230 216z"/>
-      <path d="M186 192L188 150L212 150L214 192z"/>
-    </g>
-    <path d="M200 98V30" stroke="#0d0806" stroke-width="3"/><path d="M148 130H252M148 176H252" stroke="#0d0806" stroke-width="3"/><path d="M200 33V216" stroke="#0d0806" stroke-width="3"/>
-    <!-- Säulen -->
-    <rect x="0" y="0" width="30" height="520" fill="#241c17"/><rect x="370" y="0" width="30" height="520" fill="#241c17"/>
-    <rect x="0" y="0" width="30" height="520" fill="url(#cl1)"/><rect x="370" y="0" width="30" height="520" fill="url(#cl1)"/>
-    <path d="M30 0V520M370 0V520" stroke="#0d0806" stroke-width="3"/>
-    <!-- Hausbanner links und rechts -->
-    <g>
-      <rect x="44" y="0" width="64" height="8" fill="#c9a24a"/>
-      <path d="M48 8H104V160L76 140L48 160Z" fill="#a8321f"/><path d="M48 8H104V160L76 140L48 160Z" fill="none" stroke="#e0b84a" stroke-width="2"/>
-      <path d="M76 40L90 66L84 100L76 112L68 100L62 66Z" fill="#f0d090" opacity=".9"/>
-      <rect x="292" y="0" width="64" height="8" fill="#c9a24a"/>
-      <path d="M296 8H352V160L324 140L296 160Z" fill="#2f6a9a"/><path d="M296 8H352V160L324 140L296 160Z" fill="none" stroke="#e0b84a" stroke-width="2"/>
-      <path d="M324 40L336 60L324 108L312 60Z M308 64L324 74L340 64" fill="#e8e0c8" opacity=".9"/>
-    </g>
-    <rect width="400" height="520" fill="url(#shade)"/>
-  </svg>
-  <i class="torch l"></i><i class="torch r"></i>
-  <div class="lightfall"></div>
-  <div class="grain" aria-hidden="true"></div>
+  <div id="mat" aria-hidden="true"><img src="cards/pk-14-1.jpg" alt=""></div>
 
   <header id="hud"></header>
   <main id="mid">
     <section id="opps" aria-label="Gegner"></section>
     <section id="table" aria-label="Tisch">
+      <div id="deck" aria-hidden="true"></div>
       <div id="pot"></div>
       <div id="board"></div>
       <div id="read" aria-live="polite"></div>

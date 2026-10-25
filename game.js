@@ -18,7 +18,7 @@ const CAT=['Einzelgänger','Paar','Zwei Paare','Rudel','Jagdkette','Banner','Hor
 const CATX=['Höchste Karte','zwei gleiche Stärken','zweimal zwei gleiche Stärken','drei gleiche Stärken','fünf Stärken in Folge','fünf Karten aus einem Reich','Rudel plus Paar','vier gleiche Stärken','Jagdkette aus einem Reich','Jagdkette bis zum Drachen aus einem Reich'];
 /* Wertigkeit: je höher der Rang, desto aufwendiger der Druck */
 const tier=r=>r<=5?1:r<=8?2:r<=10?3:r<=13?4:5;
-const TIERN=['Gemein','Gehoben','Selten','Episch','Mythisch'];
+const TIERN=['Gemein','Ungewöhnlich','Selten','Mythisch','Mythisch · Folie'];
 const SY='<svg class="sy" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M2 16V5l5 4 3-6 3 6 5-4v11zM2 17h16v2H2z"/></svg>';
 const I=(v,b)=>`<svg viewBox="${v}" aria-hidden="true">${b}</svg>`;
 const IC={
@@ -37,20 +37,20 @@ const IC={
   bowl:`<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#4a3208" stroke-width="1.2"><ellipse cx="15" cy="40" rx="11" ry="4.2" fill="#b98a28"/><ellipse cx="15" cy="35.5" rx="11" ry="4.2" fill="#d9a93a"/><ellipse cx="15" cy="31" rx="11" ry="4.2" fill="#e8c050"/><ellipse cx="15" cy="26.5" rx="11" ry="4.2" fill="#f4d56a"/><ellipse cx="34" cy="40" rx="11" ry="4.2" fill="#b98a28"/><ellipse cx="34" cy="35.5" rx="11" ry="4.2" fill="#d9a93a"/><ellipse cx="34" cy="31" rx="11" ry="4.2" fill="#f4d56a"/><ellipse cx="25" cy="22" rx="9" ry="3.6" fill="#e8c050"/><ellipse cx="25" cy="18.5" rx="9" ry="3.6" fill="#f4d56a"/></g></svg>`
 };
 const REALM=[
-  {n:'Sonnenwacht',col:'#d8bf6e',ic:IC.sun,pn:'Schwur',ptx:'+16/+16 je weiterer Teamkarte gleicher Stärke.',strat:'Paare, Rudel, Plagen',
+  {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Schwur',ptx:'+16/+16 je weiterer Teamkarte gleicher Stärke.',strat:'Paare, Rudel, Plagen',
    lore:'Die Ritter der Sonnenwacht schwören auf das letzte Licht über den Zinnen. Wer ihren Schwur bricht, dessen Name wird aus jeder Chronik gekratzt.'},
-  {n:'Aschelande',col:'#b3382a',ic:IC.fire,pn:'Feuerkette',ptx:'+8/+8 je weiterem Glied ihrer Stärkenkette im Team.',strat:'Jagdketten',
+  {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#b3382a',ic:IC.fire,pn:'Feuerkette',ptx:'+8/+8 je weiterem Glied ihrer Stärkenkette im Team.',strat:'Jagdketten',
    lore:'Seit der Vulkan den alten Thron verschlang, brennt das Land. Seine Fürsten sind Schmiede, Jäger und Brandstifter in einem.'},
-  {n:'Nordmark',col:'#2f6a9a',ic:IC.ice,pn:'Eiswall',ptx:'+5/+5 je weiterer Nordmark-Karte im Team.',strat:'Banner (alle fünf aus einem Reich)',
+  {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Eiswall',ptx:'+5/+5 je weiterer Nordmark-Karte im Team.',strat:'Banner (alle fünf aus einem Reich)',
    lore:'Im ewigen Winter der Nordmark überlebt nur, wer zusammensteht. Ihre Wälle aus Eis hat noch keine Armee gebrochen.'},
-  {n:'Blutmoor',col:'#5b2a48',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Langer Kampf',
+  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#5b2a48',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Langer Kampf',
    lore:'Das Blutmoor vergisst niemanden, der in ihm starb. Was dort fällt, steht noch einmal auf und schlägt ein letztes Mal zu.'}];
 const OPP=[
-  {name:'Vargo Rotzahn',short:'Vargo',tag:'Söldner',col:'#a8321f',art:'4-1',st:{aggr:.75,bluff:.16,tight:0},
+  {name:'Vargo Rotzahn',short:'Vargo',tag:'Söldner',col:'#a8321f',fr:'#c4472e',pl:'#f2dacb',art:'4-1',st:{aggr:.75,bluff:.16,tight:0},
    q:{raise:['Gold klingt besser als Eisen.','Ich kauf dir die Hand ab.'],allin:['Alles oder der Strick!'],fold:['Heute nicht, Krämer.'],win:['Der Söldner nimmt, was ihm zusteht.'],lose:['Pah. Glück.']}},
-  {name:'Mutter Grauweid',short:'Grauweid',tag:'Hexe',col:'#2f6a9a',art:'3-2',st:{aggr:.5,bluff:.05,tight:.5},
+  {name:'Mutter Grauweid',short:'Grauweid',tag:'Hexe',col:'#2f6a9a',fr:'#2f72ad',pl:'#d3e3f1',art:'3-2',st:{aggr:.5,bluff:.05,tight:.5},
    q:{raise:['Die Krähen flüstern: setz mehr.','Ich sah es in den Knochen.'],allin:['Die Knochen haben gesprochen.'],fold:['Die Zeichen stehen schlecht.'],win:['Ich sagte es doch, Kind.'],lose:['Alte Hexen sterben nicht an einer Hand.']}},
-  {name:'Die stumme Ysa',short:'Ysa',tag:'Meuchlerin',col:'#6b2f58',art:'12-3',st:{aggr:.65,bluff:.22,tight:-.1},
+  {name:'Die stumme Ysa',short:'Ysa',tag:'Meuchlerin',col:'#6b2f58',fr:'#3c3633',pl:'#d3cdc7',art:'12-3',st:{aggr:.65,bluff:.22,tight:-.1},
    q:{raise:['Mehr.','Du zögerst.'],allin:['Alles.'],fold:['...'],win:['Still.'],lose:['Dein Glück ist geborgt.']}}];
 const RANKS=[[0,'Bettler'],[100,'Tagelöhner'],[300,'Söldner'],[700,'Hauptmann'],[1400,'Ritter'],[2500,'Fürst'],[4000,'Aschenkönig']];
 let FAME=0,SEEN=new Set();
@@ -87,21 +87,25 @@ function snd(k){if(!SND.on)return;try{
   else if(k==='click')tone(300,200,.05,'square',.07)}catch(e){}}
 
 /* ---------- Hausbanner der Gegner ---------- */
-function plateHTML(p){return `<div class="bn" style="--hc:${p.col}"><i class="rod"></i><div class="cloth"><div class="sh"><img src="cards/pk-${p.art}.jpg" alt="" draggable="false"></div><b class="hn">${p.short}</b></div><b class="lv">${p.thron}</b></div>`}
+function plateHTML(p){return `<div class="pwc" style="--fr:${p.fr};--pl:${p.pl}"><div class="pf"><div class="plate nb" style="--pf:var(--pl)">${p.short}</div><div class="pa"><img src="cards/pk-${p.art}.jpg" alt="" draggable="false"></div></div><b class="loy">${p.thron}</b></div>`}
 
 /* ---------- Karten-HTML (Magic-Aufbau, Wertigkeit als Stufe) ---------- */
 const cardNo=c=>String(c.s*13+c.r-1).padStart(3,'0');
+const RAR=['C','U','R','M','M'];
 function cardHTML(c,o={}){
   if(o.back)return `<div class="card back ${o.cls||''}" style="${o.style||''}"></div>`;
   const R=REALM[c.s],t=tier(c.r),up=o.up||0,team=o.st;
   const bA=PST[c.r][0]+up,bH=PST[c.r][1]+up,st=team||[bA,bH];
-  return `<div class="card t${t} ${o.cls||''}" data-id="${c.id}" style="--ink:${R.col};${o.style||''}">
-    <div class="ttl"><b class="nm">${NAME[c.r]}</b></div><i class="rk">${RL[c.r]}</i>
-    <div class="art"><img src="cards/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false">${up?`<i class="upb">+${up}</i>`:''}
-      <div class="pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i><i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div></div>
-    <div class="typ">${R.ic.replace('<svg','<svg class="rl"')}<span>${R.n}</span>${SY}</div>
-    <div class="tx"><b>${ABIL[c.r][0]}.</b> ${ABIL[c.r][1]}</div>
-    <i class="orn"></i><i class="foil"></i><i class="stamp"></i><i class="gloss"></i><i class="glare"></i><i class="cvr"></i></div>`}
+  return `<div class="card t${t} ${o.cls||''}" data-id="${c.id}" style="--fr:${R.fr};--pl:${R.pl};--tb:${R.tb};--mc:${R.mc};${o.style||''}">
+    <div class="frm">
+      <div class="plate ttl"><b class="nm">${NAME[c.r]}</b><span class="cost"><i>${RL[c.r]}</i><i class="cm">${R.ic}</i></span></div>
+      <div class="art"><img src="cards/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false">${up?`<i class="plate upb">+${up}/+${up}</i>`:''}</div>
+      <div class="plate typ"><span>Kreatur — ${NAME[c.r]}</span>${SY}</div>
+      <div class="tx"><b>${ABIL[c.r][0]}</b> <i>(${ABIL[c.r][1]})</i></div>
+      <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
+    </div>
+    <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
+    <i class="xrk">${RL[c.r]}</i><i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="glare"></i><i class="cvr"></i></div>`}
 const upOf=(p,c)=>(p.up.rank[c.r]||0)+(p.up.realm[c.s]||0);
 function seenCls(key){if(!G.seen)G.seen=new Set();if(G.seen.has(key))return '';G.seen.add(key);G.dealt=(G.dealt||0)+1;return 'deal'}
 
@@ -318,17 +322,16 @@ function rHud(){
   const me=G.players[0];
   $('#hud').innerHTML=`<div class="hbtns"><button class="sq" data-a="book" aria-label="Regeln">${IC.book}</button><button class="sq ${SND.on?'':'off'}" data-a="snd" aria-label="Ton ${SND.on?'aus':'an'}">${SND.on?IC.snd:IC.mute}</button></div>
    <div class="hud-c"><b>Hand ${G.hand}</b><span>Einsatz ${G.bb}</span></div>
-   <div class="me"><span class="cnt th">${IC.thron}${me.thron}</span><span class="cnt gd">${IC.gold}${me.stack}</span></div>`}
+   <div class="me"><span class="cnt gd">${IC.gold}${me.stack}</span><b class="loy" aria-label="Thron ${me.thron}">${me.thron}</b></div>`}
 
 function rOpps(){
   $('#opps').innerHTML=G.players.slice(1).map(p=>{const ticks=Math.ceil(p.thron/2);
     return `<div class="opp ${p.rage?'rage':''} ${p.out?'out':''} ${p.folded?'fold':''} ${G.turn===p?'act':''}">
-    <div class="saywrap">${p.say?`<span class="say">${p.say}</span>`:''}</div>
+    <div class="saywrap">${p.say?`<span class="plate say">${p.say}</span>`:''}</div>
     ${plateHTML(p)}
     ${G.players[G.dealer]===p?'<span class="tag dtag">Geber</span>':''}
-    <div class="tly" aria-label="Thron ${p.thron}">${Array.from({length:20},(_,i)=>`<i class="${i<ticks?'':'e'}"></i>`).join('')}</div>
     <div class="ost">${IC.gold}${p.stack}</div>
-    ${p.bet&&!p.folded?`<div class="obet">${p.bet}</div>`:''}
+    ${p.bet&&!p.folded?`<div class="plate obet">${p.bet}</div>`:''}
     ${p.sac.length?`<div class="osac" data-z="${p.sac[0].id}">${cardHTML(p.sac[0],{cls:'xs'})}</div>`:''}
   </div>`}).join('')}
 
@@ -336,15 +339,17 @@ function rTable(){
   const pe=$('#pot');pe.style.setProperty('--fs',(1+Math.min(.9,G.pot/(START_GOLD*2.5))).toFixed(2));
   pe.innerHTML=`${IC.bowl}<div>${G.pot}<small>Pot</small></div>`;
   if(G.pot>G.lastPot){pe.classList.remove('bump');void pe.offsetWidth;pe.classList.add('bump')}G.lastPot=G.pot;
-  const RM=['I','II','III','IV','V'];let h='';
-  for(let i=0;i<5;i++){const c=G.board[i];h+=c?cardHTML(c,{cls:'xs '+seenCls('b'+c.id)}):`<div class="slot">${RM[i]}</div>`}
+  const ZN=['Flop','Flop','Flop','Turn','River'];let h='';
+  for(let i=0;i<5;i++){const c=G.board[i];h+=`<div class="zone">${c?cardHTML(c,{cls:'xs '+seenCls('b'+c.id)}):'<div class="slot"></div>'}<span>${ZN[i]}</span></div>`}
   $('#board').innerHTML=h;
+  const left=G.deck?G.deck.length:52;$('#deck').innerHTML=left?cardHTML(null,{back:1})+(left>8?cardHTML(null,{back:1}):'')+(left>16?cardHTML(null,{back:1}):''):'';
   const me=G.players[0];let r='';
   if(!me.out&&me.inHand&&!me.folded&&me.hole.length){
     const cs=me.hole.concat(G.board);r=`<b>${handLabel(cs)}</b>`;
     if(G.eq&&G.ui&&G.ui.mode==='bet'){r+=` · Chance <span class="${G.eq.eq>=1/G.eq.n?'g':'r'}">${Math.round(G.eq.eq*100)}%</span>`;
       if(G.eq.toCall>0)r+=` · nötig ${Math.round(G.eq.po*100)}%`}}
   else if(me.folded)r='Du hast geflohen';
+  if(G.ui&&(G.ui.mode==='lineup'||G.ui.mode==='sac'))r='';
   $('#read').innerHTML=r}
 
 function rHand(){
@@ -368,22 +373,22 @@ function rCtrl(){
       const v=u.val;
       el.innerHTML=`<div class="bigv">${v}<small>${v>=u.capT?'ALLES':(u.toCall>0?'ERHÖHEN AUF':'SETZEN')}</small></div>
        <input type="range" id="rng" min="${u.minTo}" max="${u.capT}" step="1" value="${v}" aria-label="Betrag">
-       <div class="chips"><button class="btn ghost" data-a="pre" data-v="half">½ Pot</button><button class="btn ghost" data-a="pre" data-v="pot">Pot</button><button class="btn ghost" data-a="pre" data-v="all">Alles</button></div>
-       <div class="row"><button class="btn ghost" data-a="unraise">Zurück</button><button class="btn raise" data-a="doraise"><span class="lb">${IC.raise}${u.toCall>0?'Erhöhen':'Setzen'}</span></button></div>`;return}
-    const cs=u.toCall>0?`<span class="lb">${IC.call}Mitgehen</span><small>${Math.min(u.toCall,me.stack)} Gold</small>`:`<span class="lb">${IC.call}Schieben</span><small>kostenlos</small>`;
-    el.innerHTML=`<div class="row"><button class="btn fold" data-a="fold"><span class="lb">${IC.fold}Fliehen</span><small>${u.toCall>0?'Einsatz verloren':'unnötig'}</small></button>
-      <button class="btn" data-a="call">${cs}</button>
-      <button class="btn raise" data-a="raise" ${u.canRaise?'':'disabled'}><span class="lb">${IC.raise}${u.toCall>0?'Erhöhen':'Setzen'}</span><small>${u.canRaise?'ab '+u.minTo:'nicht möglich'}</small></button></div>`;return}
+       <div class="chips"><button class="plate btn ghost" data-a="pre" data-v="half">½ Pot</button><button class="plate btn ghost" data-a="pre" data-v="pot">Pot</button><button class="plate btn ghost" data-a="pre" data-v="all">Alles</button></div>
+       <div class="row"><button class="plate btn ghost" data-a="unraise">Zurück</button><button class="plate btn raise" data-a="doraise"><span class="lb">${u.toCall>0?'Erhöhen':'Setzen'}</span></button></div>`;return}
+    const cs=u.toCall>0?`<span class="lb">Mitgehen</span><small>${Math.min(u.toCall,me.stack)} Gold</small>`:`<span class="lb">Schieben</span><small>kostenlos</small>`;
+    el.innerHTML=`<div class="row"><button class="plate btn fold" data-a="fold"><span class="lb">Fliehen</span><small>${u.toCall>0?'Einsatz verloren':'unnötig'}</small></button>
+      <button class="plate btn" data-a="call">${cs}</button>
+      <button class="plate btn raise" data-a="raise" ${u.canRaise?'':'disabled'}><span class="lb">${u.toCall>0?'Erhöhen':'Setzen'}</span><small>${u.canRaise?'ab '+u.minTo:'nicht möglich'}</small></button></div>`;return}
   if(u.mode==='sac'){
     el.innerHTML=`<div class="prompt">Opfere eine Karte<em>Sie liegt danach offen für alle auf dem Tisch.</em></div>
-      <div class="row"><button class="btn fold" data-a="dosac" ${u.sel?'':'disabled'}>Opfern</button></div>`;return}
+      <div class="row"><button class="plate btn fold" data-a="dosac" ${u.sel?'':'disabled'}>Opfern</button></div>`;return}
   if(u.mode==='lineup'){
     const chosen=u.sel.map(id=>cardById[id]),ok=chosen.length===5;
     let sum='';
     if(ok){const t=mkTeam(chosen,me.up),b=t.b;const A=t.team.reduce((s,f)=>s+f.atk,0),H=t.team.reduce((s,f)=>s+f.hp,0);
       sum=`<div class="prompt">${comboLabel(b)}<em>alle +${K.FB[b.cat]}/+${K.FB[b.cat]} · ${A} Angriff · ${H} Leben</em></div>`}
     else sum=`<div class="prompt">Wähle 5 Karten<em>${chosen.length} von 5</em></div>`;
-    el.innerHTML=sum+`<div class="row"><button class="btn ghost" data-a="luauto">Stärkstes</button><button class="btn ghost" data-a="lupoker">Beste Kombo</button><button class="btn raise" data-a="dolu" ${ok?'':'disabled'}>Kämpfen</button></div>`;return}
+    el.innerHTML=sum+`<div class="row"><button class="plate btn ghost" data-a="luauto">Stärkstes</button><button class="plate btn ghost" data-a="lupoker">Beste Kombo</button><button class="plate btn raise" data-a="dolu" ${ok?'':'disabled'}>Kämpfen</button></div>`;return}
   el.innerHTML=''}
 
 /* ---------- Events ---------- */
@@ -425,8 +430,8 @@ function hideOv(){const o=$('#ov');o.hidden=true;o.innerHTML='';o.onclick=null}
 function zoom(id){
   const c=cardById[id];if(!c||!G)return;const R=REALM[c.s],me=G.players[0],t=tier(c.r);
   showOv(`<div class="zoom"><div>${cardHTML(c,{up:upOf(me,c)})}</div>
-    <div class="ab">${ABIL[c.r][0]}<span>${TIERN[t-1]} · ${R.n} · ${R.pn}: ${R.ptx}</span></div>
-    <div class="fl">${FLAV[c.r]}</div></div>`,true);
+    <div class="fl">»${FLAV[c.r]}«</div>
+    <div class="lore"><b>${R.n} · ${TIERN[t-1]}</b>${R.lore}<br><i>${R.pn}: ${R.ptx}</i></div></div>`,true);
   const t0=Date.now();
   $('#ov').onclick=()=>{if(Date.now()-t0<350)return;hideOv()}}
 
@@ -447,12 +452,12 @@ function showSheet(kind,d){
         <p><b>3. Der Showdown ist ein Kampf.</b> Du wählst 5 deiner 7 Karten. Ihre Pokerkombo ist die <b>Formation</b> und gibt allen fünf Karten einen Bonus. Die Teams schlagen sich automatisch, ohne Würfel. Wer mehr Kämpfe gewinnt, holt den Pot.</p>
         <p><b>4. Thron.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers. Wer flieht, bleibt unversehrt, zahlt aber mit Gold.</p>
         <p><b>5. Siegel.</b> Zwischen den Händen gibst du Gold für <b>dauerhafte Verstärkungen</b> aus. Gold im Siegel fehlt dir am Pokertisch. Fällt Thron oder Gold auf 0, bist du raus.</p>
-        <p><b>Wertigkeit.</b> Je höher der Rang, desto aufwendiger der Druck: schlicht, Doppellinie, Eckwinkel, Folie, Drache. Die Rauten unten auf der Karte zählen die Stufe.</p></details>
+        <p><b>Seltenheit.</b> Das Kronen-Symbol in der Typzeile zeigt sie: schwarz gemein, silber ungewöhnlich, gold selten, orange mythisch. Ab Selten trägt die Karte den Holo-Stempel, Könige und Drachen die Legendenkrone, der Drache ist Folie.</p></details>
        <details><summary>Kombos &amp; Formation</summary><ul>${rows}</ul></details>
        <details><summary>Kreaturen</summary><ul>${cr}</ul></details>
        <details><summary>Reiche</summary><ul>${rl}</ul></details>
        <details><summary>Deine Siegel</summary><ul>${ups}</ul></details>
-       <div class="row" style="margin-top:18px"><button class="btn dk" data-x="close">Schließen</button></div></div>`);
+       <div class="row" style="margin-top:18px"><button class="plate btn dk" data-x="close">Schließen</button></div></div>`);
       bindOnce(e=>{if(e.target.closest('[data-x=close]'))fin()});return}
     if(kind==='tavern'){
       const{offers}=d;
@@ -461,21 +466,21 @@ function showSheet(kind,d){
           const pic=o.k==='forge'?`<img src="cards/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:`${IC.thron}<b>+8</b>`;
           return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')}</div>
         <p class="k">Du hast ${me.stack} Gold · Thron ${me.thron}</p>
-        <div class="row"><button class="btn ghost" data-x="reroll" ${me.stack>7?'':'disabled'}>Neu würfeln<small>6 Gold</small></button><button class="btn" data-x="done">Nächste Hand</button></div></div>`);
+        <div class="row"><button class="plate btn ghost" data-x="reroll" ${me.stack>7?'':'disabled'}>Neu würfeln<small>6 Gold</small></button><button class="plate btn" data-x="done">Nächste Hand</button></div></div>`);
       bindOnce(e=>{const o=e.target.closest('.offer'),x=e.target.closest('[data-x]');
         if(o)fin({t:'buy',i:+o.dataset.i});else if(x&&x.dataset.x==='reroll')fin({t:'reroll'});else if(x&&x.dataset.x==='done')fin({t:'done'})});return}
     if(kind==='over'){
       const s=G.stats;
       showOv(`<div class="title" style="justify-content:center;gap:14px"><h1><span>${d.won?'Der Thron':'Asche'}</span><span>${d.won?'ist dein':''}</span></h1>
         <p>${d.won?'Alle anderen Banner sind gefallen.':'Dein Banner brennt. Der Thron bleibt leer, für den Nächsten.'}<br>${G.hand} Hände · ${s.won} Pots gewonnen${s.bestName?'<br>Stärkste Formation: '+s.bestName:''}</p>
-        <div class="row"><button class="btn" data-x="again">Neue Runde</button></div></div>`);
+        <div class="row"><button class="plate btn" data-x="again">Neue Runde</button></div></div>`);
       bindOnce(e=>{if(e.target.closest('[data-x]'))fin()});return}
     if(kind==='result'){
       const{L,W,dmg,wins}=d,share=Math.floor(G.pot/W.length);
       showOv(`<div class="sheet"><h2>${W.includes(me)?'Der Pot ist dein':W[0].short+' nimmt den Pot'}</h2><p class="k">${G.pot} Gold · ${W.map(p=>comboLabel(p.team.b)).join(' / ')}</p>
         <div class="res">${L.map(p=>`<div class="rrow ${W.includes(p)?'win':''}">${p.human?'':plateHTML(p)}<b>${p.short}<small>${comboLabel(p.team.b)} · ${wins.get(p)} Siege</small></b>
           <div class="d ${W.includes(p)?'g':'r'}">${W.includes(p)?'+'+share:(dmg.get(p)?'−'+dmg.get(p)+' Thron':'—')}<small>${W.includes(p)?'Gold':'Thron '+p.thron}</small></div></div>`).join('')}</div>
-        <div class="row"><button class="btn" data-x="ok">Weiter</button></div></div>`);
+        <div class="row"><button class="plate btn" data-x="ok">Weiter</button></div></div>`);
       bindOnce(e=>{if(e.target.closest('[data-x]'))fin()});return}
     res()})}
 
@@ -490,7 +495,7 @@ async function playBattle(x){
     ${mk(Pe,'en')}
     <div class="bmid"><div class="blbl" id="bl">Aufstellung</div><div class="bnote" id="bn"></div><div class="bres" id="br"></div></div>
     ${mk(Pm,'me')}
-    <div class="bfoot"><button class="btn ghost" data-x="fast">Schneller</button><button class="btn ghost" data-x="skip">Überspringen</button></div></div>`);
+    <div class="bfoot"><button class="plate btn ghost" data-x="fast">Schneller</button><button class="plate btn ghost" data-x="skip">Überspringen</button></div></div>`);
   const sh=sleepable(),ov=$('#ov');
   let speed=1100,skip=false,all=false;
   ov.onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
@@ -524,7 +529,7 @@ async function playBattle(x){
   $('#br').className='bres '+win;$('#br').textContent=win==='w'?'Sieg':win==='l'?'Niederlage':'Unentschieden';
   $('#bn').textContent=win==='l'?`Du verlierst ${x.dmg} Thron`:win==='w'?`${Pe.short} verliert ${x.dmg} Thron`:'Kein Schaden';
   snd(win==='w'?'win':win==='l'?'lose':'click');
-  document.querySelector('.bfoot').innerHTML=`<button class="btn" data-x="next">Weiter</button><button class="btn ghost" data-x="all">Alle überspringen</button>`;
+  document.querySelector('.bfoot').innerHTML=`<button class="plate btn" data-x="next">Weiter</button><button class="plate btn ghost" data-x="all">Alle überspringen</button>`;
   await sh.wait(1e9);
   hideOv();return all?'all':''}
 function sleepable(){let r=null,t=null;return{wait(ms){return new Promise(res=>{r=res;t=setTimeout(()=>{r=null;res()},ms)})},wake(){clearTimeout(t);if(r){const f=r;r=null;f()}}}}
@@ -536,7 +541,7 @@ function title(){
     <div class="cards">${cardHTML(cardById['7-0'])}${cardHTML(cardById['12-3'])}${cardHTML(cardById['14-1'])}</div>
     <p>Poker um Gold. Der Showdown ist eine Schlacht. Wer fällt, dessen Banner brennt.</p>
     <div class="rang">Rang: ${rankOf(FAME)} · Ruhm ${FAME}</div>
-    <div class="row"><button class="btn raise" data-x="go">Den Thronsaal betreten</button><button class="btn ghost" data-x="book">Regeln lesen</button></div></div>`,'title');
+    <div class="row"><button class="plate btn raise" data-x="go">Den Thronsaal betreten</button><button class="plate btn ghost" data-x="book">Regeln lesen</button></div></div>`,'title');
   $('#ov').onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
     if(b.dataset.x==='book'){G={players:[{up:{rank:{},realm:{}}}],dealer:0};return showSheet('book',{}).then(()=>{G=null;title()})}
     hideOv();snd('thud');newGame()}}
