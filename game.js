@@ -91,7 +91,7 @@ function snd(k){if(!SND.on)return;try{
   else if(k==='click')tone(300,200,.05,'square',.07)}catch(e){}}
 
 /* ---------- Hausbanner der Gegner ---------- */
-function plateHTML(p){return `<div class="pwc" style="--fr:${p.fr};--pl:${p.pl}"><div class="pf"><div class="plate nb" style="--pf:var(--pl)">${p.short}</div><div class="pa"><img src="cards/pk-${p.art}.jpg" alt="" draggable="false"></div></div><b class="loy">${p.thron}</b></div>`}
+function plateHTML(p){return `<div class="hero"><div class="pf"><img src="cards/pk-${p.art}.jpg" alt="" draggable="false"></div><b class="hg gem">${p.thron}</b><span class="hn">${p.short}</span></div>`}
 
 /* ---------- Karten-HTML (Magic-Aufbau, Wertigkeit als Stufe) ---------- */
 const cardNo=c=>String(c.s*13+c.r-1).padStart(3,'0');
@@ -140,7 +140,7 @@ function equity(p,samples){
 /* ---------- Spielzustand ---------- */
 function newGame(){
   document.body.classList.remove('intro');
-  const P=[{name:'Du',short:'Du',human:true,col:'#efe6cf'}].concat(OPP.map(o=>({...o})));
+  const P=[{name:'Du',short:'Du',human:true,col:'#efe6cf',art:'14-0'}].concat(OPP.map(o=>({...o})));
   G={players:P.map((p,i)=>({i,...p,stack:START_GOLD,thron:START_THRON,hole:[],sac:[],up:{rank:{},realm:{}},folded:false,inHand:false,out:false,bet:0,say:'',rage:false})),
     hand:0,dealer:3,board:[],pot:0,bb:10,ante:2,curBet:0,minRaise:10,ui:null,seen:new Set(),turn:null,fast:false,lastPot:0,stats:{won:0,best:-1,bestName:''}};
   return runGame()}
@@ -326,22 +326,24 @@ function rHud(){
   const me=G.players[0];
   $('#hud').innerHTML=`<div class="hbtns"><button class="sq" data-a="book" aria-label="Regeln">${IC.book}</button><button class="sq ${SND.on?'':'off'}" data-a="snd" aria-label="Ton ${SND.on?'aus':'an'}">${SND.on?IC.snd:IC.mute}</button></div>
    <div class="hud-c"><b>Hand ${G.hand}</b><span>Einsatz ${G.bb}</span></div>
-   <div class="me"><span class="cnt gd">${IC.gold}${me.stack}</span><b class="loy" aria-label="Thron ${me.thron}">${me.thron}</b></div>`}
+   <div class="hud-r">${G.players[G.dealer]===me?'<span class="tag">Geber</span>':''}</div>`;
+  $('#meh').innerHTML=`${plateHTML(me)}`;
+  $('#meh').insertAdjacentHTML('beforeend',`<div class="who"><b>Du</b><span class="gold">${IC.gold}${me.stack}</span></div>`)}
 
 function rOpps(){
   $('#opps').innerHTML=G.players.slice(1).map(p=>{const ticks=Math.ceil(p.thron/2);
     return `<div class="opp ${p.rage?'rage':''} ${p.out?'out':''} ${p.folded?'fold':''} ${G.turn===p?'act':''}">
-    <div class="saywrap">${p.say?`<span class="plate say">${p.say}</span>`:''}</div>
+    <div class="saywrap">${p.say?`<span class="say">${p.say}</span>`:''}</div>
     ${plateHTML(p)}
     ${G.players[G.dealer]===p?'<span class="tag dtag">Geber</span>':''}
     <div class="ost">${IC.gold}${p.stack}</div>
-    ${p.bet&&!p.folded?`<div class="plate obet">${p.bet}</div>`:''}
+    ${p.bet&&!p.folded?`<div class="obet chip num">${p.bet}</div>`:''}
     ${p.sac.length?`<div class="osac" data-z="${p.sac[0].id}">${cardHTML(p.sac[0],{cls:'xs'})}</div>`:''}
   </div>`}).join('')}
 
 function rTable(){
   const pe=$('#pot');pe.style.setProperty('--fs',(1+Math.min(.9,G.pot/(START_GOLD*2.5))).toFixed(2));
-  pe.innerHTML=`${IC.bowl}<div>${G.pot}<small>Pot</small></div>`;
+  pe.innerHTML=`${IC.bowl}<div class="num">${G.pot}<small>Pot</small></div>`;
   if(G.pot>G.lastPot){pe.classList.remove('bump');void pe.offsetWidth;pe.classList.add('bump')}G.lastPot=G.pot;
   const ZN=['Flop','Flop','Flop','Turn','River'];let h='';
   for(let i=0;i<5;i++){const c=G.board[i];h+=`<div class="zone">${c?cardHTML(c,{cls:'xs '+seenCls('b'+c.id)}):'<div class="slot"></div>'}<span>${ZN[i]}</span></div>`}
@@ -482,7 +484,7 @@ function showSheet(kind,d){
     if(kind==='result'){
       const{L,W,dmg,wins}=d,share=Math.floor(G.pot/W.length);
       showOv(`<div class="sheet"><h2>${W.includes(me)?'Der Pot ist dein':W[0].short+' nimmt den Pot'}</h2><p class="k">${G.pot} Gold · ${W.map(p=>comboLabel(p.team.b)).join(' / ')}</p>
-        <div class="res">${L.map(p=>`<div class="rrow ${W.includes(p)?'win':''}">${p.human?'':plateHTML(p)}<b>${p.short}<small>${comboLabel(p.team.b)} · ${wins.get(p)} Siege</small></b>
+        <div class="res">${L.map(p=>`<div class="rrow ${W.includes(p)?'win':''}">${plateHTML(p)}<b>${p.short}<small>${comboLabel(p.team.b)} · ${wins.get(p)} Siege</small></b>
           <div class="d ${W.includes(p)?'g':'r'}">${W.includes(p)?'+'+share:(dmg.get(p)?'−'+dmg.get(p)+' Thron':'—')}<small>${W.includes(p)?'Gold':'Thron '+p.thron}</small></div></div>`).join('')}</div>
         <div class="row"><button class="plate btn" data-x="ok">Weiter</button></div></div>`);
       bindOnce(e=>{if(e.target.closest('[data-x]'))fin()});return}
@@ -495,10 +497,13 @@ async function playBattle(x){
   await banner(comboLabel(Pm.team.b),`Formation: alle +${K.FB[Pm.team.b.cat]}/+${K.FB[Pm.team.b.cat]}`,G.fast?400:1500);
   const mk=(P,cls)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map(f=>cardHTML(f.c,{cls:'xs',st:[f.atk,f.hp],up:f.up||0})).join('')}</div>`;
   showOv(`<div id="battle">
-    <div class="bhead">${plateHTML(Pe)}<div><b>${Pe.name}</b><span>${comboLabel(Pe.team.b)} · alle +${K.FB[Pe.team.b.cat]}</span></div></div>
+    <div class="bhero e">${plateHTML(Pe)}<div class="bt"><b>${Pe.name}</b><span>${comboLabel(Pe.team.b)} · alle +${K.FB[Pe.team.b.cat]}</span></div></div>
+    <div class="sp"></div>
     ${mk(Pe,'en')}
     <div class="bmid"><div class="blbl" id="bl">Aufstellung</div><div class="bnote" id="bn"></div><div class="bres" id="br"></div></div>
     ${mk(Pm,'me')}
+    <div class="sp"></div>
+    <div class="bhero m">${plateHTML(me)}<div class="bt"><b>Du</b><span>${comboLabel(Pm.team.b)} · alle +${K.FB[Pm.team.b.cat]}</span></div></div>
     <div class="bfoot"><button class="plate btn ghost" data-x="fast">Schneller</button><button class="plate btn ghost" data-x="skip">Überspringen</button></div></div>`);
   const sh=sleepable(),ov=$('#ov');
   let speed=1100,skip=false,all=false;
@@ -514,14 +519,14 @@ async function playBattle(x){
   const paint=(s,quiet)=>{
     for(const side of[0,1])sidesCards(side).forEach((c,i)=>{const st=s.st[side][i];if(!st)return;
       c.querySelector('.at').textContent=st.atk;c.querySelector('.hpb').textContent=Math.max(0,st.hp);
-      if(prevAlive[side][i]!==false&&!st.alive&&!quiet){burst(c,'#efe6cf',16);snd('die');if(navigator.vibrate)navigator.vibrate(40)}
+      if(prevAlive[side][i]!==false&&!st.alive&&!quiet){burst(c,'#f0a050',9);snd('die');if(navigator.vibrate)navigator.vibrate(40)}
       prevAlive[side][i]=st.alive;c.classList.toggle('dead',!st.alive)});
     if(quiet)return;
     s.hits.forEach(h=>{const c=sidesCards(h.s)[h.i];if(!c)return;c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit');
       const al=sidesCards(1-h.s)[h.i];if(al){al.classList.remove('lunge');void al.offsetWidth;al.classList.add('lunge')}
-      burst(c,h.s===myIdx?'#e8502c':'#ecc54a',h.d>=6?14:7);snd('hit');
+      burst(c,'#ffb060',h.d>=6?6:3);snd('hit');
       if(h.d>=6){const b=$('#battle');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}
-      const f=document.createElement('div');f.className='fl';f.textContent='−'+h.d;c.appendChild(f);setTimeout(()=>f.remove(),950)})};
+      const f=document.createElement('div');f.className='fl num';f.textContent='−'+h.d;c.appendChild(f);setTimeout(()=>f.remove(),950)})};
   for(let k=0;k<snaps.length;k++){
     const s=snaps[k];$('#bl').textContent=s.label;
     $('#bn').innerHTML=s.notes.slice(-2).join('<br>');paint(s,skip);
@@ -556,13 +561,13 @@ let spark=()=>{};
   const cv=$('#fx'),ctx=cv.getContext('2d');let w,h;const P=[],S=[];
   const fit=()=>{const r=devicePixelRatio||1;w=cv.width=innerWidth*r;h=cv.height=innerHeight*r;ctx.setTransform(r,0,0,r,0,0);w=innerWidth;h=innerHeight};fit();addEventListener('resize',fit);
   const mk=()=>({x:Math.random()*w,y:Math.random()*h,s:1.5+Math.random()*2.5,v:.2+Math.random()*.5,a:Math.random()*6.28,c:Math.random()<.25?'#e8502c':'#efe6cf',o:.12+Math.random()*.3});
-  for(let i=0;i<46;i++)P.push(mk());
-  spark=(x,y,col,n=10)=>{for(let i=0;i<n;i++){const a=Math.random()*6.28,v=2+Math.random()*5;S.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,s:2+Math.random()*3,l:1,c:Math.random()<.4?'#efe6cf':col})}};
+  for(let i=0;i<26;i++)P.push(mk());
+  spark=(x,y,col,n=10)=>{for(let i=0;i<n;i++){const a=Math.random()*6.28,v=2+Math.random()*5;S.push({x,y,vx:Math.cos(a)*v*.7,vy:Math.sin(a)*v*.7-1.2,s:1.5+Math.random()*1.8,l:1,c:Math.random()<.3?'#ffe2a0':col})}};
   (function tick(){ctx.clearRect(0,0,w,h);
     for(const p of P){p.a+=.012;p.x+=Math.sin(p.a)*.35;p.y+=p.v;if(p.y>h+8){Object.assign(p,mk());p.y=-6}
-      ctx.globalAlpha=p.o;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s)}
+      ctx.globalAlpha=p.o*.6;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.s*.45,0,6.28);ctx.fill()}
     for(let i=S.length-1;i>=0;i--){const s=S[i];s.x+=s.vx;s.y+=s.vy;s.vy+=.35;s.vx*=.97;s.l-=.035;if(s.l<=0){S.splice(i,1);continue}
-      ctx.globalAlpha=Math.min(1,s.l*1.4);ctx.fillStyle=s.c;ctx.fillRect(s.x,s.y,s.s,s.s)}
+      ctx.globalAlpha=Math.min(1,s.l*1.4);ctx.fillStyle=s.c;ctx.beginPath();ctx.arc(s.x,s.y,s.s,0,6.28);ctx.fill()}
     requestAnimationFrame(tick)})()})();
 
 title();
