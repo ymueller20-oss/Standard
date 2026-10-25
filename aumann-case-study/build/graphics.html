@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;800;900&family=Instrument+Serif:ital@1&display=block" rel="stylesheet">
+<style>
+  :root {
+    --bg0: #050806; --bg1: #0c1912; --ink: #f3f6f1; --muted: #9aa99f;
+    --green: #4fd36b; --green-deep: #1d6a34; --card: rgba(255,255,255,.045);
+    --line: rgba(255,255,255,.10); --warn: #ffcc4d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  body { font-family: "Inter Tight", "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+  #stage { position: absolute; inset: 0; background: radial-gradient(120% 90% at 30% 40%, var(--bg1), var(--bg0) 70%); overflow: hidden; }
+  body.panel #stage { background: transparent; }
+  #grain { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px); background-size: 6px 6px; opacity: .5; }
+  body.panel #grain { display: none; }
+  .beat { position: absolute; inset: 0; opacity: 0; }
+  em { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; color: var(--green); letter-spacing: -.01em; padding-right: .02em; }
+  .anim { opacity: 0; will-change: transform, opacity; }
+
+  .kicker { font-size: 28px; font-weight: 800; letter-spacing: .22em; color: var(--green); text-transform: uppercase; }
+  .pill { display: inline-flex; align-items: center; gap: 12px; padding: 12px 22px; border-radius: 999px; background: rgba(79,211,107,.13); color: var(--green); font-weight: 800; font-size: 24px; letter-spacing: .16em; text-transform: uppercase; }
+  .foot { position: absolute; left: 140px; bottom: 175px; font-size: 22px; color: var(--muted); font-weight: 500; }
+
+  /* title */
+  .title-wrap { position: absolute; left: 140px; right: 140px; top: 230px; }
+  .title-wrap .big { font-size: 132px; font-weight: 900; line-height: 1.0; letter-spacing: -.035em; margin-top: 26px; }
+  .title-wrap .big em { font-size: 1.08em; }
+  .title-wrap .sub { font-size: 40px; color: var(--muted); font-weight: 500; margin-top: 34px; max-width: 1400px; line-height: 1.3; }
+
+  /* chapter */
+  .chap-num { position: absolute; right: 60px; top: 30px; font-size: 620px; font-weight: 900; color: rgba(79,211,107,.07); letter-spacing: -.06em; line-height: 1; }
+  .chap { position: absolute; left: 140px; top: 330px; right: 140px; }
+  .chap .t { font-size: 124px; font-weight: 900; letter-spacing: -.035em; line-height: 1.02; margin-top: 30px; max-width: 1500px; }
+  .chap .rule { height: 10px; width: 260px; background: var(--green); border-radius: 6px; margin-top: 46px; transform-origin: left center; }
+
+  /* stats */
+  .sec-title { position: absolute; left: 140px; top: 150px; font-size: 64px; font-weight: 900; letter-spacing: -.025em; }
+  .stats { position: absolute; left: 140px; right: 140px; top: 330px; display: flex; gap: 36px; }
+  .stat { flex: 1; max-width: 560px; background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 46px 44px 50px; }
+  .stat .n { font-size: 116px; font-weight: 900; letter-spacing: -.04em; line-height: 1; background: linear-gradient(180deg, #fff 20%, #b9f5c6); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+  .stat .l { font-size: 30px; color: var(--muted); margin-top: 18px; font-weight: 600; }
+  .stat .bar { height: 6px; background: var(--green); border-radius: 4px; margin-top: 26px; width: 70px; }
+
+  /* compare */
+  .cmp { position: absolute; left: 140px; right: 140px; top: 300px; display: grid; grid-template-columns: 1fr 120px 1fr; align-items: center; }
+  .cmp .card { background: var(--card); border: 1px solid var(--line); border-radius: 30px; padding: 54px 50px; }
+  .cmp .card.hot { background: linear-gradient(160deg, rgba(79,211,107,.20), rgba(79,211,107,.05)); border-color: rgba(79,211,107,.5); }
+  .cmp .sub { font-size: 24px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
+  .cmp .card.hot .sub { color: var(--green); }
+  .cmp .n { font-size: 150px; font-weight: 900; letter-spacing: -.045em; line-height: 1; margin-top: 18px; white-space: nowrap; }
+  .cmp .l { font-size: 34px; font-weight: 700; margin-top: 14px; }
+  .cmp .d { font-size: 24px; color: var(--muted); margin-top: 10px; }
+  .cmp .vs { text-align: center; font-size: 64px; color: var(--green); font-weight: 900; }
+
+  /* bars */
+  .bars { position: absolute; left: 140px; right: 220px; top: 330px; }
+  .bars .row { margin-bottom: 64px; }
+  .bars .lab { display: flex; justify-content: space-between; align-items: baseline; font-size: 40px; font-weight: 800; margin-bottom: 18px; }
+  .bars .lab span:last-child { font-size: 64px; font-weight: 900; letter-spacing: -.03em; }
+  .bars .track { height: 46px; background: rgba(255,255,255,.07); border-radius: 14px; overflow: hidden; }
+  .bars .fill { height: 100%; border-radius: 14px; background: #5b6a61; width: 0; }
+  .bars .fill.accent { background: linear-gradient(90deg, var(--green-deep), var(--green)); }
+
+  /* quote */
+  .quote { position: absolute; left: 140px; right: 180px; top: 250px; }
+  .quote .mark { font-family: "Instrument Serif", serif; font-size: 300px; line-height: .6; color: var(--green); height: 140px; }
+  .quote .txt { font-size: 120px; font-weight: 900; letter-spacing: -.035em; line-height: 1.04; }
+  .quote .src { font-size: 30px; color: var(--muted); margin-top: 40px; font-weight: 600; }
+
+  /* image */
+  .img-left { position: absolute; left: 140px; top: 250px; width: 620px; }
+  .img-left .cap { font-size: 62px; font-weight: 900; letter-spacing: -.025em; line-height: 1.08; margin-top: 28px; }
+  .img-left .statn { font-size: 104px; font-weight: 900; letter-spacing: -.04em; color: var(--green); margin-top: 40px; line-height: 1; }
+  .img-left .statl { font-size: 28px; color: var(--muted); font-weight: 600; margin-top: 8px; }
+  .img-frame { position: absolute; left: 840px; top: 170px; width: 940px; height: 640px; border-radius: 26px; overflow: hidden; box-shadow: 0 40px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.12); background: #111; }
+  .img-frame.portrait { left: 1040px; top: 110px; width: 420px; height: 746px; }
+  .img-frame img { width: 100%; height: 100%; object-fit: cover; object-position: top left; transform-origin: 30% 30%; }
+  .img-frame .hl { position: absolute; border: 6px solid var(--green); border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,.0); }
+
+  /* thumbs */
+  .thumbs { position: absolute; left: 140px; right: 140px; top: 320px; display: flex; gap: 40px; }
+  .thumb { flex: 1; }
+  .thumb .im { aspect-ratio: 16/9; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.1); }
+  .thumb .im img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb .lb { font-size: 38px; font-weight: 800; margin-top: 24px; }
+  .thumb .lb small { display: block; font-size: 22px; color: var(--muted); font-weight: 600; margin-top: 6px; letter-spacing: .12em; text-transform: uppercase; }
+
+  /* timeline */
+  .tl { position: absolute; left: 160px; right: 160px; top: 330px; height: 300px; }
+  .tl .line { position: absolute; left: 60px; right: 60px; top: 58px; height: 8px; background: rgba(255,255,255,.12); border-radius: 4px; }
+  .tl .line i { position: absolute; inset: 0; background: linear-gradient(90deg, var(--green-deep), var(--green)); border-radius: 4px; transform-origin: left; }
+  .tl .node { position: absolute; top: 0; width: 520px; }
+  .tl .node.r { right: 0; text-align: right; }
+  .tl .dot { width: 124px; height: 124px; border-radius: 50%; background: var(--bg1); border: 8px solid var(--green); }
+  .tl .node.r .dot { margin-left: auto; background: var(--green); }
+  .tl .y { font-size: 104px; font-weight: 900; letter-spacing: -.04em; margin-top: 30px; line-height: 1; }
+  .tl .lb { font-size: 38px; color: var(--muted); font-weight: 700; margin-top: 12px; }
+
+  /* takeaway */
+  .take { position: absolute; left: 140px; right: 140px; top: 220px; background: linear-gradient(150deg, rgba(79,211,107,.16), rgba(79,211,107,.03)); border: 1px solid rgba(79,211,107,.45); border-radius: 36px; padding: 70px 80px 80px; }
+  .take .txt { font-size: 92px; font-weight: 900; letter-spacing: -.03em; line-height: 1.06; margin-top: 34px; }
+  .take .warn { margin-top: 40px; font-size: 32px; color: var(--warn); font-weight: 700; display: flex; gap: 16px; align-items: center; }
+
+  /* stairs */
+  .stairs { position: absolute; left: 140px; right: 140px; top: 250px; height: 600px; }
+  .step { position: absolute; width: 400px; bottom: 0; border-radius: 22px 22px 0 0; padding: 30px 30px; background: linear-gradient(180deg, rgba(79,211,107,.22), rgba(79,211,107,.04)); border: 1px solid rgba(79,211,107,.4); border-bottom: none; }
+  .step .k { font-size: 22px; font-weight: 800; letter-spacing: .16em; color: var(--green); }
+  .step .lb { font-size: 38px; font-weight: 900; margin-top: 10px; letter-spacing: -.02em; line-height: 1.08; }
+  .step .sb { font-size: 26px; color: var(--muted); font-weight: 600; margin-top: 8px; }
+
+  /* checklist */
+  .check { position: absolute; left: 140px; right: 140px; top: 270px; display: grid; grid-template-columns: 1fr 1fr; gap: 26px 50px; }
+  .check .it { display: flex; gap: 26px; align-items: center; font-size: 42px; font-weight: 800; letter-spacing: -.015em; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 28px 30px; }
+  .check .nb { flex: none; width: 70px; height: 70px; border-radius: 50%; background: var(--green); color: #06110a; display: grid; place-items: center; font-size: 34px; font-weight: 900; }
+
+  /* end */
+  .end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .end .t { font-size: 110px; font-weight: 900; letter-spacing: -.035em; margin-top: 30px; }
+  .end .s { font-size: 24px; color: var(--muted); margin-top: 50px; max-width: 1400px; line-height: 1.5; font-weight: 500; }
+
+  /* clip panel (transparent overlay next to the reel) */
+  .panel-wrap { position: absolute; left: 130px; top: 0; bottom: 0; width: 1000px; display: flex; flex-direction: column; justify-content: center; }
+  .panel-wrap .h { font-size: 100px; font-weight: 900; letter-spacing: -.035em; line-height: 1.04; margin-top: 30px; text-shadow: 0 6px 40px rgba(0,0,0,.6); }
+  .panel-wrap .src { margin-top: 40px; font-size: 26px; color: #d5ddd7; font-weight: 600; display: flex; align-items: center; gap: 14px; }
+  .panel-wrap .src i { width: 14px; height: 14px; border-radius: 50%; background: #ff3b5c; display: inline-block; }
+
+  /* captions */
+  #caps { position: absolute; left: 0; right: 0; bottom: 70px; text-align: center; height: 90px; }
+  #caps .chunk { display: inline-block; font-size: 58px; font-weight: 900; letter-spacing: -.01em; padding: 10px 26px; border-radius: 18px; background: rgba(4,8,6,.72); }
+  #caps .w { display: inline-block; margin: 0 .14em; transition: none; }
+  #caps .w.on { color: var(--green); }
+  #caps .w.pre { opacity: .45; }
+</style>
+</head>
+<body>
+<div id="stage"><div id="grain"></div><div id="beats"></div><div id="caps"></div></div>
+<script>
+const ease = p => 1 - Math.pow(1 - Math.min(Math.max(p, 0), 1), 3);
+const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+const md = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\*([^*]+)\*/g, '<em>$1</em>');
+const fmt = (v, f, prefix = '') => {
+  let s;
+  if (f === 'dec1') s = v.toFixed(1).replace('.', ',');
+  else if (f === 'pct1') s = v.toFixed(1).replace('.', ',') + ' %';
+  else if (f === 'pct2') s = v.toFixed(2).replace('.', ',') + ' %';
+  else s = Math.round(v).toLocaleString('de-DE');
+  return prefix === '+' ? s + '+' : prefix + s;
+};
+
+let S = { beats: [], caps: [], dur: 0 };
+
+// Each animated element: {el, at, kind, ...}. `at` is seconds relative to its beat start.
+function A(el, at, kind = 'rise', extra = {}) { return Object.assign({ el, at, kind }, extra); }
+
+function build(v, lineStarts) {
+  const b = document.createElement('div'); b.className = 'beat';
+  const anims = [];
+  const add = (html, cls, parent = b) => { const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = html; parent.appendChild(d); return d; };
+  const L = i => (lineStarts[i] ?? lineStarts[lineStarts.length - 1]) - lineStarts[0];
+  switch (v.kind) {
+    case 'title': {
+      const w = add('', 'title-wrap');
+      anims.push(A(add(md(v.kicker), 'kicker anim', w), 0.05));
+      anims.push(A(add(md(v.big), 'big anim', w), 0.2));
+      if (v.sub) anims.push(A(add(md(v.sub), 'sub anim', w), 0.55));
+      break;
+    }
+    case 'chapter': {
+      anims.push(A(add(v.num, 'chap-num anim'), 0, 'zoom'));
+      const w = add('', 'chap');
+      anims.push(A(add('Schritt ' + v.num, 'pill anim', w), 0.05));
+      anims.push(A(add(md(v.title), 't anim', w), 0.2));
+      anims.push(A(add('', 'rule anim', w), 0.5, 'wipe'));
+      break;
+    }
+    case 'stats': {
+      anims.push(A(add(md(v.title), 'sec-title anim'), 0));
+      const row = add('', 'stats');
+      v.items.forEach((it, i) => {
+        const c = add('', 'stat anim', row);
+        const n = add('', 'n', c);
+        add(md(it.label), 'l', c); add('', 'bar', c);
+        anims.push(A(c, 0.25 + i * 0.25 + Math.max(0, L(i) - 0.3) * (v.items.length === lineStarts.length ? 1 : 0)));
+        anims.push(A(n, 0.25 + i * 0.25 + Math.max(0, L(i) - 0.3) * (v.items.length === lineStarts.length ? 1 : 0), 'count', { to: it.value, f: it.fmt, prefix: it.prefix || '' }));
+      });
+      if (v.foot) anims.push(A(add(md(v.foot), 'foot anim'), 1.2, 'fade'));
+      break;
+    }
+    case 'compare': {
+      anims.push(A(add(md(v.title), 'sec-title anim'), 0));
+      const g = add('', 'cmp');
+      const card = (o, hot, at) => {
+        const c = add('', 'card anim' + (hot ? ' hot' : ''), g);
+        add(md(o.sub || ''), 'sub', c); const n = add('', 'n', c); add(md(o.label), 'l', c); if (o.d) add(md(o.d), 'd', c);
+        anims.push(A(c, at)); anims.push(A(n, at, 'count', { to: o.value, f: o.fmt, prefix: '' }));
+        return c;
+      };
+      const leftAt = 0.2, rightAt = Math.max(1.0, L(1) - 0.2);
+      card(v.left, false, leftAt);
+      anims.push(A(add('→', 'vs anim', g), rightAt - 0.2, 'fade'));
+      card(v.right, true, rightAt);
+      break;
+    }
+    case 'bars': {
+      anims.push(A(add(md(v.title), 'sec-title anim'), 0));
+      const w = add('', 'bars');
+      v.items.forEach((it, i) => {
+        const r = add('', 'row anim', w);
+        add(`<span>${md(it.label)}</span><span>${it.display}</span>`, 'lab', r);
+        const t = add('', 'track', r); const f = add('', 'fill' + (it.accent ? ' accent' : ''), t);
+        const at = 0.3 + i * 0.5 + Math.max(0, L(1) - 0.5);
+        anims.push(A(r, at)); anims.push(A(f, at + 0.2, 'bar', { pct: it.value / v.max * 100 }));
+      });
+      if (v.foot) anims.push(A(add(md(v.foot), 'foot anim'), 1.4, 'fade'));
+      break;
+    }
+    case 'quote': {
+      const w = add('', 'quote');
+      anims.push(A(add('“', 'mark anim', w), 0, 'fade'));
+      anims.push(A(add(md(v.text), 'txt anim', w), Math.max(0.2, L(1) - 0.2)));
+      anims.push(A(add(md(v.source), 'src anim', w), Math.max(0.6, L(1) + 0.3)));
+      break;
+    }
+    case 'image': {
+      const w = add('', 'img-left');
+      anims.push(A(add(md(v.label), 'pill anim', w), 0.05));
+      anims.push(A(add(md(v.caption), 'cap anim', w), 0.25));
+      if (v.stat) {
+        const n = add('', 'statn anim', w); add(md(v.stat.label), 'statl', w);
+        const at = Math.max(0.8, L(2) - 0.3);
+        anims.push(A(n, at)); anims.push(A(n, at, 'count', { to: v.stat.value, f: v.stat.fmt, prefix: '' }));
+      }
+      const fr = add('', 'img-frame anim' + (v.portrait ? ' portrait' : ''));
+      const img = document.createElement('img'); img.src = 'assets/' + v.src; fr.appendChild(img);
+      anims.push(A(fr, 0.15, 'rise')); anims.push(A(img, 0, 'ken'));
+      if (v.highlight) {
+        const h = add('', 'hl anim', fr);
+        Object.assign(h.style, { left: v.highlight.x * 100 + '%', top: v.highlight.y * 100 + '%', width: v.highlight.w * 100 + '%', height: v.highlight.h * 100 + '%' });
+        anims.push(A(h, Math.max(1.2, L(1) - 0.2), 'pulse'));
+      }
+      break;
+    }
+    case 'thumbs': {
+      anims.push(A(add(md(v.title), 'sec-title anim'), 0));
+      const row = add('', 'thumbs');
+      v.items.forEach((it, i) => {
+        const c = add(`<div class="im"><img src="assets/${it.src}"></div><div class="lb">${md(it.label)}<small>Talk auf YouTube</small></div>`, 'thumb anim', row);
+        anims.push(A(c, Math.max(0.3, L(1) - 0.2) + i * 0.4));
+      });
+      break;
+    }
+    case 'timeline': {
+      const t = add('', 'tl');
+      const line = add('<i></i>', 'line', t);
+      const n1 = add(`<div class="dot"></div><div class="y">${v.from.year}</div><div class="lb">${md(v.from.label)}</div>`, 'node anim', t);
+      const n2 = add(`<div class="dot"></div><div class="y">${v.to.year}</div><div class="lb">${md(v.to.label)}</div>`, 'node r anim', t);
+      anims.push(A(n1, 0.1));
+      anims.push(A(line.firstChild, 0.6, 'wipe', { dur: Math.max(0.8, L(1) - 0.6) }));
+      anims.push(A(n2, Math.max(1.2, L(1)), 'pop'));
+      if (v.foot) anims.push(A(add(md(v.foot), 'foot anim'), Math.max(1.6, L(1) + 0.6), 'fade'));
+      break;
+    }
+    case 'takeaway': {
+      const c = add('', 'take anim');
+      add('Für dich · ' + v.num, 'pill', c);
+      add(md(v.text), 'txt', c);
+      anims.push(A(c, 0.05, 'rise'));
+      if (v.warn) anims.push(A(add('⚠&nbsp; ' + md(v.warn), 'warn anim', c), Math.max(1.0, L(1) - 0.2), 'fade'));
+      break;
+    }
+    case 'stairs': {
+      anims.push(A(add(md(v.title), 'sec-title anim'), 0));
+      const w = add('', 'stairs');
+      v.items.forEach((it, i) => {
+        const s = add(`<div class="k">STUFE ${i + 1}</div><div class="lb">${md(it.label)}</div><div class="sb">${md(it.sub)}</div>`, 'step anim', w);
+        Object.assign(s.style, { left: i * 410 + 'px', height: (230 + i * 115) + 'px' });
+        anims.push(A(s, Math.max(0.2, L(i + 1) - 0.15)));
+      });
+      break;
+    }
+    case 'checklist': {
+      anims.push(A(add(md(v.title), 'sec-title anim'), 0));
+      const w = add('', 'check');
+      v.items.forEach((it, i) => {
+        const r = add(`<div class="nb">${i + 1}</div><div>${md(it)}</div>`, 'it anim', w);
+        anims.push(A(r, Math.max(0.2, L(i + 1) - 0.15)));
+      });
+      break;
+    }
+    case 'end': {
+      const w = add('', 'end');
+      anims.push(A(add('Case Study', 'pill anim', w), 0.1));
+      anims.push(A(add(md(v.title), 't anim', w), 0.3));
+      anims.push(A(add(md(v.sources), 's anim', w), 0.8, 'fade'));
+      break;
+    }
+    case 'panel': {
+      const w = add('', 'panel-wrap');
+      anims.push(A(add(md(v.kicker), 'kicker anim', w), 0.15));
+      anims.push(A(add(md(v.headline), 'h anim', w), 0.3));
+      anims.push(A(add(`<i></i>${md(v.source)}`, 'src anim', w), 0.6, 'fade'));
+      break;
+    }
+  }
+  document.getElementById('beats').appendChild(b);
+  return { el: b, anims };
+}
+
+// Caption chunks: split each line into chunks of <= 4 words / ~24 chars,
+// distribute time proportional to character count.
+function buildCaps(lines) {
+  const caps = [];
+  for (const ln of lines) {
+    const words = ln.show.split(/\s+/).filter(Boolean);
+    const chunks = []; let cur = [];
+    for (const w of words) {
+      const len = cur.join(' ').length + w.length;
+      if (cur.length && (cur.length >= 4 || len > 24)) { chunks.push(cur); cur = []; }
+      cur.push(w);
+      if (/[.,:;!?“]$/.test(w) && cur.length >= 2) { chunks.push(cur); cur = []; }
+    }
+    if (cur.length) chunks.push(cur);
+    const total = words.reduce((a, w) => a + w.length + 1, 0);
+    let t = ln.start; const span = ln.end - ln.start;
+    for (const ch of chunks) {
+      const ws = ch.map(w => { const d = span * (w.length + 1) / total; const o = { w, s: t, e: t + d }; t += d; return o; });
+      caps.push({ s: ws[0].s, e: ws[ws.length - 1].e, words: ws });
+    }
+  }
+  return caps;
+}
+
+window.setup = (scene, timing, opts = {}) => {
+  if (opts.panel) document.body.classList.add('panel');
+  S.dur = timing ? timing.duration : scene.duration;
+  const beats = scene.beats || [{ visual: scene.visual }];
+  const starts = beats.map((_, bi) => {
+    if (!timing) return 0;
+    const first = timing.lines.find(l => l.beat === bi);
+    return bi === 0 ? 0 : first.start - 0.2;
+  });
+  S.beats = beats.map((bt, bi) => {
+    const ls = timing ? timing.lines.filter(l => l.beat === bi).map(l => l.start) : [0];
+    const built = build(bt.visual, ls);
+    return Object.assign(built, { start: starts[bi], end: bi + 1 < beats.length ? starts[bi + 1] : S.dur, anchor: Math.max(0, ls[0] - 0.2), first: bi === 0, last: bi === beats.length - 1 });
+  });
+  S.caps = timing && !opts.nocaps ? buildCaps(timing.lines) : [];
+  return S.dur;
+};
+
+window.render = t => {
+  for (const b of S.beats) {
+    const inT = t - b.start, outT = b.end - t;
+    const fadeIn = b.first ? 1 : clamp(inT / 0.25, 0, 1), fadeOut = b.last ? 1 : clamp(outT / 0.25, 0, 1);
+    b.el.style.opacity = Math.min(fadeIn, fadeOut);
+    b.el.style.display = (inT < 0 || outT < -0.01) && !(b.last && outT >= -1) ? 'none' : 'block';
+    const lt = t - b.anchor;
+    for (const a of b.anims) {
+      const p = ease((lt - a.at) / (a.dur || 0.55)), s = a.el.style;
+      switch (a.kind) {
+        case 'rise': s.opacity = p; s.transform = `translateY(${(1 - p) * 46}px)`; break;
+        case 'fade': s.opacity = p; break;
+        case 'zoom': s.opacity = p; s.transform = `scale(${1.15 - 0.15 * p}) translateX(${(lt) * -6}px)`; break;
+        case 'pop': s.opacity = p; s.transform = `scale(${0.85 + 0.15 * p})`; break;
+        case 'wipe': s.opacity = 1; s.transform = `scaleX(${p})`; break;
+        case 'count': { const q = ease((lt - a.at - 0.1) / 1.3); a.el.textContent = fmt(a.to * q, a.f, a.prefix); break; }
+        case 'bar': s.width = (a.pct * ease((lt - a.at) / 1.1)) + '%'; break;
+        case 'ken': s.transform = `scale(${1 + 0.06 * clamp(inT / Math.max(b.end - b.start, 1), 0, 1)})`; break;
+        case 'pulse': { s.opacity = p; const k = Math.max(0, lt - a.at); s.transform = `scale(${1 + 0.04 * Math.sin(k * 5) * Math.exp(-k * 0.6)})`; break; }
+      }
+    }
+  }
+  const caps = document.getElementById('caps');
+  const c = S.caps.find(c => t >= c.s - 0.02 && t < c.e + 0.15);
+  const key = c ? c.s : -1;
+  if (caps.dataset.k != key) {
+    caps.dataset.k = key;
+    caps.innerHTML = c ? '<span class="chunk">' + c.words.map((w, i) => `<span class="w" data-i="${i}">${w.w.replace(/[„“]/g, m => m)}</span>`).join('') + '</span>' : '';
+  }
+  if (c) caps.querySelectorAll('.w').forEach((el, i) => {
+    const w = c.words[i];
+    el.className = 'w' + (t >= w.s && t < w.e + 0.02 ? ' on' : '');
+  });
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+{
+  "scenes": [
+    {
+      "type": "clip",
+      "id": "k00_hook",
+      "src": "ig_Dej5DVIuApa.mp4",
+      "start": 0.0,
+      "end": 2.95,
+      "kicker": "MATTHIAS AUMANN",
+      "headline": "„Wenn du alles unter Kontrolle hast, fährst du zu *langsam*.“",
+      "source": "@matthiasaumann · Instagram"
+    },
+    {
+      "type": "vo",
+      "id": "k01_intro",
+      "beats": [
+        {
+          "visual": {"kind": "title", "kicker": "CASE STUDY", "big": "Matthias *Aumann*", "sub": "Gärtner aus Cloppenburg."},
+          "lines": [
+            {"show": "Das ist Matthias Aumann. Gärtner aus Cloppenburg.", "say": "Das ist Matthias Aumann. Gärtner aus Cloppenburg."}
+          ]
+        },
+        {
+          "visual": {"kind": "stats", "title": "Seine Zahlen", "items": [
+            {"value": 67700, "label": "Follower auf Instagram", "fmt": "dots"},
+            {"value": 9.0, "label": "Mio. Aufrufe auf YouTube", "fmt": "dec1"},
+            {"value": 6000, "label": "begleitete Betriebe*", "fmt": "dots", "prefix": "+"}
+          ], "foot": "* nach eigenen Angaben"},
+          "lines": [
+            {"show": "67.700 Follower.", "say": "Siebenundsechzigtausend Follower."},
+            {"show": "9 Millionen Aufrufe.", "say": "Neun Millionen Aufrufe."},
+            {"show": "Über 6.000 begleitete Betriebe.", "say": "Über sechstausend begleitete Betriebe."}
+          ]
+        },
+        {
+          "visual": {"kind": "title", "kicker": "6 SCHRITTE · 2 MINUTEN", "big": "Sein *Playbook*", "sub": "So wird aus Reichweite ein Kundengespräch."},
+          "lines": [
+            {"show": "Hier ist sein Playbook. Sechs Schritte, zwei Minuten.", "say": "Hier ist sein Playbook. Sechs Schritte, zwei Minuten."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "vo",
+      "id": "k02_herkunft",
+      "beats": [
+        {
+          "visual": {"kind": "chapter", "num": "01", "title": "Herkunft als Beweis"},
+          "lines": [
+            {"show": "Eins: Herkunft als Beweis.", "say": "Eins: Herkunft als Beweis."}
+          ]
+        },
+        {
+          "visual": {"kind": "timeline", "from": {"year": "2012", "label": "1 Transporter"}, "to": {"year": "Heute", "label": "200+ Mitarbeiter*"}, "foot": "* eigene Angabe · aumann:grün, Garten- & Landschaftsbau"},
+          "lines": [
+            {"show": "2012: ein Transporter.", "say": "Zweitausendzwölf: ein Transporter."},
+            {"show": "Heute: über 200 Mitarbeiter.", "say": "Heute: über zweihundert Mitarbeiter."},
+            {"show": "Er verkauft keine Theorie. Er zeigt seinen Betrieb.", "say": "Er verkauft keine Theorie. Er zeigt seinen Betrieb."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "clip",
+      "id": "k03_betrieb",
+      "src": "ig_DerRZgEMHxO.mp4",
+      "start": 28.8,
+      "end": 35.3,
+      "kicker": "01 · HERKUNFT ALS BEWEIS",
+      "headline": "Der eigene Betrieb als *Schaufenster*.",
+      "source": "@matthiasaumann · Instagram"
+    },
+    {
+      "type": "vo",
+      "id": "k04_aufreger",
+      "beats": [
+        {
+          "visual": {"kind": "chapter", "num": "02", "title": "Aufreger, die filtern"},
+          "lines": [
+            {"show": "Zwei: Aufreger, die filtern.", "say": "Zwei: Aufreger, die filtern."}
+          ]
+        },
+        {
+          "visual": {"kind": "image", "src": "yt_5bneZLj7qi4_c.jpg", "portrait": true, "label": "YouTube Short", "caption": "„Die meisten Unternehmer sind viel zu weich.“", "stat": {"value": 968596, "label": "Aufrufe", "fmt": "dots"}},
+          "lines": [
+            {"show": "„Die meisten Unternehmer sind viel zu weich.“", "say": "Die meisten Unternehmer sind viel zu weich."},
+            {"show": "Fast eine Million Aufrufe.", "say": "Fast eine Million Aufrufe."}
+          ]
+        },
+        {
+          "visual": {"kind": "bars", "title": "Likes pro 1.000 Aufrufe · Instagram", "items": [
+            {"label": "Aufreger-Reels", "value": 18.4, "display": "14–18", "accent": true},
+            {"label": "Tipp-Reels", "value": 9.6, "display": "3–10", "accent": false}
+          ], "max": 20, "foot": "12 neueste Reels, Stand 25.10.2026"},
+          "lines": [
+            {"show": "Aufreger holen bis zu dreimal so viele Likes wie Tipps.", "say": "Aufreger holen bis zu dreimal so viele Leiks wie Tipps."}
+          ]
+        },
+        {
+          "visual": {"kind": "title", "kicker": "DER TRICK", "big": "Er regt sich über *dich* auf.", "sub": "Nie über Politik. Immer über die Fehler seiner Kunden."},
+          "lines": [
+            {"show": "Aber nie über Politik.", "say": "Aber nie über Politik."},
+            {"show": "Immer über die Fehler seiner Kunden. So filtert er Unternehmer heraus.", "say": "Immer über die Fehler seiner Kunden. So filtert er Unternehmer heraus."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "clip",
+      "id": "k05_bloedsinn",
+      "src": "ig_DerRZgEMHxO.mp4",
+      "start": 0.0,
+      "end": 3.45,
+      "kicker": "02 · AUFREGER, DIE FILTERN",
+      "headline": "„Hey, so ein *Blödsinn*.“",
+      "source": "@matthiasaumann · Instagram"
+    },
+    {
+      "type": "vo",
+      "id": "k06_wir",
+      "beats": [
+        {
+          "visual": {"kind": "chapter", "num": "03", "title": "Wir statt Zielgruppe"},
+          "lines": [
+            {"show": "Drei: Wir statt Zielgruppe.", "say": "Drei: Wir statt Zielgruppe."},
+            {"show": "Er gibt Unternehmern eine Identität.", "say": "Er gibt Unternehmern eine Identität."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "clip",
+      "id": "k07_bescheuert",
+      "src": "ig_Dej5DVIuApa.mp4",
+      "start": 41.85,
+      "end": 47.35,
+      "kicker": "03 · WIR STATT ZIELGRUPPE",
+      "headline": "„Positiv *bescheuert*.“",
+      "source": "@matthiasaumann · Instagram"
+    },
+    {
+      "type": "vo",
+      "id": "k08_familie",
+      "beats": [
+        {
+          "visual": {"kind": "stats", "title": "Sein stärkstes Reel? Die Familie.", "items": [
+            {"value": 27.0, "label": "Likes pro 1.000 Aufrufe", "fmt": "dec1"}
+          ], "foot": "Reel „Kreuzfahrt mit drei Generationen“ · höchste Like-Rate der 12 neuesten Reels"},
+          "lines": [
+            {"show": "Und sein stärkstes Reel? Die Familie. Mensch vor Marke.", "say": "Und sein stärkstes Riel? Die Familie. Mensch vor Marke."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "vo",
+      "id": "k09_buehnen",
+      "beats": [
+        {
+          "visual": {"kind": "chapter", "num": "04", "title": "Geliehene Bühnen"},
+          "lines": [
+            {"show": "Vier: Geliehene Bühnen.", "say": "Vier: Geliehene Bühnen."}
+          ]
+        },
+        {
+          "visual": {"kind": "thumbs", "title": "Am Tisch mit bekannten Namen", "items": [
+            {"src": "yt_WQgCsmlzw3k.jpg", "label": "Wolfgang Grupp"},
+            {"src": "yt_Q-uYtW-o5b0.jpg", "label": "Ralf Dümmel"},
+            {"src": "yt_7hYRo7QtOsI.jpg", "label": "Philip Hopf"}
+          ]},
+          "lines": [
+            {"show": "Er leiht sich Vertrauen:", "say": "Er leiht sich Vertrauen:"},
+            {"show": "Grupp, Dümmel, Hopf.", "say": "Grupp, Dümmel, Hopf."}
+          ]
+        },
+        {
+          "visual": {"kind": "compare", "title": "Likes pro Aufruf auf YouTube", "left": {"value": 0.02, "sub": "Imagefilm", "label": "gekaufte Reichweite?", "d": "1,55 Mio. Aufrufe · 298 Likes", "fmt": "pct2"}, "right": {"value": 3.4, "sub": "Talk mit Hopf", "label": "echtes Gespräch", "d": "124.000 Aufrufe · 4.172 Likes", "fmt": "pct1"}},
+          "lines": [
+            {"show": "Sein Imagefilm: 0,02 Prozent Likes.", "say": "Sein Imagefilm: null Komma null zwei Prozent Leiks."},
+            {"show": "Der Talk mit Hopf: 3,4 Prozent.", "say": "Der Tohk mit Hopf: drei Komma vier Prozent."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "clip",
+      "id": "k10_senat",
+      "src": "ig_DerzEfquEpP.mp4",
+      "start": 10.4,
+      "end": 14.85,
+      "kicker": "04 · GELIEHENE BÜHNEN",
+      "headline": "Berufen, *nicht beworben*.",
+      "source": "@matthiasaumann · Instagram"
+    },
+    {
+      "type": "vo",
+      "id": "k11_beweise",
+      "beats": [
+        {
+          "visual": {"kind": "chapter", "num": "05", "title": "Beweise in Serie"},
+          "lines": [
+            {"show": "Fünf: Beweise in Serie.", "say": "Fünf: Beweise in Serie."}
+          ]
+        },
+        {
+          "visual": {"kind": "stats", "title": "Jede Behauptung hat eine Zahl", "items": [
+            {"value": 6000, "label": "Betriebe begleitet", "fmt": "dots", "prefix": "+"},
+            {"value": 700, "label": "Bewertungen", "fmt": "dots", "prefix": "+"},
+            {"value": 25, "label": "Vorher-Nachher-Fälle", "fmt": "dots"}
+          ], "foot": "Angaben von matthias-aumann.de"},
+          "lines": [
+            {"show": "6.000 Betriebe.", "say": "Sechstausend Betriebe."},
+            {"show": "700 Bewertungen.", "say": "Siebenhundert Bewertungen."},
+            {"show": "25 Vorher-nachher-Fälle. Er zeigt, bei wem es funktioniert.", "say": "Fünfundzwanzig Vorher-nachher-Fälle. Er zeigt, bei wem es funktioniert."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "vo",
+      "id": "k12_gespraech",
+      "beats": [
+        {
+          "visual": {"kind": "chapter", "num": "06", "title": "Ein Ziel: das Gespräch"},
+          "lines": [
+            {"show": "Sechs: Ein Ziel, das Gespräch.", "say": "Sechs: Ein Ziel, das Gespräch."}
+          ]
+        },
+        {
+          "visual": {"kind": "image", "src": "web_ms_home.png", "label": "mission-mittelstand.de", "caption": "Ein Knopf: „Jetzt Erstgespräch buchen“", "highlight": {"x": 0.025, "y": 0.31, "w": 0.12, "h": 0.05}},
+          "lines": [
+            {"show": "Jeder Kanal endet bei einem Knopf:", "say": "Jeder Kanal endet bei einem Knopf:"},
+            {"show": "Erstgespräch buchen.", "say": "Erstgespräch buchen."}
+          ]
+        },
+        {
+          "visual": {"kind": "title", "kicker": "/BEWERBEN", "big": "Nicht kaufen. *Bewerben.*", "sub": "Der Kunde qualifiziert sich, nicht umgekehrt."},
+          "lines": [
+            {"show": "Und der Kunde kauft nicht. Er bewirbt sich.", "say": "Und der Kunde kauft nicht. Er bewirbt sich."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "vo",
+      "id": "k13_recap",
+      "beats": [
+        {
+          "visual": {"kind": "checklist", "title": "Dein Playbook", "items": [
+            "Herkunft als Beweis",
+            "Aufreger, die filtern",
+            "Wir statt Zielgruppe",
+            "Geliehene Bühnen",
+            "Beweise in Serie",
+            "Ein Ziel: das Gespräch"
+          ]},
+          "lines": [
+            {"show": "Noch mal zum Mitnehmen:", "say": "Noch mal zum Mitnehmen:"},
+            {"show": "Herkunft als Beweis.", "say": "Herkunft als Beweis."},
+            {"show": "Aufreger, die filtern.", "say": "Aufreger, die filtern."},
+            {"show": "Wir statt Zielgruppe.", "say": "Wir statt Zielgruppe."},
+            {"show": "Geliehene Bühnen.", "say": "Geliehene Bühnen."},
+            {"show": "Beweise in Serie.", "say": "Beweise in Serie."},
+            {"show": "Und ein Ziel: das Gespräch.", "say": "Und ein Ziel: das Gespräch."}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "clip",
+      "id": "k14_outro",
+      "src": "ig_DerzEfquEpP.mp4",
+      "start": 119.7,
+      "end": 121.2,
+      "kicker": "MATTHIAS AUMANN",
+      "headline": "„Und zusammen, da sind wir *stark*.“",
+      "source": "@matthiasaumann · Instagram"
+    },
+    {
+      "type": "end",
+      "id": "k15_end",
+      "duration": 3.0,
+      "title": "Case Study: Matthias *Aumann*",
+      "sources": "Quellen: @matthiasaumann (Instagram, YouTube), mission-mittelstand.de, matthias-aumann.de, vidIQ · Stand 25.10.2026"
+    }
+  ]
+}
