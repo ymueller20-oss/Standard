@@ -12,24 +12,24 @@ function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=c
 
 /* Balance-Parameter */
 const K={
-  FB:[0,5,9,14,18,25,34,42,50,55],                  // Formationsbonus je Kombo, gilt für alle 5 Teamkarten
-  son:16,                                            // Sonnenwacht · Schwur: +16/+16 je weitere Teamkarte gleicher Stärke
-  ashA:8, ashH:8,                                   // Aschelande · Feuerkette: +8/+8 je weiteres Glied der Stärkenkette
-  norA:5, norH:5,                                   // Nordmark · Eiswall: +5/+5 je weitere Nordmark-Karte im Team
-  blut:3, blutFrom:1, blutLast:1, off:-1            // Blutmoor · Blutrausch: jede Runde +3 Angriff, Todesstoß mit vollem Angriff
+  FB:[0,5,9,13,20,30,38,45,52,58],                  // Formationsbonus je Kombo, gilt für alle 5 Teamkarten (Leiter: jede Stufe schlägt die darunter in 63-89 %)
+  son:16, sonR:4,                                    // Sonnenwacht · Schwur: +16/+16 je weiterer Teamkarte gleicher Stärke, +4/+4 je weiterer Sonnenwacht-Karte
+  ashA:5, ashH:5,                                   // Aschelande · Feuerkette: +5/+5 je weiteres Glied der Stärkenkette
+  norA:4, norH:4,                                   // Nordmark · Eiswall: +4/+4 je weitere Nordmark-Karte im Team
+  blut:3, blutPer:1, blutFrom:1, blutLast:1, off:-1 // Blutmoor · Blutrausch: jede Runde +3 Angriff, +1 je weitere Blutmoor-Karte; Todesstoß mit vollem Angriff
 };
 function chainLen(rs,r){const has=x=>rs.has(x)||(x===1&&rs.has(14));let lo=r,hi=r;while(has(lo-1))lo--;while(has(hi+1))hi++;
   let L=hi-lo+1;if(r===14){let h2=1;while(has(1+h2))h2++;L=Math.max(L,h2)}return L}
 function mkTeam(five,up){up=up||{rank:{},realm:{}};const b=eval5(five),cnt={};five.forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);const rs=new Set(five.map(c=>c.r));
   const F=five.slice().sort((x,y)=>y.r-x.r||x.s-y.s).map(c=>{const st=PST[c.r],u=(up.rank[c.r]||0)+(up.realm[c.s]||0);return{c,r:c.r,s:c.s,up:u,atk:st[0]+u,hp:st[1]+u,form:0,realm:[0,0],rage:0}});
-  const nNor=F.filter(f=>f.s===2).length;
+  const nNor=F.filter(f=>f.s===2).length,nBlut=F.filter(f=>f.s===3).length,nSon=F.filter(f=>f.s===0).length;
   F.forEach(f=>{const bo=K.FB[b.cat];
     f.form=bo;f.atk+=bo;f.hp+=bo;
     let ra=0,rh=0;if(K.off===f.s){f.realm=[0,0];return}
-    if(f.s===0){const n=cnt[f.r]-1;ra=K.son*n;rh=K.son*n}
+    if(f.s===0){const n=cnt[f.r]-1,m=nSon-1;ra=K.son*n+(K.sonR||0)*m;rh=K.son*n+(K.sonR||0)*m}
     else if(f.s===1){const L=chainLen(rs,f.r);if(L>=2){ra=K.ashA*(L-1);rh=K.ashH*(L-1)}}
     else if(f.s===2){const m=nNor-1;ra=K.norA*m;rh=K.norH*m}
-    else if(f.s===3){f.rage=K.blut}
+    else if(f.s===3){f.rage=K.blut+(K.blutPer||0)*(nBlut-1)}
     f.realm=[ra,rh];f.atk+=ra;f.hp+=rh});
   F.forEach(f=>{if(f.r===2){const k=F.filter(o=>o!==f&&o.r<=5).length;f.atk+=k;f.hp+=k;f.sw=k}if(f.r===5){const k=F.filter(o=>o!==f&&o.s===f.s).length;f.atk+=k;f.wolf=k}});
   F.forEach(f=>f.max=f.hp);b.five=five;return{team:F,b,five}}
@@ -59,7 +59,7 @@ function battle(A0,B0,rec){
   if(hits.length){deaths();snap('Feueratem')}
   let round=0;
   while(live(0)&&live(1)&&round<8){round++;
-    if(round>=K.blutFrom){let any=false;for(const s of[0,1])T[s].forEach(f=>{if(f.alive&&f.rage){f.atk+=f.rage;any=true}});if(any){note('Blutrausch: Blutmoor-Karten +'+K.blut+' Angriff');snap(`Runde ${round} · Blutrausch`)}}
+    if(round>=K.blutFrom){let any=false;for(const s of[0,1])T[s].forEach(f=>{if(f.alive&&f.rage){f.atk+=f.rage;any=true}});if(any){note('Blutrausch: Blutmoor-Karten werden stärker');snap(`Runde ${round} · Blutrausch`)}}
     if(strike(f=>f.r===13)){deaths();snap(`Runde ${round} · Erstschlag`)}
     if(!live(0)||!live(1))break;
     strike(f=>f.r!==13);deaths();snap(`Runde ${round}`);
@@ -69,7 +69,7 @@ function battle(A0,B0,rec){
   if(a0.length&&!a1.length)w=0;else if(a1.length&&!a0.length)w=1;else if(a0.length&&a1.length){const h0=a0.reduce((x,f)=>x+f.hp,0),h1=a1.reduce((x,f)=>x+f.hp,0);w=h0>h1?0:h1>h0?1:-1}
   return{w,snaps,rounds:round}}
 /* Teamstärke-Schätzung für Vorschlag/KI: Angriff x Leben, Blutrausch mit erwarteten Runden */
-function power(t){let A=0,H=0;for(const f of t.team){A+=f.atk+f.rage*1.2+(f.r===14?2:0)+(f.r===13?1.5:0)+(f.r===11?1.5:0);H+=f.hp+(f.r===6?2:0)+(f.r===8?3:0)+(f.r===10?2:0)}return A*H+t.b.score/Math.pow(15,5)*0.01}
+function power(t){let A=0,H=0;for(const f of t.team){A+=f.atk+f.rage*2+(f.r===14?2:0)+(f.r===13?1.5:0)+(f.r===11?1.5:0);H+=f.hp+(f.r===6?2:0)+(f.r===8?3:0)+(f.r===10?2:0)}return A*H+t.b.score/Math.pow(15,5)*0.01}
 function pickTeam(cards,up){if(cards.length<5)return null;let best=null,bp=-1;for(const ix of combos(cards.length)){const t=mkTeam(ix.map(i=>cards[i]),up);const p=power(t);if(p>bp){bp=p;best=t}}best.pw=bp;return best}
 function bestScore(cards){let m=-1;for(const ix of combos(cards.length)){const e=eval5(ix.map(i=>cards[i]));if(e.score>m)m=e.score}return m}
 function bestFive(cards){let b=null;for(const ix of combos(cards.length)){const f=ix.map(i=>cards[i]),e=eval5(f);if(!b||e.score>b.score){b=e;b.five=f}}return b}

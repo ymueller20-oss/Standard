@@ -13,6 +13,10 @@ const ABIL={2:['Schwarm','+1/+1 für jede andere Karte mit Stärke 5 oder wenige
   10:['Bollwerk','Seine Nachbarn erleiden 1 Schaden weniger.'],11:['Stachel','Trifft zusätzlich die Nachbarn seines Ziels mit 2 Schaden.'],
   12:['Grauen','Der Gegner gegenüber kämpft mit −2 Angriff.'],13:['Erstschlag','Schlägt jede Runde zu, bevor die anderen zuschlagen.'],
   14:['Feueratem','Zu Kampfbeginn 2 Schaden an allen Gegnern.']};
+const SHORT={2:'+1/+1 je Teamkarte mit Stärke 5 oder weniger.',3:'+1 Angriff, wenn ein Gegner fällt.',4:'Erster Angriff macht doppelten Schaden.',5:'+1 Angriff je Teamkarte seines Reichs.',
+  6:'Nimmt immer 1 Schaden weniger.',7:'Greift den Gegner mit den wenigsten Leben an.',8:'Heilt jede Runde 2 Leben.',9:'Getroffene verlieren jede Runde 1 Leben.',
+  10:'Nachbarn nehmen 1 Schaden weniger.',11:'Trifft auch die Nachbarn seines Ziels mit 2.',12:'Gegner gegenüber kämpft mit −2 Angriff.',13:'Schlägt jede Runde als Erster zu.',
+  14:'Kampfbeginn: 2 Schaden an allen Gegnern.'};
 const FLAV={2:'In den Gräben fressen sie zuerst die Augen.',3:'Sie zählt die Gehenkten. Sie verzählt sich nie.',4:'Der Jäger kam mit drei Hunden. Der Keiler ging mit allen.',5:'Wenn der Winter kommt, gehört der Wald dem Rudel.',6:'Er gräbt nicht nach Gold.',7:'Ein Ritter ohne Pferd ist ein Mahl ohne Teller.',8:'Brich ihm die Knochen. Am Morgen sind sie heil. Deine nicht.',9:'Erst wollte er eine Jungfrau im Jahr. Dann zwei.',10:'Die Burg war sein Spielzeug. Er hat damit gespielt.',11:'Drei Reihen Zähne, ein Stachel und kein Mitleid.',12:'Wer sie reiten hört, wacht nicht mehr auf.',13:'Sie kommt aus der Sonne. Man sieht nur ihren Schatten.',14:'Könige knien. Drachen nicht.'};
 const CAT=['Einzelgänger','Paar','Zwei Paare','Rudel','Jagdkette','Banner','Horde','Plage','Kriegszug','Drachenkrone'];
 const CATX=['Höchste Karte','zwei gleiche Stärken','zweimal zwei gleiche Stärken','drei gleiche Stärken','fünf Stärken in Folge','fünf Karten aus einem Reich','Rudel plus Paar','vier gleiche Stärken','Jagdkette aus einem Reich','Jagdkette bis zum Drachen aus einem Reich'];
@@ -37,13 +41,13 @@ const IC={
   bowl:`<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#4a3208" stroke-width="1.2"><ellipse cx="15" cy="40" rx="11" ry="4.2" fill="#b98a28"/><ellipse cx="15" cy="35.5" rx="11" ry="4.2" fill="#d9a93a"/><ellipse cx="15" cy="31" rx="11" ry="4.2" fill="#e8c050"/><ellipse cx="15" cy="26.5" rx="11" ry="4.2" fill="#f4d56a"/><ellipse cx="34" cy="40" rx="11" ry="4.2" fill="#b98a28"/><ellipse cx="34" cy="35.5" rx="11" ry="4.2" fill="#d9a93a"/><ellipse cx="34" cy="31" rx="11" ry="4.2" fill="#f4d56a"/><ellipse cx="25" cy="22" rx="9" ry="3.6" fill="#e8c050"/><ellipse cx="25" cy="18.5" rx="9" ry="3.6" fill="#f4d56a"/></g></svg>`
 };
 const REALM=[
-  {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Schwur',ptx:'+16/+16 je weiterer Teamkarte gleicher Stärke.',strat:'Paare, Rudel, Plagen',
+  {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Schwur',ptx:'+16/+16 je weiterer Teamkarte gleicher Stärke, +4/+4 je weiterer Sonnenwacht-Karte.',strat:'Paare, Rudel, Plagen',
    lore:'Die Ritter der Sonnenwacht schwören auf das letzte Licht über den Zinnen. Wer ihren Schwur bricht, dessen Name wird aus jeder Chronik gekratzt.'},
-  {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#b3382a',ic:IC.fire,pn:'Feuerkette',ptx:'+8/+8 je weiterem Glied ihrer Stärkenkette im Team.',strat:'Jagdketten',
+  {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#b3382a',ic:IC.fire,pn:'Feuerkette',ptx:'+5/+5 je weiterem Glied ihrer Stärkenkette im Team.',strat:'Jagdketten',
    lore:'Seit der Vulkan den alten Thron verschlang, brennt das Land. Seine Fürsten sind Schmiede, Jäger und Brandstifter in einem.'},
-  {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Eiswall',ptx:'+5/+5 je weiterer Nordmark-Karte im Team.',strat:'Banner (alle fünf aus einem Reich)',
+  {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Eiswall',ptx:'+4/+4 je weiterer Nordmark-Karte im Team.',strat:'Banner (alle fünf aus einem Reich)',
    lore:'Im ewigen Winter der Nordmark überlebt nur, wer zusammensteht. Ihre Wälle aus Eis hat noch keine Armee gebrochen.'},
-  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#5b2a48',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Langer Kampf',
+  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#5b2a48',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff, +1 mehr je weiterer Blutmoor-Karte. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Langer Kampf',
    lore:'Das Blutmoor vergisst niemanden, der in ihm starb. Was dort fällt, steht noch einmal auf und schlägt ein letztes Mal zu.'}];
 const OPP=[
   {name:'Vargo Rotzahn',short:'Vargo',tag:'Söldner',col:'#a8321f',fr:'#c4472e',pl:'#f2dacb',art:'4-1',st:{aggr:.75,bluff:.16,tight:0},
@@ -100,8 +104,8 @@ function cardHTML(c,o={}){
     <div class="frm">
       <div class="plate ttl"><b class="nm">${NAME[c.r]}</b><span class="cost"><i>${RL[c.r]}</i><i class="cm">${R.ic}</i></span></div>
       <div class="art"><img src="cards/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false">${up?`<i class="plate upb">+${up}/+${up}</i>`:''}</div>
-      <div class="plate typ"><span>Kreatur — ${NAME[c.r]}</span>${SY}</div>
-      <div class="tx"><b>${ABIL[c.r][0]}</b> <i>(${ABIL[c.r][1]})</i></div>
+      <div class="plate typ"><span>${R.n}</span>${SY}</div>
+      <div class="tx"><b>${ABIL[c.r][0]}</b> · ${SHORT[c.r]}</div>
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
     </div>
     <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
