@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#0c0b0b">
+<meta name="theme-color" content="#1a120c">
 <title>Aschenthron</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,500;0,600;0,700;1,500&family=Vollkorn:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,500;0,600;0,700;1,500&family=Grenze+Gotisch:wght@600;700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Vollkorn:wght@600;700;800&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <canvas id="fx" aria-hidden="true"></canvas>
 
-<div id="stage">
+<div id="stage" class="canvas">
+  <img class="corner tl" src="orn/corner.svg" alt=""><img class="corner tr" src="orn/corner.svg" alt=""><img class="corner bl" src="orn/corner.svg" alt=""><img class="corner br" src="orn/corner.svg" alt=""><div class="candle"></div>
   <header id="hud"></header>
   <section id="opps" aria-label="Gegner"></section>
   <section id="table" aria-label="Tisch">

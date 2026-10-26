@@ -23,6 +23,7 @@ const CATX=['Höchste Karte','zwei gleiche Stärken','zweimal zwei gleiche Stär
 /* Wertigkeit: je höher der Rang, desto aufwendiger der Druck */
 const tier=r=>r<=5?1:r<=8?2:r<=10?3:r<=13?4:5;
 const TIERN=['Gemein','Ungewöhnlich','Selten','Mythisch','Mythisch · Folie'];
+const CORN='<img class="corner tl" src="orn/corner.svg" alt=""><img class="corner tr" src="orn/corner.svg" alt=""><img class="corner bl" src="orn/corner.svg" alt=""><img class="corner br" src="orn/corner.svg" alt=""><div class="candle"></div>';
 const SY='<svg class="sy" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M2 16V5l5 4 3-6 3 6 5-4v11zM2 17h16v2H2z"/></svg>';
 const I=(v,b)=>`<svg viewBox="${v}" aria-hidden="true">${b}</svg>`;
 const IC={
@@ -38,8 +39,14 @@ const IC={
   fold:I('0 0 24 24','<path fill="currentColor" d="M5 2h2v20H5zM8 3h12l-4 4.5L20 12H8z"/>'),
   call:I('0 0 24 24','<path fill="currentColor" d="M4 8l8-4 8 4v3l-8 4-8-4zM4 14l8 4 8-4v3l-8 4-8-4z"/>'),
   raise:I('0 0 24 24','<path fill="currentColor" d="M12 2l9 9h-5.5V22h-7V11H3zM6 20h12v2H6z" transform="translate(0 -1)"/>'),
-  bowl:`<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#4a3208" stroke-width="1.2"><ellipse cx="15" cy="40" rx="11" ry="4.2" fill="#b98a28"/><ellipse cx="15" cy="35.5" rx="11" ry="4.2" fill="#d9a93a"/><ellipse cx="15" cy="31" rx="11" ry="4.2" fill="#e8c050"/><ellipse cx="15" cy="26.5" rx="11" ry="4.2" fill="#f4d56a"/><ellipse cx="34" cy="40" rx="11" ry="4.2" fill="#b98a28"/><ellipse cx="34" cy="35.5" rx="11" ry="4.2" fill="#d9a93a"/><ellipse cx="34" cy="31" rx="11" ry="4.2" fill="#f4d56a"/><ellipse cx="25" cy="22" rx="9" ry="3.6" fill="#e8c050"/><ellipse cx="25" cy="18.5" rx="9" ry="3.6" fill="#f4d56a"/></g></svg>`
+  bowl:`<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#2b1d12" stroke-width="1.3" fill="#e2c062"><ellipse cx="15" cy="40" rx="11" ry="4"/><path d="M4 40v-4"/><ellipse cx="15" cy="35.5" rx="11" ry="4"/><ellipse cx="15" cy="31" rx="11" ry="4"/><ellipse cx="15" cy="26.5" rx="11" ry="4"/><ellipse cx="34" cy="40" rx="11" ry="4"/><ellipse cx="34" cy="35.5" rx="11" ry="4"/><ellipse cx="34" cy="31" rx="11" ry="4"/><ellipse cx="25" cy="22" rx="9" ry="3.4"/><ellipse cx="25" cy="18.5" rx="9" ry="3.4"/></g><g stroke="#2b1d12" stroke-width=".8" fill="none" opacity=".6"><path d="M9 26.5h12M28 31h12M19 18.5h12"/></g></svg>`
 };
+const RIC={
+  drum:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="9" rx="8" ry="3"/><path d="M4 9v7c0 1.7 3.6 3 8 3s8-1.3 8-3V9M6 11.5l3 6M18 11.5l-3 6M10 11.9l2 6.6 2-6.6"/><path d="M5 2l5 6M19 2l-5 6" stroke-linecap="round"/></g>'),
+  shield:I('0 0 24 24','<path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 2l8 3v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5z"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 6v12M7.5 11h9"/>'),
+  fourth:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="9" height="13" rx="1.5" transform="rotate(-12 7 12)"/><rect x="8" y="4" width="9" height="13" rx="1.5"/><rect x="12" y="6" width="9" height="13" rx="1.5" transform="rotate(12 16 12)"/></g>'),
+  bounty:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6l-2 4h-2z"/><path d="M11 7c-5 2-7 6-7 9 0 3 3 5 8 5s8-2 8-5c0-3-2-7-7-9"/><path d="M12 11v7M10 13c0-1 4-1 4 .5S10 15 10 16.5s4 1.5 4 0"/></g>'),
+  raven:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3.2"/></g><circle cx="12" cy="12" r="1.3" fill="currentColor"/>')};
 const REALM=[
   {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Schwur',ptx:'+16/+16 je weiterer Teamkarte gleicher Stärke, +4/+4 je weiterer Sonnenwacht-Karte.',strat:'Paare, Rudel, Plagen',
    lore:'Die Ritter der Sonnenwacht schwören auf das letzte Licht über den Zinnen. Wer ihren Schwur bricht, dessen Name wird aus jeder Chronik gekratzt.'},
@@ -61,15 +68,16 @@ let FAME=0,SEEN=new Set();
 try{FAME=+localStorage.getItem('at-fame')||0;SEEN=new Set(JSON.parse(localStorage.getItem('at-seen')||'[]'))}catch(e){}
 const rankOf=f=>{let r=RANKS[0][1];for(const[t,n]of RANKS)if(f>=t)r=n;return r};
 const saveMeta=()=>{try{localStorage.setItem('at-fame',FAME);localStorage.setItem('at-seen',JSON.stringify([...SEEN]))}catch(e){}};
-const BLINDS=[10,15,20,30,40,60,80,120];
-const START_GOLD=250,START_THRON=40,HAND_EVERY=5;
+const BLINDS=[10,15,20,30,40,60,80];
+const START_GOLD=250,START_THRON=30,HAND_EVERY=3,MAX_HANDS=12,DMG_EVERY=3;  // Format per Simulation geprüft: siehe README
 
 /* ---------- Helfer ---------- */
 const $=s=>document.querySelector(s);
 const rnd=n=>Math.floor(Math.random()*n);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 let G=null;
-const sleep=ms=>new Promise(r=>setTimeout(r,G&&G.fast?ms*.3:ms));
+const QA=/[?&]qa\b/.test(location.search);
+const sleep=ms=>new Promise(r=>setTimeout(r,QA?ms*.04:G&&G.fast?ms*.3:ms));
 const cardById={};FULL.forEach(c=>cardById[c.id]=c);
 
 /* ---------- Ton (synthetisch, kein Asset) ---------- */
@@ -152,7 +160,7 @@ async function runGame(){
     for(const p of G.players)if(!p.out&&(p.stack<=0||p.thron<=0)){p.out=true;p.inHand=false}
     render();
     const alive=G.players.filter(p=>!p.out);
-    if(me.out||alive.length===1)break;
+    if(me.out||alive.length===1||G.hand>=MAX_HANDS)break;
     await tavern();
   }
   await gameOver()}
@@ -165,21 +173,19 @@ async function playHand(){
   const lvl=Math.min(BLINDS.length-1,Math.floor((G.hand-1)/HAND_EVERY));G.bb=BLINDS[lvl];G.ante=Math.max(2,Math.round(G.bb/5));
   do{G.dealer=(G.dealer+1)%G.players.length}while(G.players[G.dealer].out);
   const deck=shuffle(FULL.slice());
-  for(const p of G.players){p.hole=[];p.sac=[];p.folded=false;p.bet=0;p.say='';p.team=null;p.inHand=!p.out;
+  for(const p of G.players){p.hole=[];p.sac=[];p.folded=false;p.bet=0;p.say='';p.team=null;p.peek=null;p.loot=0;p.inHand=!p.out;
     if(p.inHand){const a=Math.min(p.stack,G.ante);p.stack-=a;G.pot+=a}}
-  for(const p of G.players)if(p.inHand)p.hole=deck.splice(0,3);
+  for(const p of G.players)if(p.inHand){p.hole=deck.splice(0,p.fourth?4:3);p.fourth=0}
   G.deck=deck;
+  const me=G.players[0];if(me.raven&&me.inHand){for(const p of G.players.slice(1))if(p.inHand)p.peek=p.hole[rnd(p.hole.length)];me.raven=0}
   render();await sleep(900);
   await betRound();if(await soleWinner())return;
   await banner('Der Flop','',G.fast?0:800);
   G.board.push(...G.deck.splice(0,3));render();await sleep(600);
   await betRound();if(await soleWinner())return;
   await sacrifice();
-  await banner('Der Turn','',G.fast?0:700);
-  G.board.push(...G.deck.splice(0,1));render();await sleep(500);
-  await betRound();if(await soleWinner())return;
-  await banner('Der River','',G.fast?0:700);
-  G.board.push(...G.deck.splice(0,1));render();await sleep(500);
+  await banner('Die Wende','Turn und River',G.fast?0:900);
+  G.board.push(...G.deck.splice(0,2));render();await sleep(600);
   await betRound();if(await soleWinner())return;
   await showdown()}
 
@@ -192,7 +198,7 @@ async function soleWinner(){
 /* ---------- Einsatzrunde ---------- */
 async function betRound(){
   const act=live();if(act.length<2)return;
-  G.players.forEach(p=>{p.bet=0;p.say=''});G.curBet=0;G.minRaise=G.bb;
+  G.players.forEach(p=>{p.bet=0;p.say=''});G.curBet=0;G.minRaise=G.bb;G.raises=0;G.step=(G.board.length>=4?2:1)*G.bb;
   const order=seatOrderFrom(G.dealer).filter(p=>p.inHand&&!p.folded);
   const need=new Set(order.filter(p=>p.stack>0));
   const cap=()=>Math.min(...live().map(p=>p.stack+p.bet));
@@ -206,13 +212,13 @@ async function betRound(){
     const others=live().filter(q=>q!==p);
     if(toCall<=0&&others.every(q=>q.stack<=0)){need.delete(p);continue}
     G.turn=p;render();
-    const minTo=Math.min(capT,G.curBet+G.minRaise);
-    const canRaise=capT>G.curBet&&p.stack>toCall;
+    const minTo=Math.min(capT,G.curBet+G.step);
+    const canRaise=capT>G.curBet&&p.stack>toCall&&G.raises<3;
     const a=p.human?await humanAct(toCall,minTo,capT,canRaise):await aiAct(p,toCall,minTo,capT,canRaise);
     p.say='';
     if(a.t==='fold'){p.folded=true;p.say='Flieht';need.delete(p);if(p.human)G.fast=true;snd('click')}
     else if(a.t==='call'){const amt=Math.min(toCall,p.stack);p.stack-=amt;p.bet+=amt;G.pot+=amt;need.delete(p);p.say=toCall<=0?'Schiebt':(p.stack<=0?'Alles!':'Geht mit');if(amt)snd('chip')}
-    else{const to=Math.max(minTo,Math.min(capT,a.to)),amt=to-p.bet;
+    else{const to=minTo,amt=to-p.bet;G.raises++;
       G.minRaise=Math.max(G.minRaise,to-G.curBet);p.stack-=amt;p.bet=to;G.pot+=amt;G.curBet=to;
       need.clear();live().forEach(q=>{if(q!==p&&q.stack>0)need.add(q)});
       if(p.stack<=0){pulse('rgba(232,80,44,.75)');snd('thud')}else snd('chip');
@@ -228,7 +234,7 @@ async function aiAct(p,toCall,minTo,capT,canRaise){
   await sleep(650+rnd(700));
   const n=live().length,eq=equity(p,70),fair=1/n,st=p.st,bb=G.bb;
   const po=toCall/(G.pot+toCall||1),e=eq+(Math.random()-.5)*.08,bluff=Math.random()<st.bluff;
-  const size=()=>{const f=.35+Math.random()*.5+Math.max(0,e-fair)*.8;let to=G.curBet+Math.max(G.minRaise,Math.round(G.pot*f/5)*5);return Math.min(capT,Math.max(minTo,to))};
+  const size=()=>minTo;
   if(toCall<=0){
     if(canRaise&&((e>fair*1.45&&Math.random()<st.aggr+.2)||(bluff&&Math.random()<.5)))return{t:'raise',to:size()};
     return{t:'call'}}
@@ -261,14 +267,16 @@ async function showdown(){
     let five;
     if(p.human)five=await ask('lineup',{cards:seven.slice().sort((a,b)=>b.r-a.r||a.s-b.s),sel:bestFive(seven).five.map(c=>c.id)});
     else five=pickTeam(seven,p.up).five;
-    p.team=mkTeam(five,p.up)}
+    p.team=mkTeam(five,p.up);
+    if(p.drum){const b=p.team.b,add=K.FB[Math.min(9,b.cat+1)]-K.FB[b.cat];p.team.team.forEach(f=>{f.atk+=add;f.hp+=add;f.max+=add});p.team.drum=add;p.drum=0}}
   const wins=new Map(L.map(p=>[p,0])),dmg=new Map(),pairs=[];
   for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){
     const A=L[i],B=L[j],r=battle(A.team.team,B.team.team,true),last=r.snaps[r.snaps.length-1];
     const aliveA=last.st[0].filter(x=>x.alive).length,aliveB=last.st[1].filter(x=>x.alive).length;
-    const rec={A,B,r,w:r.w};pairs.push(rec);const bonus=Math.floor((G.hand-1)/6);
-    if(r.w===0){wins.set(A,wins.get(A)+1);rec.dmg=1+aliveA+bonus;dmg.set(B,(dmg.get(B)||0)+rec.dmg)}
-    else if(r.w===1){wins.set(B,wins.get(B)+1);rec.dmg=1+aliveB+bonus;dmg.set(A,(dmg.get(A)||0)+rec.dmg)}}
+    const rec={A,B,r,w:r.w};pairs.push(rec);const bonus=Math.floor((G.hand-1)/DMG_EVERY);
+    const hit=(Wn,Lo,alive)=>{wins.set(Wn,wins.get(Wn)+1);rec.dmg=1+alive+bonus;if(Lo.shield){rec.dmg=0;rec.shield=true;Lo.shield=0}
+      dmg.set(Lo,(dmg.get(Lo)||0)+rec.dmg);const loot=Math.round(G.bb/2)*(1+(Wn.bounty||0));Wn.stack+=loot;Wn.loot=(Wn.loot||0)+loot};
+    if(r.w===0)hit(A,B,aliveA);else if(r.w===1)hit(B,A,aliveB)}
   const mine=pairs.filter(x=>x.A===me||x.B===me);
   for(const x of mine){const skip=await playBattle(x);if(skip==='all')break}
   const top=Math.max(...wins.values());
@@ -282,32 +290,50 @@ async function showdown(){
   G.pot=0;render()}
 
 /* ---------- Aschenschmiede ---------- */
+const PF=()=>Math.max(1,G.bb/10*.6),price=b=>Math.max(1,Math.round(b*PF()));
+const RELIC={
+  heal:{t:'Thron flicken',d:'+8 Thron-Leben.',c:30},
+  drum:{t:'Kriegstrommel',d:'Deine nächste Formation zählt eine Stufe höher.',c:25},
+  shield:{t:'Ahnenschild',d:'Der nächste verlorene Kampf kostet dich keinen Thron.',c:24},
+  fourth:{t:'Vierte Karte',d:'Nächste Hand bekommst du 4 Handkarten.',c:40},
+  bounty:{t:'Kopfgeld',d:'Jeder gewonnene Kampf bringt dauerhaft mehr Beute.',c:30},
+  raven:{t:'Rabenauge',d:'Nächste Hand siehst du von jedem Gegner eine Handkarte.',c:18}};
 function mkOffers(){
-  const a=[],r1=2+rnd(13);let r2=2+rnd(13);if(r2===r1)r2=(r2%13)+2;
-  a.push({k:'forge',r:r1,cost:10+r1*2,t:`Schmiede: ${NAME[r1]}`,d:`Alle ${NAME[r1]}-Karten dauerhaft +2/+2.`});
-  const s=rnd(4);a.push({k:'oath',s,cost:46,t:`Schwur: ${REALM[s].n}`,d:`Alle Karten dieses Reichs dauerhaft +1/+1.`});
-  a.push(Math.random()<.5?{k:'heal',cost:30,t:'Thron flicken',d:'+8 Thron-Leben.'}:{k:'forge',r:r2,cost:10+r2*2,t:`Schmiede: ${NAME[r2]}`,d:`Alle ${NAME[r2]}-Karten dauerhaft +2/+2.`});
+  const a=[],r1=2+rnd(13);
+  a.push({k:'forge',r:r1,cost:price(10+r1*2),t:`Schmiede: ${NAME[r1]}`,d:`Alle ${NAME[r1]}-Karten dauerhaft +2/+2.`});
+  const s=rnd(4);a.push({k:'oath',s,cost:price(46),t:`Schwur: ${REALM[s].n}`,d:`Alle Karten dieses Reichs dauerhaft +1/+1.`});
+  const ks=Object.keys(RELIC),k=ks[rnd(ks.length)];a.push({k,cost:price(RELIC[k].c),t:RELIC[k].t,d:RELIC[k].d});
   return a}
 function applyOffer(p,o){
   if(o.k==='forge')p.up.rank[o.r]=(p.up.rank[o.r]||0)+2;
   else if(o.k==='oath')p.up.realm[o.s]=(p.up.realm[o.s]||0)+1;
-  else p.thron=Math.min(START_THRON,p.thron+8);
+  else if(o.k==='heal')p.thron=Math.min(START_THRON,p.thron+8);
+  else if(o.k==='bounty')p.bounty=(p.bounty||0)+1;
+  else p[o.k]=1;
   p.stack-=o.cost}
+function aiShop(p){const offers=mkOffers(),reserve=G.bb*10;let best=null,bv=0;
+  for(const o of offers){if(o.cost>p.stack-reserve)continue;let v=0;
+    if(o.k==='heal')v=p.thron<START_THRON*.5?3:0;else if(o.k==='oath')v=2;else if(o.k==='forge')v=o.r>=9?2.2:1.2;else if(o.k==='drum')v=1.5;
+    else if(o.k==='shield')v=p.thron<START_THRON*.6?2:1;else if(o.k==='fourth')v=2.4;else if(o.k==='bounty')v=G.hand<MAX_HANDS-3?1.6:0;
+    v=v/o.cost*40*(.8+Math.random()*.4);if(v>bv){bv=v;best=o}}
+  if(bv>.9)applyOffer(p,best)}
 async function tavern(){
-  for(const p of G.players.slice(1)){if(p.out)continue;
-    const o=mkOffers().filter(x=>x.cost<=p.stack-G.bb*8);
-    if(o.length&&Math.random()<.55)applyOffer(p,o[rnd(o.length)])}
+  for(const p of G.players.slice(1))if(!p.out)aiShop(p);
   const me=G.players[0];let offers=mkOffers();
   while(true){
     const c=await showSheet('tavern',{offers});
     if(c.t==='done')return;
-    if(c.t==='reroll'){me.stack-=6;offers=mkOffers();continue}
+    if(c.t==='reroll'){me.stack-=price(6);offers=mkOffers();continue}
     if(c.t==='buy'){const o=offers[c.i];if(!o.sold&&me.stack-o.cost>=1){applyOffer(me,o);o.sold=true;snd('chip')}}}}
 
 async function gameOver(){
-  const me=G.players[0],won=!me.out;
+  const me=G.players[0];
+  const score=p=>p.out?-1:p.stack+10*p.thron;
+  const rank=G.players.slice().sort((a,b)=>score(b)-score(a));
+  const won=rank[0]===me;const place=rank.indexOf(me)+1;
+  const gain=(won?150:0)+[0,60,30,15,0][place]+G.stats.won*10;const before=rankOf(FAME);FAME+=gain;saveMeta();
   snd(won?'win':'lose');
-  await showSheet('over',{won});
+  await showSheet('over',{won,rank,score,gain,place,up:rankOf(FAME)!==before});
   return newGame()}
 
 /* ================== UI ================== */
@@ -315,7 +341,7 @@ function ask(mode,data){return new Promise(res=>{G.ui={mode,...data,res};render(
 function done(v){const u=G.ui;if(!u)return;G.ui=null;u.res(v)}
 function pulse(c){const d=document.createElement('div');d.className='pulse';if(c)d.style.setProperty('--pc',c);document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
 function banner(t,s,ms){if(ms===0)return Promise.resolve();snd('thud');const d=document.createElement('div');d.className='banner';d.innerHTML=`<div>${t}${s?`<span>${s}</span>`:''}</div>`;document.body.appendChild(d);
-  return new Promise(r=>setTimeout(()=>{d.remove();r()},ms||(G.fast?500:1500)))}
+  return new Promise(r=>setTimeout(()=>{d.remove();r()},QA?40:ms||(G.fast?500:1500)))}
 
 function render(){
   if(!G)return;
@@ -325,10 +351,11 @@ function render(){
 function rHud(){
   const me=G.players[0];
   $('#hud').innerHTML=`<div class="hbtns"><button class="sq" data-a="book" aria-label="Regeln">${IC.book}</button><button class="sq ${SND.on?'':'off'}" data-a="snd" aria-label="Ton ${SND.on?'aus':'an'}">${SND.on?IC.snd:IC.mute}</button></div>
-   <div class="hud-c"><b>Hand ${G.hand}</b><span>Einsatz ${G.bb}</span></div>
+   <div class="hud-c"><b><span class="ini">N</span>acht ${G.hand}</b><span>von ${MAX_HANDS} · Einsatz ${G.bb}</span></div>
    <div class="hud-r">${G.players[G.dealer]===me?'<span class="tag">Geber</span>':''}</div>`;
   $('#meh').innerHTML=`${plateHTML(me)}`;
-  $('#meh').insertAdjacentHTML('beforeend',`<div class="who"><b>Du</b><span class="gold">${IC.gold}${me.stack}</span></div>`)}
+  const rel=[me.drum&&'Trommel',me.shield&&'Schild',me.fourth&&'4. Karte',me.raven&&'Rabenauge',me.bounty&&('Kopfgeld '+me.bounty)].filter(Boolean);
+  $('#meh').insertAdjacentHTML('beforeend',`<div class="who"><b>Du</b><span class="gold">${IC.gold}${me.stack}</span>${rel.length?`<span class="rel">${rel.map(r=>`<i>${r}</i>`).join('')}</span>`:''}</div>`)}
 
 function rOpps(){
   $('#opps').innerHTML=G.players.slice(1).map(p=>{const ticks=Math.ceil(p.thron/2);
@@ -339,6 +366,7 @@ function rOpps(){
     <div class="ost">${IC.gold}${p.stack}</div>
     ${p.bet&&!p.folded?`<div class="obet chip num">${p.bet}</div>`:''}
     ${p.sac.length?`<div class="osac" data-z="${p.sac[0].id}">${cardHTML(p.sac[0],{cls:'xs'})}</div>`:''}
+    ${p.peek&&p.hole.includes(p.peek)&&!p.folded?`<div class="opeek" data-z="${p.peek.id}">${cardHTML(p.peek,{cls:'xs'})}<span>Rabenauge</span></div>`:''}
   </div>`}).join('')}
 
 function rTable(){
@@ -346,7 +374,11 @@ function rTable(){
   pe.innerHTML=`${IC.bowl}<div class="num">${G.pot}<small>Pot</small></div>`;
   if(G.pot>G.lastPot){pe.classList.remove('bump');void pe.offsetWidth;pe.classList.add('bump')}G.lastPot=G.pot;
   const ZN=['Flop','Flop','Flop','Turn','River'];let h='';
-  for(let i=0;i<5;i++){const c=G.board[i];h+=`<div class="zone">${c?cardHTML(c,{cls:'xs '+seenCls('b'+c.id)}):'<div class="slot"></div>'}<span>${ZN[i]}</span></div>`}
+  const u=G.ui,lu=u&&u.mode==='lineup',me0=G.players[0];
+  const tm=lu&&u.sel.length===5?mkTeam(u.sel.map(id=>cardById[id]),me0.up):null;
+  for(let i=0;i<5;i++){const c=G.board[i];let o=c?{cls:'xs '+seenCls('b'+c.id)}:{};
+    if(c&&lu){const sel=u.sel.includes(c.id),f=tm&&tm.team.find(x=>x.c===c);o={cls:'xs pick '+(sel?'sel':'off'),up:upOf(me0,c),st:f?[f.atk,f.hp]:null}}
+    h+=`<div class="zone">${c?cardHTML(c,o):'<div class="slot"></div>'}<span>${ZN[i]}</span></div>`}
   $('#board').innerHTML=h;
   const left=G.deck?G.deck.length:52;$('#deck').innerHTML=left?cardHTML(null,{back:1})+(left>8?cardHTML(null,{back:1}):'')+(left>16?cardHTML(null,{back:1}):''):'';
   const me=G.players[0];let r='';
@@ -355,16 +387,18 @@ function rTable(){
     if(G.eq&&G.ui&&G.ui.mode==='bet'){r+=` · Chance <span class="${G.eq.eq>=1/G.eq.n?'g':'r'}">${Math.round(G.eq.eq*100)}%</span>`;
       if(G.eq.toCall>0)r+=` · nötig ${Math.round(G.eq.po*100)}%`}}
   else if(me.folded)r='Du hast geflohen';
-  if(G.ui&&(G.ui.mode==='lineup'||G.ui.mode==='sac'))r='';
+  if(u&&u.mode==='sac')r='<b>Opfere eine Karte</b>Sie liegt danach offen auf dem Tisch.';
+  if(u&&u.mode==='lineup'){const ch=u.sel.map(id=>cardById[id]);
+    if(ch.length===5){const t=mkTeam(ch,me.up),A=t.team.reduce((s,f)=>s+f.atk,0),H=t.team.reduce((s,f)=>s+f.hp,0);r=`<b>${comboLabel(t.b)}</b>alle +${K.FB[t.b.cat]}/+${K.FB[t.b.cat]} · ${A} Angriff · ${H} Leben`}
+    else r=`<b>Wähle 5 Karten</b>vom Tisch und aus deiner Hand`}
   $('#read').innerHTML=r}
 
 function rHand(){
   const me=G.players[0],u=G.ui,el=$('#hand');
   if(u&&u.mode==='lineup'){
-    const sel=u.sel,chosen=sel.map(id=>cardById[id]);
-    const tm=sel.length===5?mkTeam(chosen,me.up):null;
-    el.innerHTML=`<div class="strip">${u.cards.map(c=>{const i=sel.indexOf(c.id),f=tm&&tm.team.find(x=>x.c===c);
-      return cardHTML(c,{cls:(i>=0?'sel ':'')+seenCls('l'+c.id),up:upOf(me,c),st:f?[f.atk,f.hp]:null})}).join('')}</div>`;return}
+    const sel=u.sel,tm=sel.length===5?mkTeam(sel.map(id=>cardById[id]),me.up):null;
+    el.innerHTML=`<div class="fan n${me.hole.length}">${me.hole.map(c=>{const f=tm&&tm.team.find(x=>x.c===c);
+      return cardHTML(c,{cls:'pick '+(sel.includes(c.id)?'sel':'off'),up:upOf(me,c),st:f?[f.atk,f.hp]:null})}).join('')}</div>`;return}
   const cs=me.inHand&&!me.out?me.hole:[];
   if(!cs.length){el.innerHTML='';return}
   const n=cs.length;
@@ -373,28 +407,23 @@ function rHand(){
 
 function rCtrl(){
   const u=G.ui,el=$('#ctrl'),me=G.players[0];
-  if(!u){el.innerHTML=`<div class="waiting">${me.out?'Dein Thron ist gefallen.':G.turn&&!G.turn.human?G.turn.short+' überlegt …':'…'}</div>`;return}
+  if(!u){const L=G.line;el.innerHTML=`<div class="waiting">${me.out?'Dein Thron ist gefallen.':L?`<span><b>${L.who}:</b> »${L.text}«</span>`:G.turn&&!G.turn.human?G.turn.short+' überlegt …':''}</div>`;return}
   if(u.mode==='bet'){
     if(u.raising){
       const v=u.val;
-      el.innerHTML=`<div class="bigv">${v}<small>${v>=u.capT?'ALLES':(u.toCall>0?'ERHÖHEN AUF':'SETZEN')}</small></div>
+      el.innerHTML=`<div class="raisep"><div class="bigv num">${v}<small>${v>=u.capT?'alles':(u.toCall>0?'erhöhen auf':'setzen')}</small></div>
        <input type="range" id="rng" min="${u.minTo}" max="${u.capT}" step="1" value="${v}" aria-label="Betrag">
-       <div class="chips"><button class="plate btn ghost" data-a="pre" data-v="half">½ Pot</button><button class="plate btn ghost" data-a="pre" data-v="pot">Pot</button><button class="plate btn ghost" data-a="pre" data-v="all">Alles</button></div>
-       <div class="row"><button class="plate btn ghost" data-a="unraise">Zurück</button><button class="plate btn raise" data-a="doraise"><span class="lb">${u.toCall>0?'Erhöhen':'Setzen'}</span></button></div>`;return}
-    const cs=u.toCall>0?`<span class="lb">Mitgehen</span><small>${Math.min(u.toCall,me.stack)} Gold</small>`:`<span class="lb">Schieben</span><small>kostenlos</small>`;
-    el.innerHTML=`<div class="row"><button class="plate btn fold" data-a="fold"><span class="lb">Fliehen</span><small>${u.toCall>0?'Einsatz verloren':'unnötig'}</small></button>
-      <button class="plate btn" data-a="call">${cs}</button>
-      <button class="plate btn raise" data-a="raise" ${u.canRaise?'':'disabled'}><span class="lb">${u.toCall>0?'Erhöhen':'Setzen'}</span><small>${u.canRaise?'ab '+u.minTo:'nicht möglich'}</small></button></div>`;return}
+       <div class="chips"><button class="btn ghost" data-a="pre" data-v="half">½ Pot</button><button class="btn ghost" data-a="pre" data-v="pot">Pot</button><button class="btn ghost" data-a="pre" data-v="all">Alles</button></div></div>
+       <div class="row"><button class="btn ghost" data-a="unraise">Zurück</button><button class="btn raise" data-a="doraise">${u.toCall>0?'Erhöhen':'Setzen'}<small>${v>=u.capT?'alles':v+' Gold'}</small></button></div>`;return}
+    const cs=u.toCall>0?`Mitgehen<small>${Math.min(u.toCall,me.stack)} Gold</small>`:`Schieben<small>kostenlos</small>`;
+    el.innerHTML=`<div class="row"><button class="btn fold" data-a="fold">Fliehen<small>${u.toCall>0?'Einsatz verloren':'unnötig'}</small></button>
+      <button class="btn" data-a="call">${cs}</button>
+      <button class="btn raise" data-a="raise" ${u.canRaise?'':'disabled'}>${u.toCall>0?'Erhöhen':'Setzen'}<small>${u.canRaise?(u.toCall>0?'auf '+u.minTo:u.minTo+' Gold'):(G.raises>=3?'Limit erreicht':'nicht möglich')}</small></button></div>`;return}
   if(u.mode==='sac'){
-    el.innerHTML=`<div class="prompt">Opfere eine Karte<em>Sie liegt danach offen für alle auf dem Tisch.</em></div>
-      <div class="row"><button class="plate btn fold" data-a="dosac" ${u.sel?'':'disabled'}>Opfern</button></div>`;return}
+    el.innerHTML=`<div class="row"><button class="btn fold" data-a="dosac" ${u.sel?'':'disabled'}>Opfern<small>${u.sel?NAME[cardById[u.sel].r]+' opfern':'Tippe eine Handkarte an'}</small></button></div>`;return}
   if(u.mode==='lineup'){
-    const chosen=u.sel.map(id=>cardById[id]),ok=chosen.length===5;
-    let sum='';
-    if(ok){const t=mkTeam(chosen,me.up),b=t.b;const A=t.team.reduce((s,f)=>s+f.atk,0),H=t.team.reduce((s,f)=>s+f.hp,0);
-      sum=`<div class="prompt">${comboLabel(b)}<em>alle +${K.FB[b.cat]}/+${K.FB[b.cat]} · ${A} Angriff · ${H} Leben</em></div>`}
-    else sum=`<div class="prompt">Wähle 5 Karten<em>${chosen.length} von 5</em></div>`;
-    el.innerHTML=sum+`<div class="row"><button class="plate btn ghost" data-a="luauto">Stärkstes</button><button class="plate btn ghost" data-a="lupoker">Beste Kombo</button><button class="plate btn raise" data-a="dolu" ${ok?'':'disabled'}>Kämpfen</button></div>`;return}
+    const ok=u.sel.length===5;
+    el.innerHTML=`<div class="row"><button class="btn ghost" data-a="luauto">Stärkstes<small>Team</small></button><button class="btn ghost" data-a="lupoker">Beste<small>Kombo</small></button><button class="btn raise" data-a="dolu" ${ok?'':'disabled'}>Kämpfen<small>${ok?'5 von 5':u.sel.length+' von 5'}</small></button></div>`;return}
   el.innerHTML=''}
 
 /* ---------- Events ---------- */
@@ -409,7 +438,7 @@ document.addEventListener('click',e=>{
     if(!u)return;
     if(a==='fold')return done({t:'fold'});
     if(a==='call')return done({t:'call'});
-    if(a==='raise'){u.raising=true;u.val=u.minTo;snd('click');return render()}
+    if(a==='raise')return done({t:'raise',to:u.minTo});
     if(a==='unraise'){u.raising=false;return render()}
     if(a==='pre'){const pot=G.pot+u.toCall;const v=b.dataset.v==='all'?u.capT:Math.round(G.curBet+(b.dataset.v==='half'?pot/2:pot));u.val=Math.max(u.minTo,Math.min(u.capT,v));return render()}
     if(a==='doraise')return done({t:'raise',to:u.val});
@@ -420,9 +449,8 @@ document.addEventListener('click',e=>{
     return}
   if(cd&&u){
     const id=cd.dataset.id;
-    if(cd.closest('#hand')){
-      if(u.mode==='sac'){u.sel=u.sel===id?null:id;snd('click');return render()}
-      if(u.mode==='lineup'){const i=u.sel.indexOf(id);if(i>=0)u.sel.splice(i,1);else if(u.sel.length<5)u.sel.push(id);else{u.sel.shift();u.sel.push(id)}snd('click');return render()}}}
+    if(u.mode==='sac'&&cd.closest('#hand')){u.sel=u.sel===id?null:id;snd('click');return render()}
+    if(u.mode==='lineup'){const i=u.sel.indexOf(id);if(i>=0)u.sel.splice(i,1);else if(u.sel.length<5)u.sel.push(id);else{u.sel.shift();u.sel.push(id)}snd('click');return render()}}
   if(cd)return zoom(cd.dataset.id);
   if(z)return zoom(z.dataset.z)});
 document.addEventListener('input',e=>{if(e.target.id==='rng'&&G.ui){G.ui.val=+e.target.value;const bv=$('#ctrl .bigv');if(bv)bv.firstChild.textContent=G.ui.val}});
@@ -453,11 +481,12 @@ function showSheet(kind,d){
       const ups=Object.entries(me.up.rank).map(([r,v])=>`<li><b class="n">+${v}</b><div>${NAME[r]}-Karten</div></li>`).concat(Object.entries(me.up.realm).map(([s,v])=>`<li><b class="n">+${v}</b><div>Reich ${REALM[s].n}</div></li>`)).join('')||'<li><div><i>Noch keine Siegel gekauft.</i></div></li>';
       showOv(`<div class="sheet paper"><h2>Grimoire</h2><p class="k">Poker auf dem Aschenthron</p>
        <details open><summary>So läuft eine Hand</summary>
-        <p><b>1. Teilen.</b> Jeder zahlt Ante und bekommt <b>3 Kreaturenkarten</b>. Setzen, mitgehen oder fliehen, in Gold.</p>
-        <p><b>2. Flop, Opfer, Turn, River.</b> Nach dem Flop opfert jeder eine Handkarte, offen für alle. Dann kommen Turn und River.</p>
+        <p><b>Ziel.</b> Eine Partie dauert <b>12 Nächte</b>. Wer am Ende den meisten <b>Ruhm</b> hat (Gold + 10 je Thron-Leben), gewinnt. Wer vorher als Einziger übrig ist, gewinnt sofort.</p>
+        <p><b>1. Teilen.</b> Jeder zahlt Ante und bekommt <b>3 Kreaturenkarten</b>. Gesetzt wird mit <b>festen Beträgen</b>: Erhöhen geht immer um einen Einsatz, ab der Wende um zwei, höchstens dreimal pro Runde. Der Einsatz steigt alle drei Nächte.</p>
+        <p><b>2. Flop, Opfer, Wende.</b> Nach dem Flop opfert jeder eine Handkarte, offen für alle. In der Wende kommen Turn und River zusammen, dann wird ein letztes Mal gesetzt.</p>
         <p><b>3. Der Showdown ist ein Kampf.</b> Du wählst 5 deiner 7 Karten. Ihre Pokerkombo ist die <b>Formation</b> und gibt allen fünf Karten einen Bonus. Die Teams schlagen sich automatisch, ohne Würfel. Wer mehr Kämpfe gewinnt, holt den Pot.</p>
-        <p><b>4. Thron.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers. Wer flieht, bleibt unversehrt, zahlt aber mit Gold.</p>
-        <p><b>5. Siegel.</b> Zwischen den Händen gibst du Gold für <b>dauerhafte Verstärkungen</b> aus. Gold im Siegel fehlt dir am Pokertisch. Fällt Thron oder Gold auf 0, bist du raus.</p>
+        <p><b>4. Thron und Beute.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers, alle drei Nächte einer mehr. Jeder gewonnene Kampf bringt <b>Beute</b> in Gold, auch ohne Pot. Wer flieht, bleibt unversehrt, zahlt aber mit Gold.</p>
+        <p><b>5. Aschenschmiede.</b> Zwischen den Händen kaufst du Verstärkungen: Schmiede (+2/+2 für eine Kreatur), Schwur (+1/+1 für ein Reich), Thron flicken, Kriegstrommel (Formation eine Stufe höher), Ahnenschild (nächste Niederlage ohne Thron-Verlust), Vierte Karte, Kopfgeld (mehr Beute) und Rabenauge (je eine Gegnerkarte sehen). Gold in der Schmiede fehlt dir am Tisch. Fällt Thron oder Gold auf 0, bist du raus.</p>
         <p><b>Seltenheit.</b> Das Kronen-Symbol in der Typzeile zeigt sie: schwarz gemein, silber ungewöhnlich, gold selten, orange mythisch. Ab Selten trägt die Karte den Holo-Stempel, Könige und Drachen die Legendenkrone, der Drache ist Folie.</p></details>
        <details><summary>Kombos &amp; Formation</summary><ul>${rows}</ul></details>
        <details><summary>Kreaturen</summary><ul>${cr}</ul></details>
@@ -469,22 +498,24 @@ function showSheet(kind,d){
       const{offers}=d;
       showOv(`<div class="sheet"><h2>Aschenschmiede</h2><p class="k">Gold wird hier zu Macht, und fehlt dir am Tisch.</p>
         <div class="offers">${offers.map((o,i)=>{const R=o.k==='oath'?REALM[o.s]:null;
-          const pic=o.k==='forge'?`<img src="cards/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:`${IC.thron}<b>+8</b>`;
+          const pic=o.k==='forge'?`<img src="cards/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
           return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')}</div>
         <p class="k">Du hast ${me.stack} Gold · Thron ${me.thron}</p>
-        <div class="row"><button class="plate btn ghost" data-x="reroll" ${me.stack>7?'':'disabled'}>Neu würfeln<small>6 Gold</small></button><button class="plate btn" data-x="done">Nächste Hand</button></div></div>`);
+        <div class="row"><button class="plate btn ghost" data-x="reroll" ${me.stack>price(6)+1?'':'disabled'}>Neu würfeln<small>${price(6)} Gold</small></button><button class="plate btn" data-x="done">Nächste Hand</button></div></div>`);
       bindOnce(e=>{const o=e.target.closest('.offer'),x=e.target.closest('[data-x]');
         if(o)fin({t:'buy',i:+o.dataset.i});else if(x&&x.dataset.x==='reroll')fin({t:'reroll'});else if(x&&x.dataset.x==='done')fin({t:'done'})});return}
     if(kind==='over'){
       const s=G.stats;
-      showOv(`<div class="title" style="justify-content:center;gap:14px"><h1><span>${d.won?'Der Thron':'Asche'}</span><span>${d.won?'ist dein':''}</span></h1>
-        <p>${d.won?'Alle anderen Banner sind gefallen.':'Dein Banner brennt. Der Thron bleibt leer, für den Nächsten.'}<br>${G.hand} Hände · ${s.won} Pots gewonnen${s.bestName?'<br>Stärkste Formation: '+s.bestName:''}</p>
-        <div class="row"><button class="plate btn" data-x="again">Neue Runde</button></div></div>`);
+      showOv(`<div class="title canvas page" style="justify-content:center;gap:12px">${CORN}<h1>${d.won?'Der Thron ist dein':'Asche'}</h1>
+        <p>${d.won?'Nach '+G.hand+' Nächten führt dein Banner.':d.place===2?'Knapp. Platz 2 nach '+G.hand+' Nächten.':'Platz '+d.place+' nach '+G.hand+' Nächten.'}</p>
+        <div class="res" style="width:100%">${d.rank.map((p,k)=>`<div class="rrow ${k===0?'win':''}"><b class="pl">${k+1}</b>${plateHTML(p)}<b>${p.short}<small>${p.out?'gefallen':'Thron '+p.thron+' · Gold '+p.stack}</small></b><div class="d">${p.out?'—':d.score(p)}<small>Ruhm</small></div></div>`).join('')}</div>
+        <p class="rang">+${d.gain} Ruhm · Rang ${rankOf(FAME)}${d.up?' (aufgestiegen)':''}${s.bestName?'<br>Stärkste Formation: '+s.bestName:''}</p>
+        <div class="row"><button class="plate btn raise" data-x="again">Neue Partie</button></div></div>`);
       bindOnce(e=>{if(e.target.closest('[data-x]'))fin()});return}
     if(kind==='result'){
       const{L,W,dmg,wins}=d,share=Math.floor(G.pot/W.length);
       showOv(`<div class="sheet"><h2>${W.includes(me)?'Der Pot ist dein':W[0].short+' nimmt den Pot'}</h2><p class="k">${G.pot} Gold · ${W.map(p=>comboLabel(p.team.b)).join(' / ')}</p>
-        <div class="res">${L.map(p=>`<div class="rrow ${W.includes(p)?'win':''}">${plateHTML(p)}<b>${p.short}<small>${comboLabel(p.team.b)} · ${wins.get(p)} Siege</small></b>
+        <div class="res">${L.map(p=>`<div class="rrow ${W.includes(p)?'win':''}">${plateHTML(p)}<b>${p.short}<small>${comboLabel(p.team.b)}${p.team.drum?' + Trommel':''} · ${wins.get(p)} Siege${p.loot?' · +'+p.loot+' Beute':''}</small></b>
           <div class="d ${W.includes(p)?'g':'r'}">${W.includes(p)?'+'+share:(dmg.get(p)?'−'+dmg.get(p)+' Thron':'—')}<small>${W.includes(p)?'Gold':'Thron '+p.thron}</small></div></div>`).join('')}</div>
         <div class="row"><button class="plate btn" data-x="ok">Weiter</button></div></div>`);
       bindOnce(e=>{if(e.target.closest('[data-x]'))fin()});return}
@@ -496,7 +527,7 @@ async function playBattle(x){
   const myIdx=mineA?0:1,enIdx=1-myIdx,snaps=x.r.snaps;
   await banner(comboLabel(Pm.team.b),`Formation: alle +${K.FB[Pm.team.b.cat]}/+${K.FB[Pm.team.b.cat]}`,G.fast?400:1500);
   const mk=(P,cls)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map(f=>cardHTML(f.c,{cls:'xs',st:[f.atk,f.hp],up:f.up||0})).join('')}</div>`;
-  showOv(`<div id="battle">
+  showOv(`<div id="battle" class="canvas page">${CORN}
     <div class="bhero e">${plateHTML(Pe)}<div class="bt"><b>${Pe.name}</b><span>${comboLabel(Pe.team.b)} · alle +${K.FB[Pe.team.b.cat]}</span></div></div>
     <div class="sp"></div>
     ${mk(Pe,'en')}
@@ -506,7 +537,7 @@ async function playBattle(x){
     <div class="bhero m">${plateHTML(me)}<div class="bt"><b>Du</b><span>${comboLabel(Pm.team.b)} · alle +${K.FB[Pm.team.b.cat]}</span></div></div>
     <div class="bfoot"><button class="plate btn ghost" data-x="fast">Schneller</button><button class="plate btn ghost" data-x="skip">Überspringen</button></div></div>`);
   const sh=sleepable(),ov=$('#ov');
-  let speed=1100,skip=false,all=false;
+  let speed=QA?60:1100,skip=false,all=false;
   ov.onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
     if(b.dataset.x==='fast'){speed=speed>500?420:1100;b.textContent=speed>500?'Schneller':'Normal'}
     if(b.dataset.x==='skip'){skip=true;sh.wake()}
@@ -519,12 +550,12 @@ async function playBattle(x){
   const paint=(s,quiet)=>{
     for(const side of[0,1])sidesCards(side).forEach((c,i)=>{const st=s.st[side][i];if(!st)return;
       c.querySelector('.at').textContent=st.atk;c.querySelector('.hpb').textContent=Math.max(0,st.hp);
-      if(prevAlive[side][i]!==false&&!st.alive&&!quiet){burst(c,'#f0a050',9);snd('die');if(navigator.vibrate)navigator.vibrate(40)}
+      if(prevAlive[side][i]!==false&&!st.alive&&!quiet){burst(c,'#6e170f',9);snd('die');if(navigator.vibrate)navigator.vibrate(40)}
       prevAlive[side][i]=st.alive;c.classList.toggle('dead',!st.alive)});
     if(quiet)return;
     s.hits.forEach(h=>{const c=sidesCards(h.s)[h.i];if(!c)return;c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit');
       const al=sidesCards(1-h.s)[h.i];if(al){al.classList.remove('lunge');void al.offsetWidth;al.classList.add('lunge')}
-      burst(c,'#ffb060',h.d>=6?6:3);snd('hit');
+      burst(c,'#a3261b',h.d>=6?6:3);snd('hit');
       if(h.d>=6){const b=$('#battle');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}
       const f=document.createElement('div');f.className='fl num';f.textContent='−'+h.d;c.appendChild(f);setTimeout(()=>f.remove(),950)})};
   for(let k=0;k<snaps.length;k++){
@@ -546,7 +577,7 @@ function sleepable(){let r=null,t=null;return{wait(ms){return new Promise(res=>{
 /* ---------- Titel ---------- */
 function title(){
   document.body.classList.add('intro');
-  showOv(`<div class="title"><h1>Aschenthron</h1><h2>Ein Kartenspiel um Gold und Thron</h2>
+  showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">A</span>schenthron</h1><h2>Das Rote Buch der zwölf Nächte</h2>
     <div class="cards">${cardHTML(cardById['7-0'])}${cardHTML(cardById['12-3'])}${cardHTML(cardById['14-1'])}</div>
     <p>Poker um Gold. Der Showdown ist eine Schlacht. Wer fällt, dessen Banner brennt.</p>
     <div class="rang">Rang: ${rankOf(FAME)} · Ruhm ${FAME}</div>
@@ -561,13 +592,18 @@ let spark=()=>{};
   const cv=$('#fx'),ctx=cv.getContext('2d');let w,h;const P=[],S=[];
   const fit=()=>{const r=devicePixelRatio||1;w=cv.width=innerWidth*r;h=cv.height=innerHeight*r;ctx.setTransform(r,0,0,r,0,0);w=innerWidth;h=innerHeight};fit();addEventListener('resize',fit);
   const mk=()=>({x:Math.random()*w,y:Math.random()*h,s:1.5+Math.random()*2.5,v:.2+Math.random()*.5,a:Math.random()*6.28,c:Math.random()<.25?'#e8502c':'#efe6cf',o:.12+Math.random()*.3});
-  for(let i=0;i<26;i++)P.push(mk());
-  spark=(x,y,col,n=10)=>{for(let i=0;i<n;i++){const a=Math.random()*6.28,v=2+Math.random()*5;S.push({x,y,vx:Math.cos(a)*v*.7,vy:Math.sin(a)*v*.7-1.2,s:1.5+Math.random()*1.8,l:1,c:Math.random()<.3?'#ffe2a0':col})}};
+  /* keine Ascheflocken auf Pergament */
+  spark=(x,y,col,n=10)=>{for(let i=0;i<n;i++){const a=Math.random()*6.28,v=2+Math.random()*5;S.push({x,y,vx:Math.cos(a)*v*.7,vy:Math.sin(a)*v*.7-1.2,s:1.5+Math.random()*1.8,l:1,c:Math.random()<.3?'#2b1d12':col})}};
   (function tick(){ctx.clearRect(0,0,w,h);
     for(const p of P){p.a+=.012;p.x+=Math.sin(p.a)*.35;p.y+=p.v;if(p.y>h+8){Object.assign(p,mk());p.y=-6}
       ctx.globalAlpha=p.o*.6;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.s*.45,0,6.28);ctx.fill()}
     for(let i=S.length-1;i>=0;i--){const s=S[i];s.x+=s.vx;s.y+=s.vy;s.vy+=.35;s.vx*=.97;s.l-=.035;if(s.l<=0){S.splice(i,1);continue}
       ctx.globalAlpha=Math.min(1,s.l*1.4);ctx.fillStyle=s.c;ctx.beginPath();ctx.arc(s.x,s.y,s.s,0,6.28);ctx.fill()}
     requestAnimationFrame(tick)})()})();
+
+/* ---------- Feste Spielfläche: 400 breit, 700 bis 900 hoch, als Ganzes auf das Gerät skaliert ---------- */
+function fit(){const vw=innerWidth,vh=innerHeight,s=Math.min(vw/400,vh/740),H=Math.round(Math.max(740,Math.min(vh/s,900)));
+  const r=document.documentElement.style;r.setProperty('--s',s.toFixed(4));r.setProperty('--H',H+'px')}
+fit();addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));
 
 title();
