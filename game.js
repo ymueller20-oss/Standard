@@ -150,19 +150,11 @@ function partLabel(cs){if(!cs.length)return'';const r=cs.map(c=>c.r).sort((a,b)=
   if(m>=4)return'Plage';if(m===3)return'Rudel · '+RN(+Object.keys(cnt).find(k=>cnt[k]===3));if(m===2)return'Paar · '+RN(+Object.keys(cnt).find(k=>cnt[k]===2));return'Höchste: '+RN(r[0])}
 function handLabel(cs){return cs.length>=5?comboLabel(bestFive(cs)):partLabel(cs)}
 
-/* ---------- Gewinnchance (Monte-Carlo, nur Pokerkombo) ---------- */
+/* ---------- Gewinnchance (Monte-Carlo über echte Kämpfe) ---------- */
 function equity(p,samples){
-  const known=new Set([...p.hole,...G.board,...G.players.flatMap(q=>q.sac)].map(c=>c.id));
-  const deck=FULL.filter(c=>!known.has(c.id));
-  const opps=G.players.filter(q=>q!==p&&q.inHand&&!q.folded);
-  let w=0;
-  for(let s=0;s<samples;s++){
-    const d=shuffle(deck.slice());let k=0;
-    const bd=G.board.concat(d.slice(k,k+5-G.board.length));k+=5-G.board.length;
-    const mine=bestScore(p.hole.concat(bd));let beat=true,tie=0;
-    for(const q of opps){const h=d.slice(k,k+q.hole.length);k+=q.hole.length;const sc=bestScore(h.concat(bd));if(sc>mine){beat=false;break}if(sc===mine)tie++}
-    if(beat)w+=1/(1+tie)}
-  return w/samples}
+  const known=[...p.hole,...G.board,...G.players.flatMap(q=>q.sac)];
+  const opps=G.players.filter(q=>q!==p&&q.inHand&&!q.folded).map(q=>({n:q.hole.length,up:q.up}));
+  return battleEquity({hole:p.hole,up:p.up},G.board,opps,known,samples)}
 
 /* ---------- Spielzustand ---------- */
 function newGame(){
@@ -251,7 +243,7 @@ async function betRound(){
 /* ---------- KI ---------- */
 async function aiAct(p,toCall,minTo,capT,canRaise){
   await sleep(650+rnd(700));
-  const n=live().length,eq=equity(p,70),fair=1/n,st=p.st,bb=G.bb;
+  const n=live().length,eq=equity(p,p.st.n||24),fair=1/n,st=p.st,bb=G.bb;
   const po=toCall/(G.pot+toCall||1),e=eq+(Math.random()-.5)*.08,bluff=Math.random()<st.bluff;
   const size=()=>minTo;
   if(toCall<=0){
@@ -265,7 +257,7 @@ async function aiAct(p,toCall,minTo,capT,canRaise){
 /* ---------- Mensch: Einsatz ---------- */
 function humanAct(toCall,minTo,capT,canRaise){
   const p=G.players[0];
-  const eq=equity(p,160),n=live().length;
+  const eq=equity(p,36),n=live().length;
   G.eq={eq,n,toCall,po:toCall/(G.pot+toCall||1)};
   return ask('bet',{toCall,minTo,capT,canRaise,raising:false,val:minTo})}
 

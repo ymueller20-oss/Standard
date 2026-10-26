@@ -13,9 +13,9 @@ function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=c
 /* Balance-Parameter */
 const K={
   FB:[0,3,6,9,12,16,20,24,28,33],      // Formationsbonus je Kombo für alle 5 Teamkarten
-  son:3, sonR:1,                      // Sonnenwacht · Schwur: Karten mit gleicher Stärke im Team tragen Gottesschild, +3/+3 je Zwilling; +1/+1 je weitere Sonnenwacht-Karte
-  ashA:3, ashH:2,                     // Aschelande · Feuerkette: +2/+1 je weiteres Kettenglied; Glut zu Kampfbeginn = Kettenlänge
-  norH:2, norFrost:3,                 // Nordmark · Eiswall: +0/+3 je weitere Nordmark-Karte; ab 3 Nordmark frieren ihre Treffer ein
+  son:3, sonR:1, sonSh1:3, sonSh2:5,                      // Sonnenwacht · Schwur: Karten mit gleicher Stärke im Team tragen Gottesschild, +3/+3 je Zwilling; +1/+1 je weitere Sonnenwacht-Karte
+  ashA:3, ashH:2, ashN:0, ashNH:0, glutN:0,                     // Aschelande · Feuerkette: +2/+1 je weiteres Kettenglied; Glut zu Kampfbeginn = Kettenlänge
+  norH:2, norA:0, norFrost:3,                 // Nordmark · Eiswall: +0/+3 je weitere Nordmark-Karte; ab 3 Nordmark frieren ihre Treffer ein
   blut:4, blutPer:0, blutF:3,                  // Blutmoor · Blutrausch: jede Runde +2 Angriff, +1 je weitere Blutmoor-Karte; Todesstoß im Fallen
   knappe:1, herold:3, banner:5,       // Sonnenwacht-Unterstützer
   funke:8, zunder:2, brand:8, schmied:3,  // Aschelande-Unterstützer
@@ -32,11 +32,12 @@ function mkTeam(five,up){up=up||{rank:{},realm:{}};const b=eval5(five),cnt={};fi
     return{c,r:c.r,s:c.s,up:u,atk:st[0]+u,hp:st[1]+u,form:0,realm:[0,0],rage:0,sup:supOf(c),shield:false,glut:0,frost:false,taunt:false}});
   const n=[0,0,0,0];F.forEach(f=>n[f.s]++);const has=k=>F.filter(f=>f.sup===k);
   F.forEach(f=>{const bo=K.FB[b.cat];f.form=bo;f.atk+=bo;f.hp+=bo;let ra=0,rh=0;
-    if(f.s===0){const tw=cnt[f.r]-1;ra=rh=K.son*tw+K.sonR*(n[0]-1);if(tw>0)f.shield=true}
-    else if(f.s===1){const L=chainLen(rs,f.r);if(L>=2){ra=K.ashA*(L-1);rh=K.ashH*(L-1)}f.glut=L;f.chain=L}
-    else if(f.s===2){rh=K.norH*(n[2]-1);if(n[2]>=K.norFrost)f.frost=true}
+    if(f.s===0){const tw=cnt[f.r]-1;ra=rh=K.son*tw+K.sonR*(n[0]-1);if(tw>0||n[0]>=K.sonSh2)f.shield=true}
+    else if(f.s===1){const L=chainLen(rs,f.r);if(L>=2){ra=K.ashA*(L-1);rh=K.ashH*(L-1)}ra+=K.ashN*(n[1]-1);rh+=K.ashNH*(n[1]-1);f.glut=L+K.glutN*(n[1]-1);f.chain=L}
+    else if(f.s===2){rh=K.norH*(n[2]-1);ra=K.norA*(n[2]-1);if(n[2]>=K.norFrost)f.frost=true}
     else if(f.s===3){f.rage=K.blut+K.blutPer*(n[3]-1);ra=rh=K.blutF*(n[3]-1)}
     f.realm=[ra,rh];f.atk+=ra;f.hp+=rh});
+  if(n[0]>=K.sonSh1){const t=F.filter(f=>f.s===0&&!f.shield).sort((x,y)=>y.atk*y.hp-x.atk*x.hp)[0];if(t)t.shield=true}
   /* Unterstützer */
   has('knappe').forEach(k=>{const t=F.filter(o=>o!==k&&!o.shield).sort((x,y)=>y.atk*y.hp-x.atk*x.hp)[0];if(t){t.shield=true;t.blessed=true}});
   has('waechter').forEach(k=>{const t=F.filter(o=>o!==k).sort((x,y)=>y.atk*y.hp-x.atk*x.hp)[0];if(t){t.guard=k;k.taunt=true}});
@@ -109,4 +110,14 @@ function power(t){let A=0,H=0;for(const f of t.team){A+=f.atk+f.rage*(K.rw||1)+f
 function pickTeam(cards,up){if(cards.length<5)return null;let best=null,bp=-1;for(const ix of combos(cards.length)){const t=mkTeam(ix.map(i=>cards[i]),up);const p=power(t);if(p>bp){bp=p;best=t}}best.pw=bp;return best}
 function bestScore(cards){let m=-1;for(const ix of combos(cards.length)){const e=eval5(ix.map(i=>cards[i]));if(e.score>m)m=e.score}return m}
 function bestFive(cards){let b=null;for(const ix of combos(cards.length)){const f=ix.map(i=>cards[i]),e=eval5(f);if(!b||e.score>b.score){b=e;b.five=f}}return b}
-if(typeof module!=='undefined')module.exports={bestScore,bestFive,K,FULL,eval5,mkTeam,battle,pickTeam,power,combos,PST,chainLen,SUP,supOf};
+
+/* Kampf-Gewinnchance: Restkarten auslosen, jeder stellt sein bestes Team, Rundenturnier wie beim Showdown.
+   me={hole,up}, opps=[{n,up}], known=Karten, die nicht mehr im Stapel sind, rand=()=>[0,1) */
+function battleEquity(me,board,opps,known,samples,rand){rand=rand||Math.random;const ks=new Set(known.map(c=>c.id));const deck=FULL.filter(c=>!ks.has(c.id));let w=0;
+  for(let s=0;s<samples;s++){const d=deck.slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));const t=d[i];d[i]=d[j];d[j]=t}
+    let k=0;const bd=board.concat(d.slice(0,5-board.length));k=5-board.length;
+    const all=[pickTeam(me.hole.concat(bd),me.up)];for(const o of opps){all.push(pickTeam(d.slice(k,k+o.n).concat(bd),o.up));k+=o.n}
+    const wins=all.map(()=>0);for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const r=battle(all[i].team,all[j].team,false);if(r.w===0)wins[i]++;else if(r.w===1)wins[j]++}
+    const top=Math.max(...wins);const W=wins.filter(x=>x===top).length;if(wins[0]===top)w+=1/W}
+  return w/samples}
+if(typeof module!=='undefined')module.exports={bestScore,bestFive,K,FULL,eval5,mkTeam,battle,pickTeam,power,combos,PST,chainLen,SUP,supOf,battleEquity};
