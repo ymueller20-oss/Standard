@@ -1,9 +1,10 @@
 # Builds a photoreal breakfast still life from Poly Haven CC0 assets and renders it with Cycles.
-# Usage: blender -b --factory-startup -P scene.py -- <assets_dir> <out_path> <mode: still|anim> [samples]
+# Usage: blender -b --factory-startup -P scene.py -- <assets_dir> <out_path> <mode: still|anim> [samples] [frame_step]
 import bpy, sys, os, math, mathutils
 args = sys.argv[sys.argv.index("--") + 1:]
 A, OUT, MODE = args[0], args[1], args[2]
 SAMPLES = int(args[3]) if len(args) > 3 else 128
+STEP = int(args[4]) if len(args) > 4 else 1
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene
@@ -92,6 +93,7 @@ def cam_at(angle_deg, dist, height):
 sc.render.fps = 24
 if MODE == "anim":
     sc.frame_start, sc.frame_end = 1, 72  # 3 s slow orbit + push-in
+    sc.frame_step = STEP  # skipped frames are filled in later by motion interpolation
     for f, ang, d, h in [(1, -20, 1.0, 0.24), (72, 6, 0.85, 0.20)]:
         cam.location = cam_at(ang, d, h); cam.keyframe_insert("location", frame=f)
     for fc in cam.animation_data.action.fcurves:
@@ -103,7 +105,7 @@ else:
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'
 sc.cycles.samples = SAMPLES; sc.cycles.use_adaptive_sampling = True; sc.cycles.adaptive_threshold = 0.02
 sc.cycles.use_denoising = True; sc.cycles.denoiser = 'OPENIMAGEDENOISE'
-sc.cycles.max_bounces = 8
+sc.cycles.max_bounces = 8 if SAMPLES >= 64 else 4
 sc.render.resolution_x, sc.render.resolution_y = 1280, 720
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
 sc.render.use_persistent_data = True
