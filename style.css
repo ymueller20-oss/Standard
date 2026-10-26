@@ -457,3 +457,13 @@ body.intro #stage>*{visibility:hidden}
 .card.xs .mtag,.oheer .mtag,.mheer .mtag{display:none}
 .oheer{position:absolute;right:-6%;top:44%;flex-direction:column;z-index:3;margin:0}
 .offer .pic{min-height:80px}
+/* ---------- Taverntisch: helle Schrift auf dunklem Leder und Holz ---------- */
+:root{--tav-ink:#f2e3bf;--tav-soft:#d8c39a;--tav-red:#ff8a6a;--tav-sh:0 1px 2px #000,0 0 6px rgba(0,0,0,.85)}
+#pot,#pot .num,.ost,#mebar .gold,#read,#read b,.waiting,.prompt,.prompt em,.blbl,.bnote,.bres,#battle .bmid{color:var(--tav-ink)!important;text-shadow:var(--tav-sh)}
+#pot small,.zone span,#mebar .who b,.waiting b{color:var(--tav-red)!important;text-shadow:var(--tav-sh)}
+#read .g{color:#8fe07a!important}#read .r{color:#ff8a6a!important}
+.prompt em,.waiting,#read{color:var(--tav-soft)!important}
+.slot{border-color:rgba(242,227,191,.35)!important;background:rgba(0,0,0,.18)!important}
+.bres.w{color:#ffd76a!important}.bres.l{color:#ff6a4a!important}
+#battle .bmid{border-color:rgba(242,227,191,.25)!important}
+#battle .bmid::before,#battle .bmid::after{background:#c9a24a}

@@ -604,11 +604,11 @@ function sleepable(){let r=null,t=null;return{wait(ms){return new Promise(res=>{
 /* ---------- Titel ---------- */
 function title(){
   document.body.classList.add('intro');
-  showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">A</span>schenthron</h1><h2>Das Rote Buch der zwölf Nächte</h2>
+  showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">A</span>schenthron</h1><h2>Zwölf Nächte in der Aschentaverne</h2>
     <div class="cards">${cardHTML(cardById['7-0'])}${cardHTML(cardById['12-3'])}${cardHTML(cardById['14-1'])}</div>
     <p>Poker um Gold. Der Showdown ist eine Schlacht. Wer fällt, dessen Banner brennt.</p>
     <div class="rang">Rang: ${rankOf(FAME)} · Ruhm ${FAME}</div>
-    <div class="row"><button class="plate btn raise" data-x="go">Den Thronsaal betreten</button><button class="plate btn ghost" data-x="book">Regeln lesen</button></div></div>`,'title');
+    <div class="row"><button class="plate btn raise" data-x="go">An den Tisch setzen</button><button class="plate btn ghost" data-x="book">Regeln lesen</button></div></div>`,'title');
   $('#ov').onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
     if(b.dataset.x==='book'){G={players:[{up:{rank:{},realm:{}},heer:[]}],dealer:0};return showSheet('book',{}).then(()=>{G=null;title()})}
     hideOv();snd('thud');newGame()}}
