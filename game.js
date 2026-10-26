@@ -18,6 +18,25 @@ const SHORT={2:'+1/+1 je Teamkarte mit Stärke 5 oder weniger.',3:'+1 Angriff, w
   10:'Nachbarn nehmen 1 Schaden weniger.',11:'Trifft auch die Nachbarn seines Ziels mit 2.',12:'Gegner gegenüber kämpft mit −2 Angriff.',13:'Schlägt jede Runde als Erster zu.',
   14:'Kampfbeginn: 2 Schaden an allen Gegnern.'};
 const FLAV={2:'In den Gräben fressen sie zuerst die Augen.',3:'Sie zählt die Gehenkten. Sie verzählt sich nie.',4:'Der Jäger kam mit drei Hunden. Der Keiler ging mit allen.',5:'Wenn der Winter kommt, gehört der Wald dem Rudel.',6:'Er gräbt nicht nach Gold.',7:'Ein Ritter ohne Pferd ist ein Mahl ohne Teller.',8:'Brich ihm die Knochen. Am Morgen sind sie heil. Deine nicht.',9:'Erst wollte er eine Jungfrau im Jahr. Dann zwei.',10:'Die Burg war sein Spielzeug. Er hat damit gespielt.',11:'Drei Reihen Zähne, ein Stachel und kein Mitleid.',12:'Wer sie reiten hört, wacht nicht mehr auf.',13:'Sie kommt aus der Sonne. Man sieht nur ihren Schatten.',14:'Könige knien. Drachen nicht.'};
+/* Reichseigene Unterstützer: Stärke 2–5 hat in jedem Reich einen eigenen Effekt */
+const SUPTX={
+  knappe:['Knappe','Gibt der stärksten anderen Teamkarte Gottesschild.','Stärkste Teamkarte erhält Gottesschild.'],
+  herold:['Herold','Bricht ein Gottesschild deines Teams, erhalten alle deine Karten +3 Angriff.','Bricht ein Schild: Team +3 Angriff.'],
+  banner:['Bannerträger','Deine Karten mit Gottesschild erhalten +5/+5.','Karten mit Gottesschild +5/+5.'],
+  waechter:['Leibwächter','Fängt jeden Angriff auf deine stärkste Karte ab.','Fängt Angriffe auf deine stärkste Karte ab.'],
+  funke:['Funke','Kampfbeginn: 8 Schaden an der stärksten Gegnerkarte.','Kampfbeginn: 8 Schaden an die stärkste Gegnerkarte.'],
+  zunder:['Zunder','Jeder Schaden deines Teams zu Kampfbeginn (Glut, Funke, Drache) +2.','Kampfbeginn-Schaden deines Teams +2.'],
+  brand:['Flächenbrand','Fällt eine Gegnerkarte, nehmen ihre Nachbarn 8 Schaden.','Fällt ein Gegner: 8 an seine Nachbarn.'],
+  schmied:['Kettenschmied','Alle anderen Karten deiner Stärkenkette +3 Angriff.','Deine Kettenglieder +3 Angriff.'],
+  frostbiss:['Frostbiss','Kampfbeginn: Die stärkste Gegnerkarte erstarrt und setzt einen Angriff aus.','Kampfbeginn: stärkster Gegner erstarrt.'],
+  rune:['Runenträger','Alle deine Karten +0/+2.','Alle deine Karten +0/+2.'],
+  wall:['Schildwall','Deine Karten nehmen aus jedem Treffer 2 Schaden weniger.','Dein Team nimmt je Treffer 2 weniger.'],
+  winterwolf:['Winterwolf','Alle deine Karten frieren mit ihren Treffern ein.','Alle deine Treffer frieren ein.'],
+  pest:['Pestratte','Kampfbeginn: Alle Gegner sind verseucht und verlieren jede Runde 3 Leben.','Alle Gegner verlieren jede Runde 3.'],
+  aas:['Aaskrähe','+3/+3, wann immer irgendeine Karte fällt.','+3/+3 je gefallener Karte.'],
+  priester:['Blutpriester','Deine erste gefallene Karte kehrt mit halbem Leben zurück.','Erste Gefallene kehrt zurück.'],
+  moorwolf:['Moorwolf','Seine Nachbarn erhalten Blutrausch +3.','Nachbarn: Blutrausch +3.']};
+const abil=c=>{const k=supOf(c);return k?SUPTX[k]:[ABIL[c.r][0],ABIL[c.r][1],SHORT[c.r]]};
 const CAT=['Einzelgänger','Paar','Zwei Paare','Rudel','Jagdkette','Banner','Horde','Plage','Kriegszug','Drachenkrone'];
 const CATX=['Höchste Karte','zwei gleiche Stärken','zweimal zwei gleiche Stärken','drei gleiche Stärken','fünf Stärken in Folge','fünf Karten aus einem Reich','Rudel plus Paar','vier gleiche Stärken','Jagdkette aus einem Reich','Jagdkette bis zum Drachen aus einem Reich'];
 /* Wertigkeit: je höher der Rang, desto aufwendiger der Druck */
@@ -48,13 +67,13 @@ const RIC={
   bounty:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6l-2 4h-2z"/><path d="M11 7c-5 2-7 6-7 9 0 3 3 5 8 5s8-2 8-5c0-3-2-7-7-9"/><path d="M12 11v7M10 13c0-1 4-1 4 .5S10 15 10 16.5s4 1.5 4 0"/></g>'),
   raven:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3.2"/></g><circle cx="12" cy="12" r="1.3" fill="currentColor"/>')};
 const REALM=[
-  {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Schwur',ptx:'+16/+16 je weiterer Teamkarte gleicher Stärke, +4/+4 je weiterer Sonnenwacht-Karte.',strat:'Paare, Rudel, Plagen',
+  {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Gottesschild',ptx:'Hat eine Sonnenwacht-Karte einen Zwilling gleicher Stärke im Team, trägt sie Gottesschild (der erste Treffer prallt ab) und erhält +3/+3 je Zwilling. +1/+1 je weiterer Sonnenwacht-Karte.',strat:'Paare, Schilde, Unverwundbarkeit',
    lore:'Die Ritter der Sonnenwacht schwören auf das letzte Licht über den Zinnen. Wer ihren Schwur bricht, dessen Name wird aus jeder Chronik gekratzt.'},
-  {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#b3382a',ic:IC.fire,pn:'Feuerkette',ptx:'+5/+5 je weiterem Glied ihrer Stärkenkette im Team.',strat:'Jagdketten',
+  {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#b3382a',ic:IC.fire,pn:'Glut',ptx:'Zu Kampfbeginn brennt jede Aschelande-Karte ihren Gegner für so viel Schaden, wie ihre Stärkenkette lang ist. +3/+2 je weiterem Kettenglied.',strat:'Jagdketten, Schaden vor dem ersten Schlag',
    lore:'Seit der Vulkan den alten Thron verschlang, brennt das Land. Seine Fürsten sind Schmiede, Jäger und Brandstifter in einem.'},
-  {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Eiswall',ptx:'+4/+4 je weiterer Nordmark-Karte im Team.',strat:'Banner (alle fünf aus einem Reich)',
+  {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Frost',ptx:'+0/+2 je weiterer Nordmark-Karte. Ab drei Nordmark-Karten lassen ihre Treffer das Ziel erstarren: es setzt seinen nächsten Angriff aus.',strat:'Banner, Kontrolle',
    lore:'Im ewigen Winter der Nordmark überlebt nur, wer zusammensteht. Ihre Wälle aus Eis hat noch keine Armee gebrochen.'},
-  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#5b2a48',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff, +1 mehr je weiterer Blutmoor-Karte. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Langer Kampf',
+  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#5b2a48',ic:IC.blood,pn:'Blutrausch',ptx:'+3/+3 je weiterer Blutmoor-Karte. Jede Kampfrunde +4 Angriff. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Lange Kämpfe, Rache',
    lore:'Das Blutmoor vergisst niemanden, der in ihm starb. Was dort fällt, steht noch einmal auf und schlägt ein letztes Mal zu.'}];
 const OPP=[
   {name:'Vargo Rotzahn',short:'Vargo',tag:'Söldner',col:'#a8321f',fr:'#c4472e',pl:'#f2dacb',art:'4-1',st:{aggr:.75,bluff:.16,tight:0},
@@ -113,7 +132,7 @@ function cardHTML(c,o={}){
       <div class="plate ttl"><b class="nm">${NAME[c.r]}</b><span class="cost"><i>${RL[c.r]}</i><i class="cm">${R.ic}</i></span></div>
       <div class="art"><img src="cards/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false">${up?`<i class="plate upb">+${up}/+${up}</i>`:''}</div>
       <div class="plate typ"><span>${R.n}</span>${SY}</div>
-      <div class="tx"><b>${ABIL[c.r][0]}</b> · ${SHORT[c.r]}</div>
+      <div class="tx"><b>${abil(c)[0]}</b> · ${abil(c)[2]}</div>
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
     </div>
     <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
@@ -476,7 +495,7 @@ function showSheet(kind,d){
     const fin=v=>{hideOv();res(v)};
     if(kind==='book'){
       const rows=CAT.map((c,i)=>i).reverse().map(i=>`<li><b class="n">${i+1}</b><div><b>${CAT[i]}</b> · ${CATX[i]}<br><i>Formation: alle +${K.FB[i]}/+${K.FB[i]}</i></div></li>`).join('');
-      const cr=Object.keys(PST).reverse().map(r=>`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · ${TIERN[tier(+r)-1]}<br><i>${ABIL[r][0]}: ${ABIL[r][1]}</i></div></li>`).join('');
+      const cr=Object.keys(PST).reverse().map(r=>+r>5?`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · ${TIERN[tier(+r)-1]}<br><i>${ABIL[r][0]}: ${ABIL[r][1]}</i></div></li>`:`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · Unterstützer, je Reich anders<br>${REALM.map((R,si)=>{const a=SUPTX[SUP[si][r]];return `<i>${R.n} · ${a[0]}: ${a[1]}</i>`}).join('<br>')}</div></li>`).join('');
       const rl=REALM.map(r=>`<li><b class="n" style="display:flex;justify-content:center;align-items:flex-start;padding-top:2px"><span style="display:block;width:26px;height:26px;background:${r.col};color:#16110f;padding:3px">${r.ic}</span></b><div><b>${r.n}</b> · ${r.strat}<br><i>${r.pn}: ${r.ptx}</i></div></li>`).join('');
       const ups=Object.entries(me.up.rank).map(([r,v])=>`<li><b class="n">+${v}</b><div>${NAME[r]}-Karten</div></li>`).concat(Object.entries(me.up.realm).map(([s,v])=>`<li><b class="n">+${v}</b><div>Reich ${REALM[s].n}</div></li>`)).join('')||'<li><div><i>Noch keine Siegel gekauft.</i></div></li>';
       showOv(`<div class="sheet paper"><h2>Grimoire</h2><p class="k">Poker auf dem Aschenthron</p>
@@ -526,7 +545,7 @@ async function playBattle(x){
   const me=G.players[0],mineA=x.A===me,Pm=mineA?x.A:x.B,Pe=mineA?x.B:x.A;
   const myIdx=mineA?0:1,enIdx=1-myIdx,snaps=x.r.snaps;
   await banner(comboLabel(Pm.team.b),`Formation: alle +${K.FB[Pm.team.b.cat]}/+${K.FB[Pm.team.b.cat]}`,G.fast?400:1500);
-  const mk=(P,cls)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map(f=>cardHTML(f.c,{cls:'xs',st:[f.atk,f.hp],up:f.up||0})).join('')}</div>`;
+  const mk=(P,cls)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map(f=>cardHTML(f.c,{cls:'xs'+(f.shield?' shd':'')+(f.sup?' sup':''),st:[f.atk,f.hp],up:f.up||0})).join('')}</div>`;
   showOv(`<div id="battle" class="canvas page">${CORN}
     <div class="bhero e">${plateHTML(Pe)}<div class="bt"><b>${Pe.name}</b><span>${comboLabel(Pe.team.b)} · alle +${K.FB[Pe.team.b.cat]}</span></div></div>
     <div class="sp"></div>
@@ -551,9 +570,9 @@ async function playBattle(x){
     for(const side of[0,1])sidesCards(side).forEach((c,i)=>{const st=s.st[side][i];if(!st)return;
       c.querySelector('.at').textContent=st.atk;c.querySelector('.hpb').textContent=Math.max(0,st.hp);
       if(prevAlive[side][i]!==false&&!st.alive&&!quiet){burst(c,'#6e170f',9);snd('die');if(navigator.vibrate)navigator.vibrate(40)}
-      prevAlive[side][i]=st.alive;c.classList.toggle('dead',!st.alive)});
+      prevAlive[side][i]=st.alive;c.classList.toggle('dead',!st.alive);c.classList.toggle('shd',!!st.sh&&st.alive);c.classList.toggle('frz',!!st.fz&&st.alive)});
     if(quiet)return;
-    s.hits.forEach(h=>{const c=sidesCards(h.s)[h.i];if(!c)return;c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit');
+    s.hits.forEach(h=>{const c=sidesCards(h.s)[h.i];if(!c)return;if(h.sh){const f=document.createElement('div');f.className='fl num shf';f.textContent='Schild';c.appendChild(f);setTimeout(()=>f.remove(),950);snd('click');return}c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit');
       const al=sidesCards(1-h.s)[h.i];if(al){al.classList.remove('lunge');void al.offsetWidth;al.classList.add('lunge')}
       burst(c,'#a3261b',h.d>=6?6:3);snd('hit');
       if(h.d>=6){const b=$('#battle');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}
