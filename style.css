@@ -378,3 +378,14 @@ body.intro #stage>*{visibility:hidden}
   box-shadow:0 0 0 1.4px var(--ink-soft),0 6px 14px rgba(0,0,0,.35);font:400 1.02rem var(--f-fsc);animation:toast 2.6s ease forwards;white-space:nowrap}
 @keyframes toast{0%{opacity:0;transform:translate(-50%,-20px)}10%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- Gemaltes Brett (art/board.jpg) ---------- */
+#stage{background:#2a1b10 url(art/board.jpg) 50% 50%/cover no-repeat;box-shadow:0 0 0 1px #000,0 20px 50px rgba(0,0,0,.7)}
+#stage::before{display:none}
+#stage::after{background:radial-gradient(120% 80% at 50% 50%,transparent 60%,rgba(20,10,4,.45) 100%)!important}
+#stage>.corner,#stage>.candle{display:none}
+#table::before,#table::after{display:none}
+#table{background:none;box-shadow:none;border:0}
+.hud-c,.hud-c b,.hud-c span{color:#f3e4c0!important;text-shadow:0 1px 2px #000,0 0 8px rgba(0,0,0,.9)}
+#read{padding-right:26px}
+#mebar{padding-left:26px}
