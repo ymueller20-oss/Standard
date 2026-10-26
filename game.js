@@ -87,9 +87,10 @@ let FAME=0,SEEN=new Set();
 try{FAME=+localStorage.getItem('at-fame')||0;SEEN=new Set(JSON.parse(localStorage.getItem('at-seen')||'[]'))}catch(e){}
 const rankOf=f=>{let r=RANKS[0][1];for(const[t,n]of RANKS)if(f>=t)r=n;return r};
 const saveMeta=()=>{try{localStorage.setItem('at-fame',FAME);localStorage.setItem('at-seen',JSON.stringify([...SEEN]))}catch(e){}};
-const BLINDS=[10,15,20,30,40,60,80];
+const BLINDS=[10,15,20,25,30,40,50];
 const ZOLL=1,ANTE_F=0;  // Kriegszoll (Blinds): kleiner = ZOLL/2, großer = ZOLL Einsätze; Ante-Anteil am Einsatz
-const START_GOLD=250,START_THRON=30,HAND_EVERY=3,MAX_HANDS=12,DMG_EVERY=3;  // Format per Simulation geprüft: siehe README
+const HEER_CAP=2;  // Heerlager: so viele dauerhafte Söldner-Karten stehen jeder Nacht zusätzlich zur Wahl
+const START_GOLD=500,START_THRON=30,HAND_EVERY=3,MAX_HANDS=12,DMG_EVERY=3;  // Format per Simulation geprüft: siehe README
 
 /* ---------- Helfer ---------- */
 const $=s=>document.querySelector(s);
@@ -137,7 +138,7 @@ function cardHTML(c,o={}){
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
     </div>
     <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
-    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i><i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="glare"></i><i class="cvr"></i></div>`}
+    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="glare"></i><i class="cvr"></i></div>`}
 const upOf=(p,c)=>(p.up.rank[c.r]||0)+(p.up.realm[c.s]||0);
 function seenCls(key){if(!G.seen)G.seen=new Set();if(G.seen.has(key))return '';G.seen.add(key);G.dealt=(G.dealt||0)+1;return 'deal'}
 
@@ -154,14 +155,14 @@ function handLabel(cs){return cs.length>=5?comboLabel(bestFive(cs)):partLabel(cs
 /* ---------- Gewinnchance (Monte-Carlo über echte Kämpfe) ---------- */
 function equity(p,samples){
   const known=[...p.hole,...G.board,...G.players.flatMap(q=>q.sac)];
-  const opps=G.players.filter(q=>q!==p&&q.inHand&&!q.folded).map(q=>({n:q.hole.length,up:q.up}));
-  return battleEquity({hole:p.hole,up:p.up},G.board,opps,known,samples)}
+  const opps=G.players.filter(q=>q!==p&&q.inHand&&!q.folded).map(q=>({n:q.hole.length,up:q.up,heer:q.heer}));
+  return battleEquity({hole:p.hole,up:p.up,heer:p.heer},G.board,opps,known,samples)}
 
 /* ---------- Spielzustand ---------- */
 function newGame(){
   document.body.classList.remove('intro');
   const P=[{name:'Du',short:'Du',human:true,col:'#efe6cf',art:'14-0'}].concat(OPP.map(o=>({...o})));
-  G={players:P.map((p,i)=>({i,...p,stack:START_GOLD,thron:START_THRON,hole:[],sac:[],up:{rank:{},realm:{}},folded:false,inHand:false,out:false,bet:0,say:'',rage:false})),
+  G={players:P.map((p,i)=>({i,...p,stack:START_GOLD,thron:START_THRON,hole:[],sac:[],heer:[],up:{rank:{},realm:{}},folded:false,inHand:false,out:false,bet:0,say:'',rage:false})),
     hand:0,dealer:3,board:[],pot:0,bb:10,ante:2,curBet:0,minRaise:10,ui:null,seen:new Set(),turn:null,fast:false,lastPot:0,stats:{won:0,best:-1,bestName:''}};
   return runGame()}
 
@@ -280,7 +281,7 @@ async function showdown(){
   const L=live(),me=G.players[0];
   await banner('Showdown','',G.fast?0:900);
   for(const p of L){
-    const seven=p.hole.concat(G.board);
+    const seven=p.hole.concat(G.board,p.heer);
     let five;
     if(p.human)five=await ask('lineup',{cards:seven.slice().sort((a,b)=>b.r-a.r||a.s-b.s),sel:bestFive(seven).five.map(c=>c.id)});
     else five=pickTeam(seven,p.up).five;
@@ -320,9 +321,14 @@ function mkOffers(){
   a.push({k:'forge',r:r1,cost:price(10+r1*2),t:`Schmiede: ${NAME[r1]}`,d:`Alle ${NAME[r1]}-Karten dauerhaft +2/+2.`});
   const s=rnd(4);a.push({k:'oath',s,cost:price(46),t:`Schwur: ${REALM[s].n}`,d:`Alle Karten dieses Reichs dauerhaft +1/+1.`});
   const ks=Object.keys(RELIC),k=ks[rnd(ks.length)];a.push({k,cost:price(RELIC[k].c),t:RELIC[k].t,d:RELIC[k].d});
+  for(let i=0;i<2;i++){const r=2+rnd(13),sv=rnd(4),c=mkMerc(r,sv);
+    a.push({k:'recruit',c,cost:price(12+2*r),t:`Söldner: ${NAME[r]}`,d:`Dauerhaft im Heerlager. ${abil(c)[0]}: ${abil(c)[2]}`})}
   return a}
+let MERC=0;function mkMerc(r,s){const c={r,s,id:'H'+(++MERC)+'-'+r+'-'+s,merc:true};cardById[c.id]=c;return c}
+function heerAdd(p,c){if(p.heer.length<HEER_CAP)p.heer.push(c);else{const i=p.heer.reduce((a,x,j)=>x.r<p.heer[a].r?j:a,0);p.heer[i]=c}}
 function applyOffer(p,o){
-  if(o.k==='forge')p.up.rank[o.r]=(p.up.rank[o.r]||0)+2;
+  if(o.k==='recruit')heerAdd(p,o.c);
+  else if(o.k==='forge')p.up.rank[o.r]=(p.up.rank[o.r]||0)+2;
   else if(o.k==='oath')p.up.realm[o.s]=(p.up.realm[o.s]||0)+1;
   else if(o.k==='heal')p.thron=Math.min(START_THRON,p.thron+8);
   else if(o.k==='bounty')p.bounty=(p.bounty||0)+1;
@@ -331,6 +337,7 @@ function applyOffer(p,o){
 function aiShop(p){const offers=mkOffers(),reserve=G.bb*10;let best=null,bv=0;
   for(const o of offers){if(o.cost>p.stack-reserve)continue;let v=0;
     if(o.k==='heal')v=p.thron<START_THRON*.5?3:0;else if(o.k==='oath')v=2;else if(o.k==='forge')v=o.r>=9?2.2:1.2;else if(o.k==='drum')v=1.5;
+    else if(o.k==='recruit'){const full=p.heer.length>=HEER_CAP,w=full?Math.min(...p.heer.map(c=>c.r)):0;v=full&&o.c.r<=w+1?0:(o.c.r>=11?2.6:o.c.r>=8?2:1.4)+(p.heer.some(h=>h.s===o.c.s)?.8:0)}
     else if(o.k==='shield')v=p.thron<START_THRON*.6?2:1;else if(o.k==='fourth')v=2.4;else if(o.k==='bounty')v=G.hand<MAX_HANDS-3?1.6:0;
     v=v/o.cost*40*(.8+Math.random()*.4);if(v>bv){bv=v;best=o}}
   if(bv>.9)applyOffer(p,best)}
@@ -372,7 +379,7 @@ function rHud(){
    <div class="hud-r">${G.players[G.dealer]===me?'<span class="tag">Geber</span>':''}</div>`;
   $('#meh').innerHTML=`${plateHTML(me)}`;
   const rel=[me.drum&&'Trommel',me.shield&&'Schild',me.fourth&&'4. Karte',me.raven&&'Rabenauge',me.bounty&&('Kopfgeld '+me.bounty)].filter(Boolean);
-  $('#meh').insertAdjacentHTML('beforeend',`<div class="who"><b>Du</b><span class="gold">${IC.gold}${me.stack}</span>${rel.length?`<span class="rel">${rel.map(r=>`<i>${r}</i>`).join('')}</span>`:''}</div>`)}
+  $('#meh').insertAdjacentHTML('beforeend',`<div class="who"><b>Du</b><span class="gold">${IC.gold}${me.stack}</span>${me.heer.length?`<span class="mheer">${me.heer.map(c=>`<span data-z="${c.id}">${cardHTML(c,{cls:'xs'})}</span>`).join('')}</span>`:''}${rel.length?`<span class="rel">${rel.map(r=>`<i>${r}</i>`).join('')}</span>`:''}</div>`)}
 
 function rOpps(){
   $('#opps').innerHTML=G.players.slice(1).map(p=>{const ticks=Math.ceil(p.thron/2);
@@ -382,6 +389,7 @@ function rOpps(){
     ${G.players[G.dealer]===p?'<span class="tag dtag">Geber</span>':''}
     <div class="ost">${IC.gold}${p.stack}</div>
     ${p.bet&&!p.folded?`<div class="obet chip num">${p.bet}</div>`:''}
+    ${p.heer.length?`<div class="oheer">${p.heer.map(c=>`<span data-z="${c.id}">${cardHTML(c,{cls:'xs'})}</span>`).join('')}</div>`:''}
     ${p.sac.length?`<div class="osac" data-z="${p.sac[0].id}">${cardHTML(p.sac[0],{cls:'xs'})}</div>`:''}
     ${p.peek&&p.hole.includes(p.peek)&&!p.folded?`<div class="opeek" data-z="${p.peek.id}">${cardHTML(p.peek,{cls:'xs'})}<span>Rabenauge</span></div>`:''}
   </div>`}).join('')}
@@ -414,8 +422,9 @@ function rHand(){
   const me=G.players[0],u=G.ui,el=$('#hand');
   if(u&&u.mode==='lineup'){
     const sel=u.sel,tm=sel.length===5?mkTeam(sel.map(id=>cardById[id]),me.up):null;
-    el.innerHTML=`<div class="fan n${me.hole.length}">${me.hole.map(c=>{const f=tm&&tm.team.find(x=>x.c===c);
-      return cardHTML(c,{cls:'pick '+(sel.includes(c.id)?'sel':'off'),up:upOf(me,c),st:f?[f.atk,f.hp]:null})}).join('')}</div>`;return}
+    const hc=me.hole.concat(me.heer);
+    el.innerHTML=`<div class="fan n${hc.length}">${hc.map(c=>{const f=tm&&tm.team.find(x=>x.c===c);
+      return cardHTML(c,{cls:'pick '+(c.merc?'merc ':'')+(sel.includes(c.id)?'sel':'off'),up:upOf(me,c),st:f?[f.atk,f.hp]:null})}).join('')}</div>`;return}
   const cs=me.inHand&&!me.out?me.hole:[];
   if(!cs.length){el.innerHTML='';return}
   const n=cs.length;
@@ -500,6 +509,7 @@ function showSheet(kind,d){
        <details open><summary>So läuft eine Hand</summary>
         <p><b>Ziel.</b> Eine Partie dauert <b>12 Nächte</b>. Wer am Ende den meisten <b>Ruhm</b> hat (Gold + 10 je Thron-Leben), gewinnt. Wer vorher als Einziger übrig ist, gewinnt sofort.</p>
         <p><b>1. Teilen und Kriegszoll.</b> Jeder bekommt <b>3 Kreaturenkarten</b>. Die beiden Plätze nach dem Geber zahlen vorher den <b>Kriegszoll</b>: einen halben und einen ganzen Einsatz. Wer den Flop sehen will, muss mitgehen, umsonst geht es nicht. Gesetzt wird mit <b>festen Beträgen</b>: Erhöhen geht immer um einen Einsatz, ab der Wende um zwei, höchstens dreimal pro Runde. Der Einsatz steigt alle drei Nächte.</p>
+        <p><b>Heerlager.</b> In der Schmiede kannst du <b>Söldner</b> anwerben. Bis zu zwei ziehen dauerhaft in dein Heerlager und stehen dir jede Nacht beim Showdown zusätzlich zu Hand und Tisch zur Wahl. Die Heerlager der Gegner siehst du unter ihren Bannern.</p>
         <p><b>2. Flop, Opfer, Wende.</b> Nach dem Flop opfert jeder eine Handkarte, offen für alle. In der Wende kommen Turn und River zusammen, dann wird ein letztes Mal gesetzt.</p>
         <p><b>3. Der Showdown ist ein Kampf.</b> Du wählst 5 deiner 7 Karten. Ihre Pokerkombo ist die <b>Formation</b> und gibt allen fünf Karten einen Bonus. Die Teams schlagen sich automatisch, ohne Würfel. Wer mehr Kämpfe gewinnt, holt den Pot.</p>
         <p><b>4. Thron und Beute.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers, alle drei Nächte einer mehr. Jeder gewonnene Kampf bringt <b>Beute</b> in Gold, auch ohne Pot. Wer flieht, bleibt unversehrt, zahlt aber mit Gold.</p>
@@ -515,7 +525,7 @@ function showSheet(kind,d){
       const{offers}=d;
       showOv(`<div class="sheet"><h2>Aschenschmiede</h2><p class="k">Gold wird hier zu Macht, und fehlt dir am Tisch.</p>
         <div class="offers">${offers.map((o,i)=>{const R=o.k==='oath'?REALM[o.s]:null;
-          const pic=o.k==='forge'?`<img src="cards/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
+          const pic=o.k==='recruit'?`<img src="cards/pk-${o.c.r}-${o.c.s}.jpg" alt=""><b>${RL[o.c.r]}</b>`:o.k==='forge'?`<img src="cards/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
           return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')}</div>
         <p class="k">Du hast ${me.stack} Gold · Thron ${me.thron}</p>
         <div class="row"><button class="plate btn ghost" data-x="reroll" ${me.stack>price(6)+1?'':'disabled'}>Neu würfeln<small>${price(6)} Gold</small></button><button class="plate btn" data-x="done">Nächste Hand</button></div></div>`);
@@ -600,7 +610,7 @@ function title(){
     <div class="rang">Rang: ${rankOf(FAME)} · Ruhm ${FAME}</div>
     <div class="row"><button class="plate btn raise" data-x="go">Den Thronsaal betreten</button><button class="plate btn ghost" data-x="book">Regeln lesen</button></div></div>`,'title');
   $('#ov').onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
-    if(b.dataset.x==='book'){G={players:[{up:{rank:{},realm:{}}}],dealer:0};return showSheet('book',{}).then(()=>{G=null;title()})}
+    if(b.dataset.x==='book'){G={players:[{up:{rank:{},realm:{}},heer:[]}],dealer:0};return showSheet('book',{}).then(()=>{G=null;title()})}
     hideOv();snd('thud');newGame()}}
 
 /* ---------- Asche & Funken (Canvas): eckige Flocken, kein Leuchten ---------- */

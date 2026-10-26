@@ -447,3 +447,13 @@ body.intro #stage>*{visibility:hidden}
 .card.xs .rlm{width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);top:calc(var(--cw)*.06);right:calc(var(--cw)*.06)}
 .title .card .rlm,.zoom .card .rlm{top:calc(var(--cw)*.2);width:calc(var(--cw)*.2);height:calc(var(--cw)*.2)}
 .card.back .rlm{display:none!important}
+/* Heerlager: dauerhafte Söldner */
+.oheer,.mheer{display:flex;gap:3px;justify-content:center;margin-top:2px}
+.oheer .card,.mheer .card{--cw:24px;font-size:3px;padding:1px;cursor:pointer}
+.oheer .card .xrk,.mheer .card .xrk,.oheer .card .pt,.mheer .card .pt{display:none!important}
+.oheer .card .rlm,.mheer .card .rlm{width:12px;height:12px;padding:2px;top:-4px;right:-4px;box-shadow:0 0 0 1px #f3d98a}
+.mheer{justify-content:flex-start}
+.card .mtag{position:absolute;z-index:5;left:50%;top:calc(var(--cw)*.05);transform:translateX(-50%);padding:.1em .55em;font:700 1em/1.3 var(--f-ttl);font-style:normal;color:#2a1906;background:linear-gradient(#f6dc8c,#c99a42);border-radius:.3em;box-shadow:0 0 0 1px #4a3210;pointer-events:none}
+.card.xs .mtag,.oheer .mtag,.mheer .mtag{display:none}
+.oheer{position:absolute;right:-6%;top:44%;flex-direction:column;z-index:3;margin:0}
+.offer .pic{min-height:80px}

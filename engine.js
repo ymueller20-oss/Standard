@@ -27,8 +27,8 @@ const SUP=[{2:'knappe',3:'herold',4:'banner',5:'waechter'},{2:'funke',3:'zunder'
 const supOf=c=>c.r<=5?SUP[c.s][c.r]||null:null;
 function chainLen(rs,r){const has=x=>rs.has(x)||(x===1&&rs.has(14));let lo=r,hi=r;while(has(lo-1))lo--;while(has(hi+1))hi++;
   let L=hi-lo+1;if(r===14){let h2=1;while(has(1+h2))h2++;L=Math.max(L,h2)}return L}
-function mkTeam(five,up){up=up||{rank:{},realm:{}};const b=eval5(five),cnt={};five.forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);const rs=new Set(five.map(c=>c.r));
-  const F=five.slice().sort((x,y)=>y.r-x.r||x.s-y.s).map(c=>{const st=PST[c.r],u=(up.rank[c.r]||0)+(up.realm[c.s]||0);
+function mkTeam(five,up,ordered){up=up||{rank:{},realm:{}};const b=eval5(five),cnt={};five.forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);const rs=new Set(five.map(c=>c.r));
+  const F=(ordered?five.slice():five.slice().sort((x,y)=>y.r-x.r||x.s-y.s)).map(c=>{const st=PST[c.r],u=(up.rank[c.r]||0)+(up.realm[c.s]||0);
     return{c,r:c.r,s:c.s,up:u,atk:st[0]+u,hp:st[1]+u,form:0,realm:[0,0],rage:0,sup:supOf(c),shield:false,glut:0,frost:false,taunt:false}});
   const n=[0,0,0,0];F.forEach(f=>n[f.s]++);const has=k=>F.filter(f=>f.sup===k);
   F.forEach(f=>{const bo=K.FB[b.cat];f.form=bo;f.atk+=bo;f.hp+=bo;let ra=0,rh=0;
@@ -116,7 +116,7 @@ function bestFive(cards){let b=null;for(const ix of combos(cards.length)){const 
 function battleEquity(me,board,opps,known,samples,rand){rand=rand||Math.random;const ks=new Set(known.map(c=>c.id));const deck=FULL.filter(c=>!ks.has(c.id));let w=0;
   for(let s=0;s<samples;s++){const d=deck.slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));const t=d[i];d[i]=d[j];d[j]=t}
     let k=0;const bd=board.concat(d.slice(0,5-board.length));k=5-board.length;
-    const all=[pickTeam(me.hole.concat(bd),me.up)];for(const o of opps){all.push(pickTeam(d.slice(k,k+o.n).concat(bd),o.up));k+=o.n}
+    const all=[pickTeam(me.hole.concat(bd,me.heer||[]),me.up)];for(const o of opps){all.push(pickTeam(d.slice(k,k+o.n).concat(bd,o.heer||[]),o.up));k+=o.n}
     const wins=all.map(()=>0);for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const r=battle(all[i].team,all[j].team,false);if(r.w===0)wins[i]++;else if(r.w===1)wins[j]++}
     const top=Math.max(...wins);const W=wins.filter(x=>x===top).length;if(wins[0]===top)w+=1/W}
   return w/samples}
