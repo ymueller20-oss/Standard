@@ -389,8 +389,11 @@ body.intro #stage>*{visibility:hidden}
 .hud-c,.hud-c b,.hud-c span{color:#f3e4c0!important;text-shadow:0 1px 2px #000,0 0 8px rgba(0,0,0,.9)}
 #read{padding-right:26px}
 #mebar{padding-left:26px}
-/* Hand: Bild zuerst – nur Name, Fähigkeit (einzeilig) und Werte über dem Vollbild */
-.fan .card .typ{display:none}
-.fan .card .tx{font-size:0;min-height:0;padding:.3em .5em;margin:auto 3.4em 0 .1em;background:color-mix(in srgb,var(--tb) 80%,transparent);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fan .card .tx b{font-size:calc(var(--cw)/12.5*1.02);line-height:1.2}
+/* Hand: wie die Tischkarten – Bild frei, oben nichts, unten Name und Werte */
+.fan .card .typ,.fan .card .tx{display:none}
+.fan .card .ttl{margin-top:auto;margin-right:3.3em;height:1.9em}
+.fan .card .ttl .cost{display:none}
+.fan .card .nm{font-size:1.12em}
+.fan .card .xrk{display:grid;place-items:center;position:absolute;top:calc(var(--cw)*.07);left:calc(var(--cw)*.07);width:1.9em;height:1.9em;border-radius:50%;z-index:3;font:700 1.2em/1 var(--f-ttl);font-style:normal;color:#1a1512;background:var(--mc);box-shadow:0 0 0 1.5px #1a1512,0 2px 3px rgba(0,0,0,.5)}
+.fan .card .art img{object-position:50% 25%}
 .fan .card .pt{bottom:-.55em}
