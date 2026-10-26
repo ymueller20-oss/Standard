@@ -46,10 +46,10 @@ const CORN='<img class="corner tl" src="orn/corner.svg" alt=""><img class="corne
 const SY='<svg class="sy" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M2 16V5l5 4 3-6 3 6 5-4v11zM2 17h16v2H2z"/></svg>';
 const I=(v,b)=>`<svg viewBox="${v}" aria-hidden="true">${b}</svg>`;
 const IC={
-  sun:I('0 0 16 16','<g fill="currentColor"><path d="M8 4.2L11.8 8 8 11.8 4.2 8z"/><path d="M8 .4l1.3 3H6.7zM8 15.6l-1.3-3h2.6zM.4 8l3-1.3v2.6zM15.6 8l-3 1.3V6.7z"/></g>'),
-  fire:I('0 0 16 16','<path fill="currentColor" d="M8 .6l3 4.2 1.8 1.6-.4 4.2L8 15.4 3.6 10.6l-.4-4.2L5 4.8z"/>'),
-  ice:I('0 0 16 16','<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="miter"><path d="M8 1v14M1.9 4.5l12.2 7M1.9 11.5l12.2-7"/></g>'),
-  blood:I('0 0 16 16','<path fill="currentColor" d="M8 .6l5 7.6-2 7.2H5L3 8.2z"/>'),
+  sun:I('0 0 24 24','<g fill="currentColor"><circle cx="12" cy="12" r="4.6"/><path d="M12 .8l1.6 4.4h-3.2zM12 23.2l-1.6-4.4h3.2zM.8 12l4.4-1.6v3.2zM23.2 12l-4.4 1.6v-3.2zM4.1 4.1l4.2 2-2.2 2.2zM19.9 19.9l-4.2-2 2.2-2.2zM19.9 4.1l-2 4.2-2.2-2.2zM4.1 19.9l2-4.2 2.2 2.2z"/></g>'),
+  fire:I('0 0 24 24','<path fill="currentColor" d="M12.5 1c.6 3.6 3.4 5.4 4.9 8.3 1.9 3.6.9 8.1-2.6 10.6-1 .7-2.2 1.2-3.4 1.4 1.9-1.4 2.6-3.6 1.6-5.6-.6-1.2-1.6-1.9-2-3.3-.9 1.3-1.4 2.6-1.1 4.1-1.6-.9-2.3-2.6-2.2-4.3-2.2 2.1-3 5.4-1.6 8.2C3.1 18.6 2.4 15 3.6 11.9 5 8.4 8.6 7 10.6 4.1c.9-1.1 1.6-2 1.9-3.1z"/>'),
+  ice:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 1.5v21M2.9 6.75l18.2 10.5M2.9 17.25l18.2-10.5"/><path d="M9 3.5l3 2.6 3-2.6M9 20.5l3-2.6 3 2.6M3.3 10.4l3.9-.8-1.3-3.7M20.7 13.6l-3.9.8 1.3 3.7M3.3 13.6l3.9.8-1.3 3.7M20.7 10.4l-3.9-.8 1.3-3.7"/></g>'),
+  blood:I('0 0 24 24','<path fill="currentColor" d="M12 1.2C9.6 5.6 4.8 10.6 4.8 15.2a7.2 7.2 0 0 0 14.4 0C19.2 10.6 14.4 5.6 12 1.2z"/><path fill="rgba(255,255,255,.45)" d="M8.6 14.2c0 2.4 1.4 4.1 3.2 4.6-2.7.3-4.6-1.9-4.3-4.6.2-1.6.9-3 1.9-4.6-.5 1.6-.8 3.1-.8 4.6z"/>'),
   thron:I('0 0 20 20','<path fill="currentColor" d="M2 16V5l5 4 3-6 3 6 5-4v11zM2 17h16v2H2z"/>'),
   gold:I('0 0 20 20','<circle cx="10" cy="10" r="9" fill="#e0b84a" stroke="#6a4c10" stroke-width="1.5"/><circle cx="10" cy="10" r="5.6" fill="none" stroke="#8a6a22" stroke-width="1.5"/><path d="M6 6.4a5.6 5.6 0 0 1 5-2" stroke="#fff3b0" stroke-width="1.2" fill="none"/>'),
   book:I('0 0 24 24','<path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="miter" d="M4 3h15v15H7l-3 3zM8 8h7M8 12h7"/>'),
@@ -128,7 +128,7 @@ function cardHTML(c,o={}){
   if(o.back)return `<div class="card back ${o.cls||''}" style="${o.style||''}"></div>`;
   const R=REALM[c.s],t=tier(c.r),up=o.up||0,team=o.st;
   const bA=PST[c.r][0]+up,bH=PST[c.r][1]+up,st=team||[bA,bH];
-  return `<div class="card t${t} ${o.cls||''}" data-id="${c.id}" style="--fr:${R.fr};--pl:${R.pl};--tb:${R.tb};--mc:${R.mc};${o.style||''}">
+  return `<div class="card t${t} r${c.s} ${o.cls||''}" data-id="${c.id}" style="--fr:${R.fr};--pl:${R.pl};--tb:${R.tb};--mc:${R.mc};${o.style||''}">
     <div class="frm">
       <div class="plate ttl"><b class="nm">${NAME[c.r]}</b><span class="cost"><i>${RL[c.r]}</i><i class="cm">${R.ic}</i></span></div>
       <div class="art"><img src="cards/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false">${up?`<i class="plate upb">+${up}/+${up}</i>`:''}</div>
@@ -137,7 +137,7 @@ function cardHTML(c,o={}){
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
     </div>
     <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
-    <i class="xrk">${RL[c.r]}</i><i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="glare"></i><i class="cvr"></i></div>`}
+    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i><i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="glare"></i><i class="cvr"></i></div>`}
 const upOf=(p,c)=>(p.up.rank[c.r]||0)+(p.up.realm[c.s]||0);
 function seenCls(key){if(!G.seen)G.seen=new Set();if(G.seen.has(key))return '';G.seen.add(key);G.dealt=(G.dealt||0)+1;return 'deal'}
 
