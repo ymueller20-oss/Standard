@@ -88,6 +88,7 @@ try{FAME=+localStorage.getItem('at-fame')||0;SEEN=new Set(JSON.parse(localStorag
 const rankOf=f=>{let r=RANKS[0][1];for(const[t,n]of RANKS)if(f>=t)r=n;return r};
 const saveMeta=()=>{try{localStorage.setItem('at-fame',FAME);localStorage.setItem('at-seen',JSON.stringify([...SEEN]))}catch(e){}};
 const BLINDS=[10,15,20,30,40,60,80];
+const ZOLL=1,ANTE_F=0;  // Kriegszoll (Blinds): kleiner = ZOLL/2, großer = ZOLL Einsätze; Ante-Anteil am Einsatz
 const START_GOLD=250,START_THRON=30,HAND_EVERY=3,MAX_HANDS=12,DMG_EVERY=3;  // Format per Simulation geprüft: siehe README
 
 /* ---------- Helfer ---------- */
@@ -181,11 +182,11 @@ function seatOrderFrom(i){const n=G.players.length,o=[];for(let k=1;k<=n;k++){co
 
 async function playHand(){
   G.hand++;G.fast=false;G.board=[];G.pot=0;G.seen=new Set();
-  const lvl=Math.min(BLINDS.length-1,Math.floor((G.hand-1)/HAND_EVERY));G.bb=BLINDS[lvl];G.ante=Math.max(2,Math.round(G.bb/5));
+  const lvl=Math.min(BLINDS.length-1,Math.floor((G.hand-1)/HAND_EVERY));G.bb=BLINDS[lvl];G.ante=Math.round(G.bb*ANTE_F);
   do{G.dealer=(G.dealer+1)%G.players.length}while(G.players[G.dealer].out);
   const deck=shuffle(FULL.slice());
   for(const p of G.players){p.hole=[];p.sac=[];p.folded=false;p.bet=0;p.say='';p.team=null;p.peek=null;p.loot=0;p.inHand=!p.out;
-    if(p.inHand){const a=Math.min(p.stack,G.ante);p.stack-=a;G.pot+=a}}
+    if(p.inHand&&G.ante){const a=Math.min(p.stack,G.ante);p.stack-=a;G.pot+=a}}
   for(const p of G.players)if(p.inHand){p.hole=deck.splice(0,p.fourth?4:3);p.fourth=0}
   G.deck=deck;
   const me=G.players[0];if(me.raven&&me.inHand){for(const p of G.players.slice(1))if(p.inHand)p.peek=p.hole[rnd(p.hole.length)];me.raven=0}
@@ -211,6 +212,11 @@ async function betRound(){
   const act=live();if(act.length<2)return;
   G.players.forEach(p=>{p.bet=0;p.say=''});G.curBet=0;G.minRaise=G.bb;G.raises=0;G.step=(G.board.length>=4?2:1)*G.bb;
   const order=seatOrderFrom(G.dealer).filter(p=>p.inHand&&!p.folded);
+  /* Kriegszoll: vor dem Flop zahlen die beiden Plätze nach dem Geber Pflichteinsätze – niemand sieht den Flop umsonst */
+  if(!G.board.length&&order.length>=2){
+    const post=(p,x,t)=>{const a=Math.min(p.stack,x);p.stack-=a;p.bet+=a;G.pot+=a;p.say=t+' '+a;p.zoll=t};
+    post(order[0],Math.round(G.bb*ZOLL/2),'Kl. Zoll');post(order[1],Math.round(G.bb*ZOLL),'Gr. Zoll');G.curBet=order[1].bet;
+    order.push(...order.splice(0,order.length>2?2:0));render();await sleep(500)}
   const need=new Set(order.filter(p=>p.stack>0));
   const cap=()=>Math.min(...live().map(p=>p.stack+p.bet));
   let i=0,guard=0;
