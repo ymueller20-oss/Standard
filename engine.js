@@ -13,10 +13,10 @@ function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=c
 /* Balance-Parameter */
 const K={
   FB:[0,3,6,9,12,16,20,24,28,33],      // Formationsbonus je Kombo für alle 5 Teamkarten
-  son:3, sonR:1, sonSh1:3, sonSh2:5,                      // Sonnenwacht · Schwur: Karten mit gleicher Stärke im Team tragen Gottesschild, +3/+3 je Zwilling; +1/+1 je weitere Sonnenwacht-Karte
-  ashA:3, ashH:2, ashN:0, ashNH:0, glutN:0,                     // Aschelande · Feuerkette: +2/+1 je weiteres Kettenglied; Glut zu Kampfbeginn = Kettenlänge
-  norH:2, norA:0, norFrost:3,                 // Nordmark · Eiswall: +0/+3 je weitere Nordmark-Karte; ab 3 Nordmark frieren ihre Treffer ein
-  blut:4, blutPer:0, blutF:3,                  // Blutmoor · Blutrausch: jede Runde +2 Angriff, +1 je weitere Blutmoor-Karte; Todesstoß im Fallen
+  son:2, sonR:1, sonSh1:3, sonSh2:5,                      // Sonnenwacht · Schwur: Karten mit gleicher Stärke im Team tragen Gottesschild, +3/+3 je Zwilling; +1/+1 je weitere Sonnenwacht-Karte
+  ashA:3, ashH:2, ashN:2, ashNH:2, glutN:0,                     // Aschelande · Feuerkette: +2/+1 je weiteres Kettenglied; Glut zu Kampfbeginn = Kettenlänge
+  norH:1, norA:3, norFrost:3,                 // Nordmark · Eiswall: +0/+3 je weitere Nordmark-Karte; ab 3 Nordmark frieren ihre Treffer ein
+  blut:3, blutPer:0, blutF:0,                  // Blutmoor · Blutrausch: jede Runde +2 Angriff, +1 je weitere Blutmoor-Karte; Todesstoß im Fallen
   knappe:1, herold:3, banner:5,       // Sonnenwacht-Unterstützer
   funke:8, zunder:2, brand:8, schmied:3,  // Aschelande-Unterstützer
   rune:2, wall:2,                     // Nordmark-Unterstützer
