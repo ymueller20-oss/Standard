@@ -78,10 +78,14 @@ const REALM=[
 const OPP=[
   {name:'Vargo Rotzahn',short:'Vargo',tag:'Söldner',col:'#a8321f',fr:'#c4472e',pl:'#f2dacb',art:'4-1',st:{aggr:.75,bluff:.16,tight:0},
    q:{raise:['Gold klingt besser als Eisen.','Ich kauf dir die Hand ab.'],allin:['Alles oder der Strick!'],fold:['Heute nicht, Krämer.'],win:['Der Söldner nimmt, was ihm zusteht.'],lose:['Pah. Glück.']}},
-  {name:'Mutter Grauweid',short:'Grauweid',tag:'Hexe',col:'#2f6a9a',fr:'#2f72ad',pl:'#d3e3f1',art:'3-2',st:{aggr:.5,bluff:.05,tight:.5},
+  {name:'Mutter Grauweid',short:'Grauweid',tag:'Hexe',col:'#2f6a9a',fr:'#2f72ad',pl:'#d3e3f1',art:'3-2',st:{aggr:.5,bluff:.05,tight:.5,pos:1},
    q:{raise:['Die Krähen flüstern: setz mehr.','Ich sah es in den Knochen.'],allin:['Die Knochen haben gesprochen.'],fold:['Die Zeichen stehen schlecht.'],win:['Ich sagte es doch, Kind.'],lose:['Alte Hexen sterben nicht an einer Hand.']}},
-  {name:'Die stumme Ysa',short:'Ysa',tag:'Meuchlerin',col:'#6b2f58',fr:'#3c3633',pl:'#d3cdc7',art:'12-3',st:{aggr:.65,bluff:.22,tight:-.1},
-   q:{raise:['Mehr.','Du zögerst.'],allin:['Alles.'],fold:['...'],win:['Still.'],lose:['Dein Glück ist geborgt.']}}];
+  {name:'Die stumme Ysa',short:'Ysa',tag:'Meuchlerin',col:'#6b2f58',fr:'#3c3633',pl:'#d3cdc7',art:'12-3',st:{aggr:.65,bluff:.22,tight:-.1,pos:1},
+   q:{raise:['Mehr.','Du zögerst.'],allin:['Alles.'],fold:['...'],win:['Still.'],lose:['Dein Glück ist geborgt.']}},
+  {name:'Bruder Anselm',short:'Anselm',tag:'Mönch',col:'#b08a2e',fr:'#d6cfbd',pl:'#f1eee3',art:'10-0',st:{aggr:.35,bluff:.02,tight:.7,pos:1},
+   q:{raise:['Das Licht ist mit mir.'],allin:['Gott will es!'],fold:['Demut ist eine Tugend.'],win:['Gesegnet sei der Pot.'],lose:['Eine Prüfung.']}},
+  {name:'Kalla Eisenfaust',short:'Kalla',tag:'Schmiedin',col:'#3f6f8f',fr:'#2f72ad',pl:'#d3e3f1',art:'8-2',st:{aggr:.85,bluff:.12,tight:.1},
+   q:{raise:['Schlag zu, solang es glüht.'],allin:['Alles in die Esse!'],fold:['Kaltes Eisen.'],win:['Gut geschmiedet.'],lose:['Nächstes Mal härter.']}}];
 const RANKS=[[0,'Bettler'],[100,'Tagelöhner'],[300,'Söldner'],[700,'Hauptmann'],[1400,'Ritter'],[2500,'Fürst'],[4000,'Aschenkönig']];
 let FAME=0,SEEN=new Set();
 try{FAME=+localStorage.getItem('at-fame')||0;SEEN=new Set(JSON.parse(localStorage.getItem('at-seen')||'[]'))}catch(e){}
@@ -163,7 +167,7 @@ function newGame(){
   document.body.classList.remove('intro');
   const P=[{name:'Du',short:'Du',human:true,col:'#efe6cf',art:'14-0'}].concat(OPP.map(o=>({...o})));
   G={players:P.map((p,i)=>({i,...p,stack:START_GOLD,thron:START_THRON,hole:[],sac:[],heer:[],up:{rank:{},realm:{}},folded:false,inHand:false,out:false,bet:0,say:'',rage:false})),
-    hand:0,dealer:3,board:[],pot:0,bb:10,ante:2,curBet:0,minRaise:10,ui:null,seen:new Set(),turn:null,fast:false,lastPot:0,stats:{won:0,best:-1,bestName:''}};
+    hand:0,dealer:P.length-1,board:[],pot:0,bb:10,ante:2,curBet:0,minRaise:10,ui:null,seen:new Set(),turn:null,fast:false,lastPot:0,stats:{won:0,best:-1,bestName:''}};
   return runGame()}
 
 async function runGame(){
@@ -250,7 +254,7 @@ async function betRound(){
 /* ---------- KI ---------- */
 async function aiAct(p,toCall,minTo,capT,canRaise){
   await sleep(650+rnd(700));
-  const n=live().length,eq=equity(p,p.st.n||24),fair=1/n,st=p.st,bb=G.bb;
+  const n=live().length,eq=equity(p,p.st.n||14),fair=1/n,st=p.st,bb=G.bb;
   const po=toCall/(G.pot+toCall||1),e=eq+(Math.random()-.5)*.08,bluff=Math.random()<st.bluff;
   const size=()=>minTo;
   if(toCall<=0){
@@ -264,7 +268,7 @@ async function aiAct(p,toCall,minTo,capT,canRaise){
 /* ---------- Mensch: Einsatz ---------- */
 function humanAct(toCall,minTo,capT,canRaise){
   const p=G.players[0];
-  const eq=equity(p,36),n=live().length;
+  const eq=equity(p,24),n=live().length;
   G.eq={eq,n,toCall,po:toCall/(G.pot+toCall||1)};
   return ask('bet',{toCall,minTo,capT,canRaise,raising:false,val:minTo})}
 
@@ -285,7 +289,9 @@ async function showdown(){
     let five;
     if(p.human)five=await ask('lineup',{cards:seven.slice().sort((a,b)=>b.r-a.r||a.s-b.s),sel:bestFive(seven).five.map(c=>c.id)});
     else five=pickTeam(seven,p.up).five;
-    p.team=mkTeam(five,p.up);
+    five=mkTeam(five,p.up).team.map(f=>f.c);  /* Standard: stärkste links */
+    if(p.human)five=await orderLineup(five,p);else if(p.st&&p.st.pos)five=aiOrder(p,five,L);
+    p.team=mkTeam(five,p.up,true);
     if(p.drum){const b=p.team.b,add=K.FB[Math.min(9,b.cat+1)]-K.FB[b.cat];p.team.team.forEach(f=>{f.atk+=add;f.hp+=add;f.max+=add});p.team.drum=add;p.drum=0}}
   const wins=new Map(L.map(p=>[p,0])),dmg=new Map(),pairs=[];
   for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){
@@ -306,6 +312,25 @@ async function showdown(){
   if(dmg.get(me)){pulse();snd('lose')}else if(W.includes(me))snd('win');
   await showSheet('result',{L,W,dmg,wins});
   G.pot=0;render()}
+
+/* ---------- Schlachtreihe: Reihenfolge der Kämpfer frei wählen ---------- */
+function orderLineup(five,p){return new Promise(res=>{let ord=five.slice(),pick=-1;
+  const draw=()=>{const t=mkTeam(ord,p.up,true);
+    showOv(`<div class="sheet order"><h2>Schlachtreihe</h2><p class="k">Jede Karte kämpft gegen die gegenüber. Tippe zwei Karten, um sie zu tauschen.</p>
+      <div class="olanes">${t.team.map((f,i)=>`<div class="ol ${pick===i?'pk':''}" data-i="${i}"><b>${i+1}</b>${cardHTML(f.c,{cls:'xs'+(f.shield?' shd':''),st:[f.atk,f.hp],up:f.up||0})}<small>${f.sup?abil(f.c)[0]:f.taunt?'Leibwächter':''}</small></div>`).join('')}</div>
+      <div class="row"><button class="plate btn ghost" data-x="std">Stärkste links</button><button class="plate btn raise" data-x="go">In die Schlacht</button></div></div>`,true);
+    $('#ov').onclick=e=>{const l=e.target.closest('.ol'),b=e.target.closest('[data-x]');
+      if(l){const i=+l.dataset.i;if(pick<0)pick=i;else{if(pick!==i){const x=ord[pick];ord[pick]=ord[i];ord[i]=x;snd('click')}pick=-1}draw();return}
+      if(b&&b.dataset.x==='std'){ord=five.slice();pick=-1;draw();return}
+      if(b&&b.dataset.x==='go'){hideOv();res(ord)}}};
+  draw()})}
+function perms(a){if(a.length<=1)return[a];const out=[];a.forEach((x,i)=>{for(const r of perms(a.slice(0,i).concat(a.slice(i+1))))out.push([x,...r])});return out}
+/* Starke Gegner stellen auf: jede Reihenfolge gegen die Teams der anderen am Tisch testen */
+function aiOrder(p,five,L){/* fair: Gegnerhände werden ausgelost, nicht gelesen */
+  const known=new Set([...p.hole,...G.board,...G.players.flatMap(q=>q.sac)].map(c=>c.id)),deck=FULL.filter(c=>!known.has(c.id)),foes=[];
+  for(let s=0;s<2;s++){const d=shuffle(deck.slice());let k=0;for(const q of L){if(q===p)continue;const h=d.slice(k,k+q.hole.length);k+=q.hole.length;foes.push(pickTeam(h.concat(G.board,q.heer),q.up))}}
+  let best=five,bv=-1;
+  for(const o of perms(five)){const t=mkTeam(o,p.up,true);let v=0;for(const e of foes){const r=battle(t.team,e.team,false);v+=r.w===0?1:r.w===-1?.5:0}if(v>bv){bv=v;best=o}}return best}
 
 /* ---------- Aschenschmiede ---------- */
 const PF=()=>Math.max(1,G.bb/10*.6),price=b=>Math.max(1,Math.round(b*PF()));
