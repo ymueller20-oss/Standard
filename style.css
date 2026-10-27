@@ -513,3 +513,14 @@ body.intro #stage>*{visibility:hidden}
 .sheet.order .ol b{font:400 .9rem var(--f-fsc);color:var(--rubric)}
 .sheet.order .ol small{font:italic 400 .72rem/1.1 var(--f-fell);color:var(--ink-soft);min-height:1.1em;text-align:center}
 .sheet.order .ol.pk{transform:translateY(-8px);background:rgba(201,162,74,.35);box-shadow:0 0 0 2px #c9a24a}
+/* Größere Tischkarten: volle Breite */
+#table{margin-left:6px;margin-right:6px;padding-left:2px;padding-right:2px}
+#board{gap:5px;padding:4px 0 2px}
+#board .card,#board .slot{--cw:clamp(62px,calc(var(--H)*.088),75px)}
+#board .zone>span{font-size:.72rem}
+/* Synergie: beteiligte Karten leuchten, Zeilen unter der Kombo */
+.card.syncard{box-shadow:0 0 0 2px #ffd76a,0 0 12px 3px rgba(255,200,80,.75)!important;animation:synp 1.8s ease-in-out infinite alternate}
+@keyframes synp{to{box-shadow:0 0 0 2px #fff0b0,0 0 18px 5px rgba(255,210,90,.95)}}
+#read .syn{display:block;margin-top:3px;font:italic 400 .86rem/1.25 var(--f-fell);color:#ffd76a!important;text-shadow:0 1px 2px #000,0 0 6px rgba(0,0,0,.9)}
+.card.syncard{outline:3px solid #ffe27a;outline-offset:2px;box-shadow:0 0 16px 6px rgba(255,190,60,.85)!important}
+@keyframes synp{to{outline-color:#fff5c8;box-shadow:0 0 24px 9px rgba(255,210,90,1)!important}}

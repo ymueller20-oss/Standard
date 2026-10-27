@@ -133,7 +133,7 @@ function cardHTML(c,o={}){
   if(o.back)return `<div class="card back ${o.cls||''}" style="${o.style||''}"></div>`;
   const R=REALM[c.s],t=tier(c.r),up=o.up||0,team=o.st;
   const bA=PST[c.r][0]+up,bH=PST[c.r][1]+up,st=team||[bA,bH];
-  return `<div class="card t${t} r${c.s} ${o.cls||''}" data-id="${c.id}" style="--fr:${R.fr};--pl:${R.pl};--tb:${R.tb};--mc:${R.mc};${o.style||''}">
+  return `<div class="card t${t} r${c.s} ${G&&G.syn&&G.syn.has(c.id)?'syncard ':''}${o.cls||''}" data-id="${c.id}" style="--fr:${R.fr};--pl:${R.pl};--tb:${R.tb};--mc:${R.mc};${o.style||''}">
     <div class="frm">
       <div class="plate ttl"><b class="nm">${NAME[c.r]}</b><span class="cost"><i>${RL[c.r]}</i><i class="cm">${R.ic}</i></span></div>
       <div class="art"><img src="cards/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false">${up?`<i class="plate upb">+${up}/+${up}</i>`:''}</div>
@@ -145,6 +145,27 @@ function cardHTML(c,o={}){
     <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="glare"></i><i class="cvr"></i></div>`}
 const upOf=(p,c)=>(p.up.rank[c.r]||0)+(p.up.realm[c.s]||0);
 function seenCls(key){if(!G.seen)G.seen=new Set();if(G.seen.has(key))return '';G.seen.add(key);G.dealt=(G.dealt||0)+1;return 'deal'}
+
+/* ---------- Synergien: was im besten Team zusammenspielt ---------- */
+function synergies(cards,up){if(cards.length<5)return[];const t=pickTeam(cards,up);if(!t)return[];const T=t.team,out=[];
+  const add=(v,txt,fs)=>out.push({v,t:txt,ids:fs.map(f=>f.c.id)});const by=s=>T.filter(f=>f.s===s),nm=f=>NAME[f.r];
+  const S=by(0),A=by(1),N=by(2),B=by(3);
+  const tw=S.filter(f=>T.filter(o=>o.r===f.r).length>1);if(tw.length)add(6,`Schwur: ${[...new Set(tw.map(nm))].join(', ')} mit Gottesschild`,tw);
+  if(S.length>=4)add(5,`Sonnenwacht ×${S.length}: Gottesschild`,S);
+  const ch=A.filter(f=>f.chain>=2);if(ch.length){const L=Math.max(...ch.map(f=>f.chain));add(2+L,`Feuerkette ×${L}: Glut ${L}`,ch)}else if(A.length>=3)add(4,`Aschelande ×${A.length}`,A);
+  if(N.length>=3)add(6,`Nordmark ×${N.length}: Frost`,N);else if(N.length===2)add(2,'Nordmark ×2: Eiswall',N);
+  if(B.length>=2)add(2+B.length,`Blutmoor ×${B.length}: Blutrausch +${K.blut+K.blutPer*(B.length-1)}`,B);
+  for(const f of T){if(!f.sup)continue;const ab=SUPTX[f.sup][0];
+    if(f.sup==='knappe'){const g=T.find(o=>o.blessed);if(g)add(7,`${ab} schützt ${nm(g)}`,[f,g])}
+    else if(f.sup==='banner'){const sh=T.filter(o=>o.shield&&o!==f);if(sh.length)add(5+sh.length,`${ab}: ${sh.length} Schildträger +5/+5`,[f,...sh])}
+    else if(f.sup==='herold'){const sh=T.filter(o=>o.shield);if(sh.length)add(4+sh.length,`${ab}: Schildbruch stärkt das Team`,[f,...sh])}
+    else if(f.sup==='waechter'){const g=T.find(o=>o.guard===f);if(g)add(6,`${ab} deckt ${nm(g)}`,[f,g])}
+    else if(f.sup==='zunder'){const fi=T.filter(o=>o.glut||o.sup==='funke'||o.r===14);if(fi.length)add(4+fi.length,`${ab} facht ${fi.length} Brände an`,[f,...fi])}
+    else if(f.sup==='schmied'){const c=T.filter(o=>o!==f&&o.chain>=2||o!==f&&chainLen(new Set(T.map(x=>x.r)),o.r)>=2);if(c.length)add(4+c.length,`${ab}: ${c.length} Kettenglieder +3`,[f,...c])}
+    else if(f.sup==='winterwolf')add(7,`${ab}: alle Treffer frieren`,T);
+    else if(f.sup==='moorwolf'){const i=T.indexOf(f),nb=[T[i-1],T[i+1]].filter(Boolean);add(5,`${ab}: Blutrausch für ${nb.map(nm).join(' & ')}`,[f,...nb])}
+    else add(4,`${ab}: ${SUPTX[f.sup][2]}`,[f])}
+  return out.sort((a,b)=>b.v-a.v)}
 
 /* ---------- Kombo-Beschreibung ---------- */
 const RN=r=>NAME[r];
@@ -419,7 +440,7 @@ function rOpps(){
     ${p.peek&&p.hole.includes(p.peek)&&!p.folded?`<div class="opeek" data-z="${p.peek.id}">${cardHTML(p.peek,{cls:'xs'})}<span>Rabenauge</span></div>`:''}
   </div>`}).join('')}
 
-function rTable(){
+function rTable(){G.syn=null;G.sy=null;{const me=G.players[0];if(!me.out&&me.inHand&&!me.folded&&me.hole.length&&!(G.ui&&G.ui.mode==='lineup')){G.sy=synergies(me.hole.concat(G.board,me.heer),me.up).filter(x=>x.v>=5);G.syn=new Set(G.sy.slice(0,2).flatMap(x=>x.ids))}}
   const pe=$('#pot');pe.style.setProperty('--fs',(1+Math.min(.9,G.pot/(START_GOLD*2.5))).toFixed(2));
   pe.innerHTML=`${IC.bowl}<div class="num">${G.pot}<small>Pot</small></div>`;
   if(G.pot>G.lastPot){pe.classList.remove('bump');void pe.offsetWidth;pe.classList.add('bump')}G.lastPot=G.pot;
@@ -433,7 +454,7 @@ function rTable(){
   const left=G.deck?G.deck.length:52;$('#deck').innerHTML=left?cardHTML(null,{back:1})+(left>8?cardHTML(null,{back:1}):'')+(left>16?cardHTML(null,{back:1}):''):'';
   const me=G.players[0];let r='';
   if(!me.out&&me.inHand&&!me.folded&&me.hole.length){
-    const cs=me.hole.concat(G.board);r=`<b>${handLabel(cs)}</b>`;
+    const cs=me.hole.concat(G.board);r=`<b>${handLabel(cs)}</b>`;const sy=G.sy||[];if(sy.length)r+=`<span class="syn">${sy.slice(0,2).map(x=>'✦ '+x.t).join('<br>')}</span>`;
     if(G.eq&&G.ui&&G.ui.mode==='bet'){r+=` · Chance <span class="${G.eq.eq>=1/G.eq.n?'g':'r'}">${Math.round(G.eq.eq*100)}%</span>`;
       if(G.eq.toCall>0)r+=` · nötig ${Math.round(G.eq.po*100)}%`}}
   else if(me.folded)r='Du hast geflohen';
