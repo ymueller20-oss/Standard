@@ -9,7 +9,7 @@ Poker trifft Battlegrounds am Tavernentisch: zwölf Nächte, sechs Spieler. Zum 
 - Die Kampf-Engine steckt in `engine.js`, Oberfläche und Ablauf in `game.js`.
 
 ## Balance messen
-`node sim/balance.js` simuliert 3.000 Kämpfe und zeigt, wie stark Kombo, Reiche und einzelne Karten entscheiden. Zielwerte: bessere Kombo gewinnt 60–70 %, Kämpfe dauern 3–4 Runden, kaum Remis. Alle Stellschrauben stehen in `engine.js` unter `K` und `PST`.
+`node sim/balance.js` simuliert 3.000 Kämpfe und zeigt, wie stark Kombo, Reiche und einzelne Karten entscheiden. Zielwerte: bessere Kombo gewinnt um 70 %, seltene Kombos (Horde, Plage, Kriegszug) fast immer, Kämpfe dauern 3–4 Runden, kaum Remis. Alle Stellschrauben stehen in `engine.js` unter `K` und `PST`.
 
 ## Veröffentlichen
 `./build.sh` erzeugt `dist/krug-und-krone.zip`. Das Zip lässt sich direkt als HTML-Spiel auf itch.io oder CrazyGames hochladen.

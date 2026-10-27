@@ -114,7 +114,10 @@ function tone(f0,f1,d,type='sine',v=.2,at=0){const a=ac();if(!a)return;const t=a
   g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02)}
 function noise(d,v=.2,f=2000,type='highpass',at=0){const a=ac();if(!a)return;const t=a.currentTime+at,n=Math.floor(a.sampleRate*d),b=a.createBuffer(1,n,a.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);
   const s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();s.buffer=b;fl.type=type;fl.frequency.value=f;g.gain.value=v;s.connect(fl).connect(g).connect(a.destination);s.start(t)}
-function snd(k){if(!SND.on)return;try{
+/* Aufnahmen aus audio.js zuerst; die erzeugten Töne bleiben als Rückfall, solange nichts geladen ist */
+const au=(f,...a)=>{try{return typeof AU!=='undefined'?AU[f](...a):0}catch(e){return 0}};
+const SMAP={tick:['schub',.45],chip:['chips',.75],thud:['holz',.7],hit:['schlag',.9],die:['zerfall',.8],click:['klick',.45]};
+function snd(k){if(!SND.on)return;if((k==='win'||k==='lose')&&typeof AU!=='undefined'&&AU.ready)return;const m=SMAP[k];if(m&&au('sfx',m[0],{vol:m[1]}))return;try{
   if(k==='tick')noise(.05,.16,3500);
   else if(k==='chip'){tone(2100,1900,.07,'square',.06);tone(2900,2600,.09,'square',.05,.05)}
   else if(k==='thud'){tone(130,38,.34,'sine',.5);noise(.09,.2,600,'lowpass')}
@@ -213,16 +216,16 @@ function coach(k){
   if(el){const r=el.getBoundingClientRect(),p=6;low=r.top+r.height/2>innerHeight/2;
     ring=`<div class="cring" style="left:${r.left-p}px;top:${r.top-p}px;width:${r.width+2*p}px;height:${r.height+2*p}px"></div>`}
   else c.classList.add('dim');
-  const last=Object.keys(TIPS).every(x=>TUT.seen.has(x));
+  const last=Object.keys(TIPS).every(x=>TUT.seen.has(x));au('say','tut_'+k,{prio:3});
   c.innerHTML=`${ring}<div class="cbub ${low?'up':'dn'}"><b>Der Wirt</b><h3>${h}</h3><p>${t}</p>
     <div class="row"><button class="btn ghost" data-c="skip">Kenn ich schon</button><button class="btn raise" data-c="ok">${last?'Los geht’s':'Verstanden'}</button></div></div>`;
   document.body.appendChild(c);snd('click');
   return new Promise(res=>{c.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;e.stopPropagation();
-    if(b.dataset.c==='skip'||last)tutDone();c.remove();snd('click');res()}})}
+    if(b.dataset.c==='skip'||last)tutDone();au('hush');c.remove();snd('click');res()}})}
 
 /* ---------- Spielzustand ---------- */
 function newGame(){
-  document.body.classList.remove('intro');
+  document.body.classList.remove('intro');au('reset');au('say','willkommen',{prio:2});
   const P=[{name:'Du',short:'Du',human:true,col:'#efe6cf',art:'14-0'}].concat(OPP.map(o=>({...o})));
   G={players:P.map((p,i)=>({i,...p,stack:START_GOLD,thron:START_THRON,hole:[],sac:[],heer:[],up:{rank:{},realm:{}},folded:false,inHand:false,out:false,bet:0,say:'',rage:false})),
     hand:0,dealer:P.length-1,board:[],pot:0,bb:10,ante:2,curBet:0,minRaise:10,ui:null,seen:new Set(),turn:null,fast:false,lastPot:0,stats:{won:0,best:-1,bestName:''}};
@@ -254,16 +257,17 @@ async function playHand(){
   for(const p of G.players)if(p.inHand){p.hole=deck.splice(0,p.fourth?4:3);p.fourth=0}
   G.deck=deck;
   const me=G.players[0];if(me.raven&&me.inHand){for(const p of G.players.slice(1))if(p.inHand)p.peek=p.hole[rnd(p.hole.length)];me.raven=0}
+  au('music','tisch');au('sting','nacht',.8);au('say',G.hand>=MAX_HANDS?'letzte':'nacht'+G.hand,{at:.35});au('sfx','mischen',{vol:.8,at:.2});
   render();await sleep(900);
   await coach('start');
   await betRound();if(await soleWinner())return;
-  await banner('Der Flop','',G.fast?0:800);
-  G.board.push(...G.deck.splice(0,3));render();await sleep(600);
+  au('say','flop');await banner('Der Flop','',G.fast?0:800);
+  G.board.push(...G.deck.splice(0,3));[0,.12,.24].forEach(t=>au('sfx','karte',{vol:.8,at:t}));render();await sleep(600);
   if(live().includes(G.players[0]))await coach('flop');
   await betRound();if(await soleWinner())return;
   await sacrifice();
-  await banner('Die Wende','Turn und River',G.fast?0:900);
-  G.board.push(...G.deck.splice(0,2));render();await sleep(600);
+  au('say','wende');await banner('Die Wende','Turn und River',G.fast?0:900);
+  G.board.push(...G.deck.splice(0,2));[0,.14].forEach(t=>au('sfx','karte',{vol:.8,at:t}));render();await sleep(600);
   await betRound();if(await soleWinner())return;
   await showdown()}
 
@@ -299,18 +303,23 @@ async function betRound(){
     const canRaise=capT>G.curBet&&p.stack>toCall&&G.raises<3;
     const a=p.human?await humanAct(toCall,minTo,capT,canRaise):await aiAct(p,toCall,minTo,capT,canRaise);
     p.say='';
-    if(a.t==='fold'){p.folded=true;p.say='Flieht';need.delete(p);if(p.human)G.fast=true;snd('click')}
+    if(a.t==='fold'){p.folded=true;p.say='Flieht';need.delete(p);if(p.human)G.fast=true;if(!au('sfx','schub',{vol:.7}))snd('click');if(!p.human&&Math.random()<.3)quip(p,'fold')}
     else if(a.t==='call'){const amt=Math.min(toCall,p.stack);p.stack-=amt;p.bet+=amt;G.pot+=amt;need.delete(p);p.say=toCall<=0?'Schiebt':(p.stack<=0?'Alles!':'Geht mit');if(amt)snd('chip')}
     else{const to=minTo,amt=to-p.bet;G.raises++;
       G.minRaise=Math.max(G.minRaise,to-G.curBet);p.stack-=amt;p.bet=to;G.pot+=amt;G.curBet=to;
       need.clear();live().forEach(q=>{if(q!==p&&q.stack>0)need.add(q)});
       if(p.stack<=0){pulse('rgba(232,80,44,.75)');snd('thud')}else snd('chip');
       p.rage=true;setTimeout(()=>{p.rage=false;render()},700);
-      p.say=p.stack<=0?'Alles! '+to:(toCall<=0?'Setzt ':'Erhöht ')+to}
+      p.say=p.stack<=0?'Alles! '+to:(toCall<=0?'Setzt ':'Erhöht ')+to;
+      if(p.human){if(p.stack<=0)au('say','allin',{prio:2})}else if(p.stack<=0)quip(p,'allin',3);else if(Math.random()<.35)quip(p,'raise')}
     G.turn=null;render();await sleep(p.human?250:700);
   }
   G.turn=null;G.players.forEach(p=>{if(!p.folded)p.say=''});
   render()}
+
+/* Gegner sprechen: Stimme plus Zeile unten, solange sie redet */
+function quip(p,kind,prio=1){const w=(p.short||'').toLowerCase(),ids=[0,1,2,3].map(i=>`${w}_${kind}${i}`).filter(id=>au('has',id));if(!ids.length)return;
+  const id=ids[rnd(ids.length)],d=au('say',id,{prio});if(!d)return;G.line={who:p.short,text:au('text',id)};render();const L=G.line;setTimeout(()=>{if(G&&G.line===L){G.line=null;render()}},d*1000+700)}
 
 /* ---------- KI ---------- */
 async function aiAct(p,toCall,minTo,capT,canRaise){
@@ -338,7 +347,7 @@ async function humanAct(toCall,minTo,capT,canRaise){
 /* ---------- Opfer ---------- */
 async function sacrifice(){
   for(const p of live()){
-    if(p.human){const pr=ask('sac',{sel:null});await coach('sac');const c=await pr;p.hole=p.hole.filter(x=>x!==c);p.sac.push(c);snd('thud')}
+    if(p.human){au('say','opfer');const pr=ask('sac',{sel:null});await coach('sac');const c=await pr;p.hole=p.hole.filter(x=>x!==c);p.sac.push(c);au('sfx','klinge',{vol:.8});snd('thud')}
     else{let bestI=0,bs=-1;p.hole.forEach((c,i)=>{const rest=p.hole.filter((_,j)=>j!==i).concat(G.board);const sc=bestScore(rest);if(sc>bs||(sc===bs&&c.r<p.hole[bestI].r)){bs=sc;bestI=i}});
       p.say='Opfert';const c=p.hole.splice(bestI,1)[0];p.sac.push(c);G.turn=p;render();snd('thud');await sleep(700);p.say=''}}
   G.turn=null;render();await sleep(500)}
@@ -346,7 +355,7 @@ async function sacrifice(){
 /* ---------- Showdown ---------- */
 async function showdown(){
   const L=live(),me=G.players[0];
-  await banner('Showdown','',G.fast?0:900);
+  au('music','showdown');au('say','showdown',{prio:2});au('sfx','orchester',{vol:.7});await banner('Showdown','',G.fast?0:900);
   for(const p of L){
     const seven=p.hole.concat(G.board,p.heer);
     let five;
@@ -374,6 +383,8 @@ async function showdown(){
   if(W.includes(me)){G.stats.won++;const sc=me.team.b.cat;if(sc>=G.stats.best){G.stats.best=sc;G.stats.bestName=comboLabel(me.team.b)}}
   for(const[p,d]of dmg)p.thron=Math.max(0,p.thron-d);
   if(dmg.get(me)){pulse();snd('lose')}else if(W.includes(me))snd('win');
+  if(W.includes(me)){au('sfx','pot');au('sfx','muenzen',{at:.25});au('say','pot',{at:.3})}
+  if(me.thron>0&&me.thron<=10)au('once','thron',()=>au('say','thron',{at:1.4,prio:2}));
   await showSheet('result',{L,W,dmg,wins});
   G.pot=0;render()}
 
@@ -448,12 +459,12 @@ function aiShop(p){const offers=mkOffers(),reserve=G.bb*10;let best=null,bv=0;
   if(bv>.5)applyOffer(p,best)}
 async function tavern(){
   for(const p of G.players.slice(1))if(!p.out)aiShop(p);
-  const me=G.players[0];let offers=mkOffers();
+  const me=G.players[0];let offers=mkOffers();au('music','taverne');au('sfx','tuer',{vol:.8});au('once','taverne',()=>au('say','taverne',{at:.5}));
   while(true){
     const sh=showSheet('tavern',{offers});await coach('tavern');const c=await sh;
-    if(c.t==='done')return;
-    if(c.t==='reroll'){me.stack-=price(6);offers=mkOffers();continue}
-    if(c.t==='buy'){const o=offers[c.i];if(!o.sold&&me.stack-o.cost>=1){applyOffer(me,o);o.sold=true;snd('chip')}}}}
+    if(c.t==='done'){au('sfx','tuer',{vol:.6,rate:.9});return}
+    if(c.t==='reroll'){me.stack-=price(6);offers=mkOffers();au('sfx','wuerfel');continue}
+    if(c.t==='buy'){const o=offers[c.i];if(!o.sold&&me.stack-o.cost>=1){applyOffer(me,o);o.sold=true;if(!au('sfx','muenzen'))snd('chip')}}}}
 
 async function gameOver(){
   const me=G.players[0];
@@ -461,7 +472,7 @@ async function gameOver(){
   const rank=G.players.slice().sort((a,b)=>score(b)-score(a));
   const won=rank[0]===me;const place=rank.indexOf(me)+1;
   const gain=(won?150:0)+([0,0,80,50,30,15,0][place]||0)+G.stats.won*10;const before=rankOf(FAME);FAME+=gain;saveMeta();
-  snd(won?'win':'lose');if(TUT.on)tutDone();
+  snd(won?'win':'lose');if(TUT.on)tutDone();au('music','');au('sting',won?'spielsieg':'spielende');au('say',won?'krone':'aus',{at:won?1.2:.8,prio:3});
   await showSheet('over',{won,rank,score,gain,place,up:rankOf(FAME)!==before});
   return newGame()}
 
@@ -565,7 +576,7 @@ document.addEventListener('click',e=>{
   const u=G&&G.ui;
   if(b){const a=b.dataset.a;
     if(a==='book')return showSheet('book',{});
-    if(a==='snd'){SND.on=!SND.on;try{localStorage.setItem('at-snd',SND.on?'1':'0')}catch(x){}if(SND.on)snd('click');return render()}
+    if(a==='snd')return tonSheet();
     if(!u)return;
     if(a==='fold')return done({t:'fold'});
     if(a==='call')return done({t:'call'});
@@ -597,15 +608,26 @@ function zoom(id){
   showOv(`<div class="zoom"><div>${cardHTML(c,{up:upOf(me,c),big:1})}</div>
     <div class="fl">»${FLAV[c.r]}«</div>
     <div class="lore"><b>${R.n} · ${TIERN[t-1]}</b>${R.lore}<br><i>${R.pn}: ${R.ptx}</i></div></div>`,true);
-  const t0=Date.now();
-  $('#ov').onclick=()=>{if(Date.now()-t0<350)return;hideOv()}}
+  const t0=Date.now();au('say','karte'+c.r,{prio:2});au('sfx','faecher',{vol:.6});
+  $('#ov').onclick=()=>{if(Date.now()-t0<350)return;au('hush');hideOv()}}
 
+/* Ton: Musik, Stimmen, Geräusche einzeln */
+function tonSheet(){const o=typeof AU!=='undefined'?AU.opt:{mus:1,voc:1,sfx:1};
+  const row=(k,t)=>`<button class="plate btn ${SND.on&&o[k]?'raise':'ghost'}" data-t="${k}">${t}<small>${SND.on&&o[k]?'an':'aus'}</small></button>`;
+  const draw=()=>{showOv(`<div class="sheet ton"><h2>Ton</h2><div class="row">${row('mus','Musik')}${row('voc','Stimmen')}${row('sfx','Geräusche')}</div>
+    <div class="row"><button class="plate btn ghost" data-t="all">${SND.on?'Alles stumm':'Ton an'}</button><button class="plate btn" data-t="x">Fertig</button></div></div>`,true);
+    $('#ov').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;const k=b.dataset.t;
+      if(k==='x'){hideOv();return render()}
+      if(k==='all'){SND.on=!SND.on;try{localStorage.setItem('at-snd',SND.on?'1':'0')}catch(x){}if(!SND.on){au('hush');au('setOpt','mus',false);o.mus=true}else{au('setOpt','mus',o.mus)}}
+      else{if(!SND.on){SND.on=true;try{localStorage.setItem('at-snd','1')}catch(x){}}au('setOpt',k,!o[k])}
+      snd('click');draw()}};
+  draw()}
 function bindOnce(fn){const o=$('#ov');o.onclick=e=>fn(e)}
 function showSheet(kind,d){
   return new Promise(res=>{
     const me=G.players[0];
     const fin=v=>{hideOv();res(v)};
-    if(kind==='book'){
+    if(kind==='book'){au('sfx','buch');
       const rows=CAT.map((c,i)=>i).reverse().map(i=>`<li><b class="n">${i+1}</b><div><b>${CAT[i]}</b> · ${CATX[i]}<br><i>Formation: ${fbTx(i)}</i></div></li>`).join('');
       const cr=Object.keys(PST).reverse().map(r=>+r>5?`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · ${TIERN[tier(+r)-1]}<br><i>${ABIL[r][0]}: ${ABIL[r][1]}</i></div></li>`:`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · Unterstützer, je Reich anders<br>${REALM.map((R,si)=>{const a=SUPTX[SUP[si][r]];return `<i>${R.n} · ${a[0]}: ${a[1]}</i>`}).join('<br>')}</div></li>`).join('');
       const rl=REALM.map(r=>`<li><b class="n" style="display:flex;justify-content:center;align-items:flex-start;padding-top:2px"><span style="display:block;width:26px;height:26px;background:${r.col};color:#16110f;padding:3px">${r.ic}</span></b><div><b>${r.n}</b> · ${r.strat}<br><i>${r.pn}: ${r.ptx}</i></div></li>`).join('');
@@ -658,7 +680,7 @@ function showSheet(kind,d){
 
 /* ---------- Titel ---------- */
 function title(){
-  document.body.classList.add('intro');
+  document.body.classList.add('intro');au('music','titel');
   showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">K</span>rug &amp; Krone</h1><h2>Zwölf Nächte am Tavernentisch</h2>
     <div class="cards">${cardHTML(cardById['7-0'])}${cardHTML(cardById['12-3'])}${cardHTML(cardById['14-1'])}</div>
     <p>Poker um Gold. Der Showdown ist eine Schlacht. Wer fällt, dessen Banner brennt.</p>
@@ -676,7 +698,7 @@ function credits(){
   showOv(`<div class="sheet info"><h2>Lizenzen &amp; Hinweise</h2>
     <p><b>Bilder.</b> Kartenmotive, Porträts, der Tavernentisch und einige Texturen wurden mit KI-Bildgeneratoren erstellt. Kartenrahmen, Reichszeichen und Layout sind eigene Arbeit.</p>
     <p><b>Schriften.</b> Crimson Pro, Grenze Gotisch, IM Fell English und Vollkorn stehen unter der SIL Open Font License 1.1 und liegen dem Spiel bei. Es werden keine Schriften von fremden Servern geladen.</p>
-    <p><b>Klänge.</b> Alle Klänge werden live im Browser erzeugt.</p>
+    <p><b>Klang.</b> Musik eigene Komposition, eingespielt mit dem FluidR3-Soundfont (MIT). Stimmen erzeugt mit Piper aus den freien Stimmen Thorsten und Kerstin (CC0). Geräusche teils von Kenney.nl (CC0), teils selbst gestaltet.</p>
     <p><b>Daten.</b> Das Spiel speichert nur deinen Ruhm, gesehene Karten und Einstellungen in deinem Browser. Nichts davon verlässt dein Gerät.</p>
     <p class="k">Krug &amp; Krone ist ein Spiel um erfundenes Gold. Es gibt keine Einsätze mit echtem Geld und keine Gewinne.</p>
     <div class="row"><button class="plate btn" data-x="back">Zurück</button></div></div>`);

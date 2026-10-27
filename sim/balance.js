@@ -1,6 +1,6 @@
 /* Balance-Messung: node sim/balance.js [Anzahl]
    Zieht zufällige Hände (2 Handkarten + 5 Tisch), stellt für beide Seiten das stärkste Team und lässt sie kämpfen.
-   Zielwerte: bessere Kombo gewinnt 60–70 %, Kämpfe 3–4 Runden, kaum Remis, jedes Reich mit 3+ Karten 55–63 %. */
+   Zielwerte: bessere Kombo gewinnt um 70 %, Plage und Kriegszug fast immer, Kämpfe 3–4 Runden, kaum Remis, jedes Reich mit 3+ Karten 55–63 %. */
 const E=require('../engine.js');
 const N=+process.argv[2]||3000;let s=12345;const rnd=()=>(s=(s*1103515245+12345)%2147483648)/2147483648;
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};

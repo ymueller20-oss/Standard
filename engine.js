@@ -13,7 +13,7 @@ function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=c
 
 /* Balance-Parameter */
 const K={
-  FB:[0,0,1,1,2,3,4,5,6,7],            // Formationsbonus je Kombo für alle 5 Teamkarten (klein: die Kombo hilft, entscheidet aber nicht allein)
+  FB:[0,0,1,2,3,5,9,20,26,34],         // Formationsbonus je Kombo für alle 5 Teamkarten: häufige Kombos helfen wenig, seltene entscheiden (Plage gewinnt ~99 %)
   fa:1, fh:1,                          // Anteil des Formationsbonus auf Angriff / Leben
   son:4, sonR:3, sonSh1:4, sonSh2:5,  // Sonnenwacht · Gottesschild: Zwillinge gleicher Stärke tragen Schild, +4/+4 je Zwilling; +3/+3 je weitere Sonnenwacht-Karte; ab 4 Karten die stärkste, ab 5 alle mit Schild
   ashA:3, ashH:2, ashN:2, ashNH:2, glutN:0,  // Aschelande · Glut: +3/+2 je Kettenglied, +2/+2 je weitere Aschelande-Karte; Glut zu Kampfbeginn = Kettenlänge

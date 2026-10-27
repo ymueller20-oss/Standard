@@ -46,6 +46,31 @@ const S={
   lose(){if(!SND.on)return;const ch=[[220,261.6,329.6],[174.6,220,261.6],[146.8,174.6,220]];ch.forEach((c,k)=>c.forEach(f=>osc('sawtooth',f,f*.98,k===2?2:.6,.06,k*.55,.12)));S.boom()}
 };
 
+/* Aufnahmen aus audio/ haben Vorrang; ohne sie bleiben die erzeugten Klänge oben */
+{const P=(n,o)=>typeof AU!=='undefined'&&AU.sfx(n,o),M={
+  whoosh:(p=1)=>P('wusch',{vol:.5*p}),
+  impact:p=>{if(!P('schlag',{vol:.55+.45*Math.min(1,p)}))return false;if(p>.45)P('metall',{vol:.45*p});if(p>.85)P('pauke',{vol:.5});return true},
+  clang:()=>P('glocke',{vol:.85})&&(P('glas',{vol:.4}),true),
+  fire:(p=1)=>P('feuer',{vol:.75*p}),
+  roar:()=>P('feuersturm',{vol:.9})&&(P('brull',{vol:.75}),true),
+  ice:()=>P('glas',{vol:.7,rate:1.25}),
+  poison:()=>P('gift',{vol:.8}),
+  heal:()=>P('heilung',{vol:.7}),
+  rage:()=>P('grollen',{vol:.35,rate:1.15}),
+  death:()=>P('zerfall',{vol:.9})&&(P('stein',{vol:.5}),true),
+  heart:()=>P('herz',{vol:1,vary:false}),
+  drum:(p=1)=>P('pauke',{vol:.75*p}),
+  flip:()=>P('karte',{vol:.75}),
+  slam:()=>P('holz',{vol:.6})&&(P('karte',{vol:.5}),true),
+  roll:()=>P('paukenwirbel',{vol:.8}),
+  boom:()=>P('pauketief',{vol:.9})&&(P('taiko',{vol:.7}),true),
+  rise:()=>P('schwell',{vol:.6}),
+  win:()=>typeof AU!=='undefined'&&AU.ready&&(AU.sting('sieg'),true),
+  lose:()=>typeof AU!=='undefined'&&AU.ready&&(AU.sting('niederlage'),true)};
+ for(const k of Object.keys(M)){const f=S[k];S[k]=(...a)=>{if(SND.on&&M[k](...a))return;f(...a)}}}
+/* Kreaturen geben Laut, wenn sie zuschlagen */
+const CRY={14:'brull',13:'brull',9:'brull',8:'grollen',10:'grollen',11:'grollen',7:'schrei',12:'schrei',3:'schrei',6:'fauchen',2:'fauchen'};
+
 /* ================= Partikel: eigene Leinwand über dem Kampf ================= */
 const FX={cv:null,ctx:null,P:[],on:false,w:0,h:0};
 function fxStart(){if(FX.on)return;const cv=document.createElement('canvas');cv.id='bfx';document.body.appendChild(cv);FX.cv=cv;FX.ctx=cv.getContext('2d');
@@ -112,7 +137,7 @@ const fx={
 let lastHand=-1,nInHand=0;
 async function playBattle(x){
   const me=G.players[0],mineA=x.A===me,Pm=mineA?x.A:x.B,Pe=mineA?x.B:x.A;
-  const myIdx=mineA?0:1,enIdx=1-myIdx,snaps=x.r.snaps,teams=[x.A.team.team,x.B.team.team];
+  const opp=(Pe.short||'').toLowerCase(),myIdx=mineA?0:1,enIdx=1-myIdx,snaps=x.r.snaps,teams=[x.A.team.team,x.B.team.team];
   if(lastHand!==G.hand){lastHand=G.hand;nInHand=0}nInHand++;
   const first=nInHand===1;let speed=first?1:1.6,skip=false,all=false;
   /* Zeit: alles läuft über wait(), Überspringen weckt sofort */
@@ -178,10 +203,10 @@ async function playBattle(x){
     if(first){
       const it=document.createElement('div');it.className='bintro';
       it.innerHTML=`<div class="bi e">${plateHTML(Pe)}<b>${Pe.name}</b><span>${comboLabel(Pe.team.b)}</span></div><div class="bivs"><i></i><b>gegen</b><i></i></div><div class="bi m">${plateHTML(Pm)}<b>Du</b><span>${comboLabel(Pm.team.b)}</span></div>`;
-      B.appendChild(it);S.roll();await wait(520);S.slam();shake(.5);vib(30);await wait(380);
+      B.appendChild(it);au('sting','duell');au('sfx','schwert',{vol:.7,at:.15});S.roll();await wait(520);S.slam();au('sfx','peitsche',{vol:.8});shake(.5);vib(30);au('say',opp+'_vs',{prio:2,at:.5});await wait(380);
       const vs=it.querySelector('.bivs').getBoundingClientRect();fx.sparks(vs.left+vs.width/2,vs.top+vs.height/2,'#ffcf6a',36,1.4);fx.ring(vs.left+vs.width/2,vs.top+vs.height/2,'rgba(255,210,120,.9)',90,24,.5);S.clang();flash('#ffe9b0',.35);
       await wait(1150);it.classList.add('out');await wait(380);it.remove()}
-    else{stamp(Pe.short,'Nächster Gegner','nx');S.drum();await wait(700)}
+    else{stamp(Pe.short,'Nächster Gegner','nx');S.drum();au('sfx','schwert',{vol:.6});au('say',opp+'_vs',{prio:2,at:.3});await wait(700)}
   }else B.querySelector('.bintro')&&B.querySelector('.bintro').remove();
 
   /* ---------- 2. Aufdecken: Gegner umdrehen, deine Karten aufschlagen ---------- */
@@ -200,13 +225,16 @@ async function playBattle(x){
     for(const[side,P]of[[enIdx,Pe],[myIdx,Pm]]){const bo=K.FB[P.team.b.cat];if(!bo)continue;
       const L=B.querySelector(side===myIdx?'#bp':'#be');L.classList.remove('aura');void L.offsetWidth;L.classList.add('aura');S.rise();
       callout(L.children[2].querySelector('.card'),`${comboLabel(P.team.b).split(' · ')[0]}: alle +${bo}/+${bo}`,'form');await wait(520)}
+    /* Kriegsruf, wenn ein Team aus mindestens drei Karten eines Reichs besteht */
+    for(const[side,P]of[[myIdx,Pm],[enIdx,Pe]]){const n=[0,0,0,0];P.team.team.forEach(f=>n[f.s]++);const r=n.findIndex(v=>v>=3);
+      if(r>=0){const d=au('say','ruf'+r,{prio:2});if(d){callout(B.querySelector(side===myIdx?'#bp':'#be').children[2].querySelector('.card'),au('text','ruf'+r),'blood');await wait(Math.min(1800,d*1000))}break}}
   }else enC.forEach(c=>c.classList.remove('fd'));
   B.classList.remove('cine');
 
   /* ---------- 3. Runden ---------- */
   const lastIdx=snaps.length-1,endSt=snaps[lastIdx].st,endAlive=[endSt[0].some(o=>o.alive),endSt[1].some(o=>o.alive)];
   const decisive=endAlive[0]!==endAlive[1]||(!endAlive[0]&&!endAlive[1]);
-  let round=0,clutch=false,hb=null;
+  let round=0,clutch=false,hb=null,killer=0;const cried=new Set();
   const startClutch=()=>{if(clutch||skip)return;clutch=true;B.classList.add('clutch');S.heart();hb=setInterval(()=>{if(!skip)S.heart()},Math.max(500,D(950)))};
   const sideName=s=>s===myIdx?'Du':Pe.short;
 
@@ -234,6 +262,7 @@ async function playBattle(x){
     const s=scaleOf(),A0=ctr(att),T0=ctr(tgt),dx=(T0.x-A0.x)/s,dy=(T0.y-A0.y)/s,dist=Math.hypot(dx,dy)||1,ux=dx/dist,uy=dy/dist;
     const reach=Math.max(0,dist-(A0.h/s)*.62),tot=slow?1500:520,hitAt=.6;
     att.parentNode.classList.add('act');
+    {const r=teams[a[0]][a[1]].r,k=a[0]+'-'+a[1];if(CRY[r]&&!cried.has(k)&&(slow||Math.random()<.45)){cried.add(k);later(tot*.2,()=>au('sfx',CRY[r],{vol:r>=13?.7:.5}))}}
     const fin=att.animate([{transform:'translate(0,0) scale(1) rotate(0)'},{transform:`translate(${-ux*14}px,${-uy*14}px) scale(1.14) rotate(${ux*-4}deg)`,offset:.32},
       {transform:`translate(${ux*reach}px,${uy*reach}px) scale(1.2) rotate(${ux*3}deg)`,offset:hitAt},{transform:`translate(${ux*reach*.82}px,${uy*reach*.82}px) scale(1.12)`,offset:.72},
       {transform:'translate(0,0) scale(1) rotate(0)'}],{duration:D(tot),easing:'cubic-bezier(.45,0,.25,1)'});
@@ -300,14 +329,14 @@ async function playBattle(x){
 
   for(let k=1;k<snaps.length&&!skip;k++){
     const s=snaps[k],m=/^Runde (\d+)/.exec(s.label),rd=m?+m[1]:0,isLast=k===lastIdx;
-    if(rd&&rd!==round){round=rd;label('Runde '+rd);B.classList.add('stamping');stamp(rd,'Runde');S.drum(1);await wait(440);later(500,()=>B.classList.remove('stamping'))}
-    else if(!rd){label(s.label);if(s.label==='Kampfbeginn'){B.classList.add('stamping');stamp('Kampfbeginn','','sm');S.drum(.8);await wait(500);later(500,()=>B.classList.remove('stamping'))}}
+    if(rd&&rd!==round){round=rd;label('Runde '+rd);B.classList.add('stamping');stamp(rd,'Runde');S.drum(1);au('say','runde'+rd);await wait(440);later(500,()=>B.classList.remove('stamping'))}
+    else if(!rd){label(s.label);if(s.label==='Kampfbeginn'){B.classList.add('stamping');stamp('Kampfbeginn','','sm');S.drum(.8);au('say','kampf');au('sfx','taiko',{vol:.7});await wait(500);later(500,()=>B.classList.remove('stamping'))}}
     if(rd)label(s.label);note(s);
     await doEvents(s.ev||[],'pre');
     const acts=actionsOf(s);
     /* Zeitlupe für den letzten, entscheidenden Schlag */
     const killActs=isLast&&decisive?acts.filter(a=>a.type==='atk'):[];const finisher=killActs[killActs.length-1];
-    if(finisher&&!skip){B.classList.add('finale');S.heart();await wait(420);S.heart();await wait(420)}
+    if(finisher&&!skip){B.classList.add('finale');au('say','zeitlupe',{prio:2});S.heart();await wait(420);S.heart();await wait(420)}
     const ticks=[];
     /* Beide Karten einer Bahn schlagen gleichzeitig zu und prallen aufeinander */
     const pend=[];
@@ -316,7 +345,7 @@ async function playBattle(x){
         while(!a.last&&acts[n+grp.length]&&acts[n+grp.length].type==='atk'&&!acts[n+grp.length].last&&acts[n+grp.length].a[1]===a.a[1])grp.push(acts[n+grp.length]);
         n+=grp.length;const fin=grp.includes(finisher)?finisher:null,rest=grp.filter(g=>g!==fin);
         if(rest.length){pend.push(...rest.map(g=>doAttack(g,false)));await wait(fin?520:(acts[n]&&acts[n].type==='atk'?310:500))}
-        if(fin){await Promise.all(pend);const pr=doAttack(fin,true);await wait(1700);await pr}}
+        if(fin){await Promise.all(pend);killer=teams[fin.a[0]][fin.a[1]].r;const pr=doAttack(fin,true);au('sfx','orchester',{vol:.8,at:D(900)/1000});await wait(1700);await pr}}
       else{n++;await Promise.all(pend);if(a.type==='bolt')await doBolt(a);else if(a.type==='breath')await doBreath(a);else ticks.push(a)}}
     await Promise.all(pend);
     await doTicks(ticks);
@@ -325,6 +354,8 @@ async function playBattle(x){
     await wait(rd?220:300)}
   /* Endstand sicher übernehmen (auch nach Überspringen) */
   await syncTo(endSt,skip);
+  /* Nach dem letzten Schlag spricht der Erzähler den Spruch der Kreatur, die ihn geführt hat */
+  if(killer&&!skip){const d=au('say','karte'+killer,{prio:3});if(d){$('#bn').textContent='»'+au('text','karte'+killer)+'«';await wait(Math.min(3600,d*1000+400))}}
   clearInterval(hb);B.classList.remove('clutch','finale');
 
   /* ---------- 4. Finale ---------- */
@@ -334,6 +365,7 @@ async function playBattle(x){
   label(win==='w'?'Sieg':win==='l'?'Niederlage':'Unentschieden');$('#bn').textContent='';
   const end=document.createElement('div');end.className='bend '+win;
   end.innerHTML=`${win==='w'?'<div class="rays"></div>':''}<b>${win==='w'?'Sieg':win==='l'?'Niederlage':'Patt'}</b><span>${sub}</span>`;B.appendChild(end);
+  if(win!=='d')au('say',win==='w'?'sieg':'niederlage',{prio:2,at:.35});if(win!=='d')later(1700,()=>au('say',opp+(win==='w'?'_lose0':'_win0')));
   if(win==='w'){S.win();vib([50,50,50,50,120]);if(!QA){const h=ctr(B.querySelector('.bhero.m .hero'));fx.coins(h.x,h.y,40);const e2=ctr(B.querySelector('.bhero.e .hero'));fx.gold(e2.x,e2.y,60,60)}}
   else if(win==='l'){S.lose();vib([120,60,200]);B.classList.add('lost');if(!QA)for(let i=0;i<40;i++)add({type:'glow',x:R(0,innerWidth),y:R(-40,0),vx:R(-.5,.5),vy:R(.6,1.6),life:R(90,150),size:R(2,4),c:'rgba(255,140,60,1)',c2:'rgba(160,30,10,.5)'})}
   else S.drum(.7);
