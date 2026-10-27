@@ -589,9 +589,9 @@ async function playBattle(x){
     <div class="bhero m">${plateHTML(me)}<div class="bt"><b>Du</b><span>${comboLabel(Pm.team.b)} · alle +${K.FB[Pm.team.b.cat]}</span></div></div>
     <div class="bfoot"><button class="plate btn ghost" data-x="fast">Schneller</button><button class="plate btn ghost" data-x="skip">Überspringen</button></div></div>`);
   const sh=sleepable(),ov=$('#ov');
-  let speed=QA?60:1100,skip=false,all=false;
+  let speed=QA?60:850,skip=false,all=false;
   ov.onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
-    if(b.dataset.x==='fast'){speed=speed>500?420:1100;b.textContent=speed>500?'Schneller':'Normal'}
+    if(b.dataset.x==='fast'){speed=speed>500?380:850;b.textContent=speed>500?'Schneller':'Normal'}
     if(b.dataset.x==='skip'){skip=true;sh.wake()}
     if(b.dataset.x==='all'){all=true;skip=true;sh.wake()}
     if(b.dataset.x==='next'){sh.wake()}};
