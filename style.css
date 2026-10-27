@@ -631,3 +631,23 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .card .wear{mix-blend-mode:screen!important;isolation:auto}
 .card .wear::before{mix-blend-mode:normal!important}
 .card .wear::before{opacity:calc(.6 + var(--wo,.5)*.5)!important}
+
+/* ---------- Lehrstunde: der Wirt ---------- */
+#coach{position:fixed;inset:0;z-index:150;font-size:calc(16px*var(--s,1))}
+#coach.dim{background:rgba(12,7,3,.55)}
+#coach .cring{position:fixed;border-radius:10px;box-shadow:0 0 0 2px #efc96a,0 0 18px 4px rgba(239,201,106,.55),0 0 0 9999px rgba(12,7,3,.62);pointer-events:none;animation:cring 1.6s ease-in-out infinite}
+@keyframes cring{50%{box-shadow:0 0 0 3px #f6dc8e,0 0 26px 8px rgba(239,201,106,.7),0 0 0 9999px rgba(12,7,3,.62)}}
+#coach .cbub{position:fixed;left:50%;transform:translateX(-50%);width:min(23em,calc(100vw - 32px));padding:.9em 1em .8em;color:#f3e4c0;border-radius:8px;
+  background:linear-gradient(#2c1b0f,#1d120a);box-shadow:0 0 0 1px #000,inset 0 0 0 1px rgba(232,200,120,.45),0 10px 30px rgba(0,0,0,.6);animation:cbub .25s ease-out}
+#coach .cbub.dn{bottom:max(16px,env(safe-area-inset-bottom))}
+#coach .cbub.up{top:max(16px,env(safe-area-inset-top))}
+#coach.dim .cbub{top:max(16px,env(safe-area-inset-top));bottom:auto}
+@keyframes cbub{from{opacity:0;margin-top:8px}}
+#coach .cbub>b{display:block;font:400 .8rem/1 var(--f-fsc);letter-spacing:.06em;color:#efc96a;text-transform:uppercase}
+#coach h3{margin:.25em 0 .3em;font:700 1.25rem/1.15 var(--f-ttl);color:#f6e7c1}
+#coach p{margin:0 0 .8em;font:500 1rem/1.4 'Crimson Pro',Georgia,serif}
+#coach .row{display:flex;gap:8px;justify-content:flex-end}
+#coach .btn{min-height:44px;flex:0 1 auto}
+#ov .title .tlinks{display:flex;gap:6px;align-items:center;justify-content:center;color:#cbb48a;background:rgba(25,14,6,.7);padding:2px 10px;border-radius:6px}
+#ov .title .tlinks button{background:none;border:0;color:#efc96a;font:400 .95rem/1 var(--f-fsc);min-height:44px;padding:0 6px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+#ov .sheet.info p{text-align:left;margin:.5em 0;line-height:1.4}
