@@ -401,36 +401,51 @@ function aiOrder(p,five,L){/* fair: Gegnerhände werden ausgelost, nicht gelesen
 const PF=()=>Math.max(1,G.bb/10*.6),price=b=>Math.max(1,Math.round(b*PF()));
 const RELIC={
   heal:{t:'Thron flicken',d:'+8 Thron-Leben.',c:30},
-  drum:{t:'Kriegstrommel',d:'Deine nächste Formation zählt eine Stufe höher.',c:25},
+  drum:{t:'Kriegstrommel',d:'Deine nächste Formation zählt eine Stufe höher.',c:14},
   shield:{t:'Ahnenschild',d:'Der nächste verlorene Kampf kostet dich keinen Thron.',c:24},
-  fourth:{t:'Vierte Karte',d:'Nächste Hand bekommst du 4 Handkarten.',c:40},
+  fourth:{t:'Vierte Karte',d:'Nächste Hand bekommst du 4 Handkarten.',c:16},
   bounty:{t:'Kopfgeld',d:'Jeder gewonnene Kampf bringt dauerhaft mehr Beute.',c:30},
-  raven:{t:'Rabenauge',d:'Nächste Hand siehst du von jedem Gegner eine Handkarte.',c:18}};
+  raven:{t:'Rabenauge',d:'Nächste Hand siehst du von jedem Gegner eine Handkarte.',c:12}};
+/* Taverne: Stärke und Preise per Simulation abgeglichen (node sim/taverne.js).
+   GAIN = Prozentpunkte mehr Siegchance je Kampf gegen einen Gegner ohne Käufe. Dauerhafte Käufe kosten etwa gleich viel je Punkt. */
+const FORGE_UP=6,OATH_UP=3;
+const MERC_GAIN={2:6,3:13,4:12,5:10,6:10,7:6,8:12,9:13,10:19,11:18,12:21,13:24,14:31};
+const GAIN={forge:6,oath:11,drum:12,fourth:13};
+const mercCost=r=>Math.round(10+3*MERC_GAIN[r]);
 function mkOffers(){
   const a=[],r1=2+rnd(13);
-  a.push({k:'forge',r:r1,cost:price(10+r1*2),t:`Schmiede: ${NAME[r1]}`,d:`Alle ${NAME[r1]}-Karten dauerhaft +2/+2.`});
-  const s=rnd(4);a.push({k:'oath',s,cost:price(46),t:`Schwur: ${REALM[s].n}`,d:`Alle Karten dieses Reichs dauerhaft +1/+1.`});
+  a.push({k:'forge',r:r1,cost:price(26),t:`Schmiede: ${NAME[r1]}`,d:`Alle ${NAME[r1]}-Karten dauerhaft +${FORGE_UP}/+${FORGE_UP}.`});
+  const s=rnd(4);a.push({k:'oath',s,cost:price(46),t:`Schwur: ${REALM[s].n}`,d:`Alle Karten dieses Reichs dauerhaft +${OATH_UP}/+${OATH_UP}.`});
   const ks=Object.keys(RELIC),k=ks[rnd(ks.length)];a.push({k,cost:price(RELIC[k].c),t:RELIC[k].t,d:RELIC[k].d});
   for(let i=0;i<2;i++){const r=2+rnd(13),sv=rnd(4),c=mkMerc(r,sv);
-    a.push({k:'recruit',c,cost:price(12+2*r),t:`Söldner: ${NAME[r]}`,d:`Dauerhaft im Heerlager. ${abil(c)[0]}: ${abil(c)[2]}`})}
+    a.push({k:'recruit',c,cost:price(mercCost(r)),t:`Söldner: ${NAME[r]}`,d:`Dauerhaft im Heerlager. ${abil(c)[0]}: ${abil(c)[2]}`})}
   return a}
 let MERC=0;function mkMerc(r,s){const c={r,s,id:'H'+(++MERC)+'-'+r+'-'+s,merc:true};cardById[c.id]=c;return c}
 function heerAdd(p,c){if(p.heer.length<HEER_CAP)p.heer.push(c);else{const i=p.heer.reduce((a,x,j)=>x.r<p.heer[a].r?j:a,0);p.heer[i]=c}}
 function applyOffer(p,o){
   if(o.k==='recruit')heerAdd(p,o.c);
-  else if(o.k==='forge')p.up.rank[o.r]=(p.up.rank[o.r]||0)+2;
-  else if(o.k==='oath')p.up.realm[o.s]=(p.up.realm[o.s]||0)+1;
+  else if(o.k==='forge')p.up.rank[o.r]=(p.up.rank[o.r]||0)+FORGE_UP;
+  else if(o.k==='oath')p.up.realm[o.s]=(p.up.realm[o.s]||0)+OATH_UP;
   else if(o.k==='heal')p.thron=Math.min(START_THRON,p.thron+8);
   else if(o.k==='bounty')p.bounty=(p.bounty||0)+1;
   else p[o.k]=1;
   p.stack-=o.cost}
+/* Wert eines Angebots für Spieler p: Siegchance mal verbleibende Nächte je Gold, dazu ein Satz für den Hinweis */
+function offerValue(p,o){const rem=Math.max(1,MAX_HANDS-G.hand),low=p.thron<=12,hm=p.heer.map(c=>c.r);let g=0,txt='',v=0;
+  if(o.k==='recruit'){const full=p.heer.length>=HEER_CAP,w=full?p.heer.reduce((a,c)=>MERC_GAIN[c.r]<MERC_GAIN[a.r]?c:a):null;
+    g=Math.max(0,MERC_GAIN[o.c.r]-(w?MERC_GAIN[w.r]:0));v=g*rem/o.cost;
+    txt=g?`≈ +${g} % Siegchance je Kampf · dauerhaft${w?` · ersetzt ${NAME[w.r]}`:''}`:`Nicht stärker als dein Heerlager`}
+  else if(o.k==='forge'){g=GAIN.forge+(hm.includes(o.r)?5:0);v=g*rem/o.cost;txt=`≈ +${g} % Siegchance · dauerhaft${hm.includes(o.r)?' · stärkt deinen Söldner':''}`}
+  else if(o.k==='oath'){const n=p.heer.filter(c=>c.s===o.s).length;g=GAIN.oath+2*n;v=g*rem/o.cost;txt=`≈ +${g} % Siegchance · dauerhaft${n?' · stärkt deinen Söldner':''}`}
+  else if(o.k==='drum'||o.k==='fourth'){g=GAIN[o.k];v=g/o.cost;txt=`≈ +${g} % Siegchance · nur nächste Hand`}
+  else if(o.k==='heal'){if(p.thron>=START_THRON-6){v=0;txt='Dein Thron ist fast heil: lohnt nicht'}else{v=low?5:.6;txt=low?'Dringend: dein Thron wankt':'Hält dich länger im Spiel'}}
+  else if(o.k==='shield'){v=low?3:.6;txt=low?'Rettet dich vor dem nächsten Thron-Verlust':'Schützt einmal vor Thron-Verlust'}
+  else if(o.k==='bounty'){v=rem>6?1.5:.3;txt=rem>6?'Mehr Beute je Sieg: lohnt früh in der Partie':'Spät in der Partie lohnt es kaum noch'}
+  else if(o.k==='raven'){v=.4;txt='Hilft beim Lesen der Gegner, kein Kampfbonus'}
+  return{v,txt}}
 function aiShop(p){const offers=mkOffers(),reserve=G.bb*10;let best=null,bv=0;
-  for(const o of offers){if(o.cost>p.stack-reserve)continue;let v=0;
-    if(o.k==='heal')v=p.thron<START_THRON*.5?3:0;else if(o.k==='oath')v=2;else if(o.k==='forge')v=o.r>=9?2.2:1.2;else if(o.k==='drum')v=1.5;
-    else if(o.k==='recruit'){const full=p.heer.length>=HEER_CAP,w=full?Math.min(...p.heer.map(c=>c.r)):0;v=full&&o.c.r<=w+1?0:(o.c.r>=11?2.6:o.c.r>=8?2:1.4)+(p.heer.some(h=>h.s===o.c.s)?.8:0)}
-    else if(o.k==='shield')v=p.thron<START_THRON*.6?2:1;else if(o.k==='fourth')v=2.4;else if(o.k==='bounty')v=G.hand<MAX_HANDS-3?1.6:0;
-    v=v/o.cost*40*(.8+Math.random()*.4);if(v>bv){bv=v;best=o}}
-  if(bv>.9)applyOffer(p,best)}
+  for(const o of offers){if(o.cost>p.stack-reserve)continue;const v=offerValue(p,o).v*(.8+Math.random()*.4);if(v>bv){bv=v;best=o}}
+  if(bv>.5)applyOffer(p,best)}
 async function tavern(){
   for(const p of G.players.slice(1))if(!p.out)aiShop(p);
   const me=G.players[0];let offers=mkOffers();
@@ -603,7 +618,7 @@ function showSheet(kind,d){
         <p><b>2. Flop, Opfer, Wende.</b> Nach dem Flop opfert jeder eine Handkarte, offen für alle. In der Wende kommen Turn und River zusammen, dann wird ein letztes Mal gesetzt.</p>
         <p><b>3. Der Showdown ist ein Kampf.</b> Du wählst 5 Karten aus Hand, Tisch und Heerlager. Ihre Pokerkombo ist die Formation und gibt allen fünf einen Bonus. Danach ordnest du die <b>Schlachtreihe</b>: Jede Karte kämpft gegen die gegenüber, Nachbarn stärken oder schützen sich. Die Teams schlagen sich automatisch, ohne Würfel. Wer mehr Kämpfe gewinnt, holt den Pot. Leuchtende Karten zeigen dir starke Synergien.</p>
         <p><b>4. Thron und Beute.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers, alle drei Nächte einer mehr. Jeder gewonnene Kampf bringt <b>Beute</b> in Gold, auch ohne Pot. Wer flieht, bleibt unversehrt, zahlt aber mit Gold.</p>
-        <p><b>5. Aschenschmiede.</b> Zwischen den Händen kaufst du Verstärkungen: Schmiede (+2/+2 für eine Kreatur), Schwur (+1/+1 für ein Reich), Thron flicken, Kriegstrommel (Formation eine Stufe höher), Ahnenschild (nächste Niederlage ohne Thron-Verlust), Vierte Karte, Kopfgeld (mehr Beute) und Rabenauge (je eine Gegnerkarte sehen). Gold in der Schmiede fehlt dir am Tisch. Fällt Thron oder Gold auf 0, bist du raus.</p>
+        <p><b>5. Aschenschmiede.</b> Zwischen den Händen kaufst du Verstärkungen: Schmiede (+${FORGE_UP}/+${FORGE_UP} für eine Kreatur), Schwur (+${OATH_UP}/+${OATH_UP} für ein Reich), Thron flicken, Kriegstrommel (Formation eine Stufe höher), Ahnenschild (nächste Niederlage ohne Thron-Verlust), Vierte Karte, Kopfgeld (mehr Beute) und Rabenauge (je eine Gegnerkarte sehen). Gold in der Schmiede fehlt dir am Tisch. Fällt Thron oder Gold auf 0, bist du raus.</p>
         <p><b>Kartenrand.</b> Der Rand zeigt das Reich: <b>weiß</b> Sonnenwacht, <b>rot</b> Aschelande, <b>blau</b> Nordmark, <b>schwarz</b> Blutmoor, dazu das Reichszeichen oben rechts. Die innere Metallkante zeigt den Wert: Eisen gemein, Silber ungewöhnlich, Messing selten, Gold mythisch. Könige und Drachen tragen die Krone.</p></details>
        <details><summary>Kombos &amp; Formation</summary><ul>${rows}</ul></details>
        <details><summary>Kreaturen</summary><ul>${cr}</ul></details>
@@ -614,9 +629,10 @@ function showSheet(kind,d){
     if(kind==='tavern'){
       const{offers}=d;
       showOv(`<div class="sheet"><h2>Aschenschmiede</h2><p class="k">Gold wird hier zu Macht, und fehlt dir am Tisch.</p>
-        <div class="offers">${offers.map((o,i)=>{const R=o.k==='oath'?REALM[o.s]:null;
-          const pic=o.k==='recruit'?`<img src="cards/s/pk-${o.c.r}-${o.c.s}.jpg" alt=""><b>${RL[o.c.r]}</b>`:o.k==='forge'?`<img src="cards/s/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
-          return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')}</div>
+        <div class="offers">${(()=>{const vals=offers.map(o=>offerValue(me,o)),ok=o=>!o.sold&&me.stack-o.cost>=1,top=Math.max(0,...vals.map((x,i)=>ok(offers[i])?x.v:0));
+          return offers.map((o,i)=>{const R=o.k==='oath'?REALM[o.s]:null,h=vals[i],tier=!top||h.v<=0?'weak':h.v>=top*.999?'top':h.v>=top*.55?'good':'weak',tight=!o.sold&&me.stack-o.cost<G.bb*8;
+          const pic=o.k==='recruit'?`<img src="cards/s/pk-${o.c.r}-${o.c.s}.jpg" alt=""><b>${RL[o.c.r]}</b>`:o.k==='forge'?`<img src="cards/s/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+${FORGE_UP}</b>`:o.k==='oath'?`${R.ic}<b>+${OATH_UP}</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
+          return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span><em class="hint ${tier}">${tier==='top'&&ok(o)?'<b>Tipp</b>':''}${h.txt}${tight?' · danach wird dein Gold knapp':''}</em></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')})()}</div>
         <p class="k">Du hast ${me.stack} Gold · Thron ${me.thron}</p>
         <div class="row"><button class="plate btn ghost" data-x="reroll" ${me.stack>price(6)+1?'':'disabled'}>Neu würfeln<small>${price(6)} Gold</small></button><button class="plate btn" data-x="done">Nächste Hand</button></div></div>`);
       bindOnce(e=>{const o=e.target.closest('.offer'),x=e.target.closest('[data-x]');

@@ -770,3 +770,10 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 @media (prefers-reduced-motion:reduce){.bend .rays{display:none}}
 #battle.stamping .bmid .blbl,#battle.stamping .bmid .bnote{opacity:0;transition:opacity .15s}
 #battle.sd .card.frz::after{background:linear-gradient(160deg,rgba(220,240,255,.42),rgba(140,190,235,.12) 45%,rgba(220,240,255,.38));box-shadow:inset 0 0 0 2px #cfeeff,inset 0 0 12px rgba(160,210,255,.8),0 0 10px rgba(120,190,255,.6)}
+/* Taverne: Hinweis je Angebot */
+.offer .tx em.hint{display:block;margin-top:3px;font:italic 400 .98rem/1.25 var(--f-fell);color:var(--ink-soft)}
+.offer .tx em.hint b{display:inline-block;margin-right:6px;padding:1px 6px 2px;border-radius:3px;font:400 .82rem/1.1 var(--f-fsc);font-style:normal;letter-spacing:.04em;color:#2b1703;background:linear-gradient(#ffe7a3,#d9a640);box-shadow:0 0 0 1px #6a4610}
+.offer .tx em.hint.top{color:#7a4f00}
+.offer .tx em.hint.good{color:#3f5a1c}
+.offer .tx em.hint.weak{color:#8a7a68}
+.offer:has(.hint.top):not(:disabled){box-shadow:0 0 0 1.4px var(--ink-soft),inset 0 0 0 3px var(--vellum-hi),inset 0 0 0 4px #c8922c,0 0 14px rgba(230,170,60,.45),0 3px 4px rgba(60,35,10,.2)}
