@@ -21,23 +21,24 @@ const FLAV={2:'In den Gräben fressen sie zuerst die Augen.',3:'Sie zählt die G
 /* Reichseigene Unterstützer: Stärke 2–5 hat in jedem Reich einen eigenen Effekt */
 const SUPTX={
   knappe:['Knappe','Gibt der stärksten anderen Teamkarte Gottesschild.','Stärkste Teamkarte erhält Gottesschild.'],
-  herold:['Herold','Bricht ein Gottesschild deines Teams, erhalten alle deine Karten +3 Angriff.','Bricht ein Schild: Team +3 Angriff.'],
-  banner:['Bannerträger','Deine Karten mit Gottesschild erhalten +5/+5.','Karten mit Gottesschild +5/+5.'],
+  herold:['Herold',`Bricht ein Gottesschild deines Teams, erhalten alle deine Karten +${K.herold} Angriff.`,`Bricht ein Schild: Team +${K.herold} Angriff.`],
+  banner:['Bannerträger',`Deine Karten mit Gottesschild erhalten +${K.banner}/+${K.banner}.`,`Karten mit Gottesschild +${K.banner}/+${K.banner}.`],
   waechter:['Leibwächter','Fängt jeden Angriff auf deine stärkste Karte ab.','Fängt Angriffe auf deine stärkste Karte ab.'],
   funke:['Funke','Kampfbeginn: 8 Schaden an der stärksten Gegnerkarte.','Kampfbeginn: 8 Schaden an die stärkste Gegnerkarte.'],
   zunder:['Zunder','Jeder Schaden deines Teams zu Kampfbeginn (Glut, Funke, Drache) +2.','Kampfbeginn-Schaden deines Teams +2.'],
   brand:['Flächenbrand','Fällt eine Gegnerkarte, nehmen ihre Nachbarn 8 Schaden.','Fällt ein Gegner: 8 an seine Nachbarn.'],
   schmied:['Kettenschmied','Alle anderen Karten deiner Stärkenkette +3 Angriff.','Deine Kettenglieder +3 Angriff.'],
   frostbiss:['Frostbiss','Kampfbeginn: Die stärkste Gegnerkarte erstarrt und setzt einen Angriff aus.','Kampfbeginn: stärkster Gegner erstarrt.'],
-  rune:['Runenträger','Alle deine Karten +0/+2.','Alle deine Karten +0/+2.'],
-  wall:['Schildwall','Deine Karten nehmen aus jedem Treffer 2 Schaden weniger.','Dein Team nimmt je Treffer 2 weniger.'],
-  winterwolf:['Winterwolf','Alle deine Karten frieren mit ihren Treffern ein.','Alle deine Treffer frieren ein.'],
+  rune:['Runenträger',`Alle deine Karten +0/+${K.rune}.`,`Alle deine Karten +0/+${K.rune}.`],
+  wall:['Schildwall',`Deine Karten nehmen aus jedem Treffer ${K.wall} Schaden weniger.`,`Dein Team nimmt je Treffer ${K.wall} weniger.`],
+  winterwolf:['Winterwolf','Er und seine Nachbarn frieren mit ihren Treffern ein.','Er und seine Nachbarn frieren ein.'],
   pest:['Pestratte','Kampfbeginn: Alle Gegner sind verseucht und verlieren jede Runde 3 Leben.','Alle Gegner verlieren jede Runde 3.'],
   aas:['Aaskrähe','+3/+3, wann immer irgendeine Karte fällt.','+3/+3 je gefallener Karte.'],
   priester:['Blutpriester','Deine erste gefallene Karte kehrt mit halbem Leben zurück.','Erste Gefallene kehrt zurück.'],
   moorwolf:['Moorwolf','Seine Nachbarn erhalten Blutrausch +3.','Nachbarn: Blutrausch +3.']};
 const abil=c=>{const k=supOf(c);return k?SUPTX[k]:[ABIL[c.r][0],ABIL[c.r][1],SHORT[c.r]]};
 const CAT=['Einzelgänger','Paar','Zwei Paare','Rudel','Jagdkette','Banner','Horde','Plage','Kriegszug','Drachenkrone'];
+const fbTx=c=>K.FB[c]?`alle +${K.FB[c]}/+${K.FB[c]}`:'kein Formationsbonus';
 const CATX=['Höchste Karte','zwei gleiche Stärken','zweimal zwei gleiche Stärken','drei gleiche Stärken','fünf Stärken in Folge','fünf Karten aus einem Reich','Rudel plus Paar','vier gleiche Stärken','Jagdkette aus einem Reich','Jagdkette bis zum Drachen aus einem Reich'];
 /* Wertigkeit: je höher der Rang, desto aufwendiger der Druck */
 const tier=r=>r<=5?1:r<=8?2:r<=10?3:r<=13?4:5;
@@ -67,13 +68,13 @@ const RIC={
   bounty:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6l-2 4h-2z"/><path d="M11 7c-5 2-7 6-7 9 0 3 3 5 8 5s8-2 8-5c0-3-2-7-7-9"/><path d="M12 11v7M10 13c0-1 4-1 4 .5S10 15 10 16.5s4 1.5 4 0"/></g>'),
   raven:I('0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3.2"/></g><circle cx="12" cy="12" r="1.3" fill="currentColor"/>')};
 const REALM=[
-  {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Gottesschild',ptx:'Hat eine Sonnenwacht-Karte einen Zwilling gleicher Stärke im Team, trägt sie Gottesschild (der erste Treffer prallt ab), +2/+2 je Zwilling. +1/+1 je weiterer Sonnenwacht-Karte. Ab vier Sonnenwacht-Karten trägt die stärkste den Schild, bei fünf alle.',strat:'Paare, Schilde, Unverwundbarkeit',
+  {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Gottesschild',ptx:`Hat eine Sonnenwacht-Karte einen Zwilling gleicher Stärke im Team, trägt sie Gottesschild (der erste Treffer prallt ab), +${K.son}/+${K.son} je Zwilling. +${K.sonR}/+${K.sonR} je weiterer Sonnenwacht-Karte. Ab vier Sonnenwacht-Karten trägt die stärkste den Schild, bei fünf alle.`,strat:'Paare, Schilde, Unverwundbarkeit',
    lore:'Die Ritter der Sonnenwacht schwören auf das letzte Licht über den Zinnen. Wer ihren Schwur bricht, dessen Name wird aus jeder Chronik gekratzt.'},
   {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#d55e00',ic:IC.fire,pn:'Glut',ptx:'Zu Kampfbeginn brennt jede Aschelande-Karte ihren Gegner für so viel Schaden, wie ihre Stärkenkette lang ist. +3/+2 je Kettenglied, +2/+2 je weiterer Aschelande-Karte.',strat:'Jagdketten, Schaden vor dem ersten Schlag',
    lore:'Seit der Vulkan den alten Thron verschlang, brennt das Land. Seine Fürsten sind Schmiede, Jäger und Brandstifter in einem.'},
-  {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Frost',ptx:'+3/+2 je weiterer Nordmark-Karte. Ab drei Nordmark-Karten lassen ihre Treffer das Ziel erstarren: es setzt seinen nächsten Angriff aus.',strat:'Banner, Kontrolle',
+  {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Frost',ptx:`+${K.norA}/+${K.norH} je weiterer Nordmark-Karte. Ab drei Nordmark-Karten lassen ihre Treffer das Ziel erstarren: es setzt seinen nächsten Angriff aus.`,strat:'Banner, Kontrolle',
    lore:'Im ewigen Winter der Nordmark überlebt nur, wer zusammensteht. Ihre Wälle aus Eis hat noch keine Armee gebrochen.'},
-  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#6a2d8f',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff, +1 mehr je weiterer Blutmoor-Karte. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Lange Kämpfe, Rache',
+  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#6a2d8f',ic:IC.blood,pn:'Blutrausch',ptx:`Jede Kampfrunde +${K.blut} Angriff, +${K.blutPer} mehr je weiterer Blutmoor-Karte. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.`,strat:'Lange Kämpfe, Rache',
    lore:'Das Blutmoor vergisst niemanden, der in ihm starb. Was dort fällt, steht noch einmal auf und schlägt ein letztes Mal zu.'}];
 const OPP=[
   {name:'Vargo Rotzahn',short:'Vargo',tag:'Söldner',col:'#a8321f',fr:'#c4472e',pl:'#f2dacb',art:'4-1',st:{aggr:.75,bluff:.16,tight:0},
@@ -162,12 +163,12 @@ function synergies(cards,up){if(cards.length<5)return[];const t=pickTeam(cards,u
   if(B.length>=2)add(12+B.length,`Blutmoor ×${B.length}: Blutrausch +${K.blut+K.blutPer*(B.length-1)} je Runde`,B);
   for(const f of T){if(!f.sup)continue;const ab=SUPTX[f.sup][0];
     if(f.sup==='knappe'){const g=T.find(o=>o.blessed);if(g)add(7,`${ab} schützt ${nm(g)}`,[f,g])}
-    else if(f.sup==='banner'){const sh=T.filter(o=>o.shield&&o!==f);if(sh.length)add(5+sh.length,`${ab}: ${sh.length} Schildträger +5/+5`,[f,...sh])}
+    else if(f.sup==='banner'){const sh=T.filter(o=>o.shield&&o!==f);if(sh.length)add(5+sh.length,`${ab}: ${sh.length} Schildträger +${K.banner}/+${K.banner}`,[f,...sh])}
     else if(f.sup==='herold'){const sh=T.filter(o=>o.shield);if(sh.length)add(4+sh.length,`${ab}: Schildbruch stärkt das Team`,[f,...sh])}
     else if(f.sup==='waechter'){const g=T.find(o=>o.guard===f);if(g)add(6,`${ab} deckt ${nm(g)}`,[f,g])}
     else if(f.sup==='zunder'){const fi=T.filter(o=>o.glut||o.sup==='funke'||o.r===14);if(fi.length)add(4+fi.length,`${ab} facht ${fi.length} Brände an`,[f,...fi])}
     else if(f.sup==='schmied'){const c=T.filter(o=>o!==f&&o.chain>=2||o!==f&&chainLen(new Set(T.map(x=>x.r)),o.r)>=2);if(c.length)add(4+c.length,`${ab}: ${c.length} Kettenglieder +3`,[f,...c])}
-    else if(f.sup==='winterwolf')add(7,`${ab}: alle Treffer frieren`,T);
+    else if(f.sup==='winterwolf'){const i=T.indexOf(f),nb=[T[i-1],f,T[i+1]].filter(Boolean);add(7,`${ab}: ${nb.length} Karten frieren ein`,nb)}
     else if(f.sup==='moorwolf'){const i=T.indexOf(f),nb=[T[i-1],T[i+1]].filter(Boolean);add(5,`${ab}: Blutrausch für ${nb.map(nm).join(' & ')}`,[f,...nb])}
     else add(4,`${ab}: ${SUPTX[f.sup][2]}`,[f])}
   return out.sort((a,b)=>b.v-a.v)}
@@ -319,7 +320,7 @@ async function showdown(){
     five=mkTeam(five,p.up).team.map(f=>f.c);  /* Standard: stärkste links */
     if(p.human)five=await orderLineup(five,p);else if(p.st&&p.st.pos)five=aiOrder(p,five,L);
     p.team=mkTeam(five,p.up,true);
-    if(p.drum){const b=p.team.b,add=K.FB[Math.min(9,b.cat+1)]-K.FB[b.cat];p.team.team.forEach(f=>{f.atk+=add;f.hp+=add;f.max+=add});p.team.drum=add;p.drum=0}}
+    if(p.drum){const b=p.team.b,add=Math.max(1,K.FB[Math.min(9,b.cat+1)]-K.FB[b.cat]);p.team.team.forEach(f=>{f.atk+=add;f.hp+=add;f.max+=add});p.team.drum=add;p.drum=0}}
   const wins=new Map(L.map(p=>[p,0])),dmg=new Map(),pairs=[];
   for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){
     const A=L[i],B=L[j],r=battle(A.team.team,B.team.team,true),last=r.snaps[r.snaps.length-1];
@@ -467,7 +468,7 @@ function rTable(){G.syn=null;G.sy=null;{const me=G.players[0];if(!me.out&&me.inH
   else if(me.folded)r='Du hast geflohen';
   if(u&&u.mode==='sac')r='<b>Opfere eine Karte</b>Sie liegt danach offen auf dem Tisch.';
   if(u&&u.mode==='lineup'){const ch=u.sel.map(id=>cardById[id]);
-    if(ch.length===5){const t=mkTeam(ch,me.up),A=t.team.reduce((s,f)=>s+f.atk,0),H=t.team.reduce((s,f)=>s+f.hp,0);r=`<b>${comboLabel(t.b)}</b>alle +${K.FB[t.b.cat]}/+${K.FB[t.b.cat]} · ${A} Angriff · ${H} Leben`}
+    if(ch.length===5){const t=mkTeam(ch,me.up),A=t.team.reduce((s,f)=>s+f.atk,0),H=t.team.reduce((s,f)=>s+f.hp,0);r=`<b>${comboLabel(t.b)}</b>${fbTx(t.b.cat)} · ${A} Angriff · ${H} Leben`}
     else r=`<b>Wähle 5 Karten</b>vom Tisch und aus deiner Hand`}
   $('#read').innerHTML=r}
 
@@ -554,7 +555,7 @@ function showSheet(kind,d){
     const me=G.players[0];
     const fin=v=>{hideOv();res(v)};
     if(kind==='book'){
-      const rows=CAT.map((c,i)=>i).reverse().map(i=>`<li><b class="n">${i+1}</b><div><b>${CAT[i]}</b> · ${CATX[i]}<br><i>Formation: alle +${K.FB[i]}/+${K.FB[i]}</i></div></li>`).join('');
+      const rows=CAT.map((c,i)=>i).reverse().map(i=>`<li><b class="n">${i+1}</b><div><b>${CAT[i]}</b> · ${CATX[i]}<br><i>Formation: ${fbTx(i)}</i></div></li>`).join('');
       const cr=Object.keys(PST).reverse().map(r=>+r>5?`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · ${TIERN[tier(+r)-1]}<br><i>${ABIL[r][0]}: ${ABIL[r][1]}</i></div></li>`:`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · Unterstützer, je Reich anders<br>${REALM.map((R,si)=>{const a=SUPTX[SUP[si][r]];return `<i>${R.n} · ${a[0]}: ${a[1]}</i>`}).join('<br>')}</div></li>`).join('');
       const rl=REALM.map(r=>`<li><b class="n" style="display:flex;justify-content:center;align-items:flex-start;padding-top:2px"><span style="display:block;width:26px;height:26px;background:${r.col};color:#16110f;padding:3px">${r.ic}</span></b><div><b>${r.n}</b> · ${r.strat}<br><i>${r.pn}: ${r.ptx}</i></div></li>`).join('');
       const ups=Object.entries(me.up.rank).map(([r,v])=>`<li><b class="n">+${v}</b><div>${NAME[r]}-Karten</div></li>`).concat(Object.entries(me.up.realm).map(([s,v])=>`<li><b class="n">+${v}</b><div>Reich ${REALM[s].n}</div></li>`)).join('')||'<li><div><i>Noch keine Siegel gekauft.</i></div></li>';
@@ -605,16 +606,16 @@ function showSheet(kind,d){
 async function playBattle(x){
   const me=G.players[0],mineA=x.A===me,Pm=mineA?x.A:x.B,Pe=mineA?x.B:x.A;
   const myIdx=mineA?0:1,enIdx=1-myIdx,snaps=x.r.snaps;
-  await banner(comboLabel(Pm.team.b),`Formation: alle +${K.FB[Pm.team.b.cat]}/+${K.FB[Pm.team.b.cat]}`,G.fast?400:1500);
+  await banner(comboLabel(Pm.team.b),`Formation: ${fbTx(Pm.team.b.cat)}`,G.fast?400:1500);
   const mk=(P,cls)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map(f=>cardHTML(f.c,{cls:'xs'+(f.shield?' shd':'')+(f.sup?' sup':''),st:[f.atk,f.hp],up:f.up||0})).join('')}</div>`;
   showOv(`<div id="battle" class="canvas page">${CORN}
-    <div class="bhero e">${plateHTML(Pe)}<div class="bt"><b>${Pe.name}</b><span>${comboLabel(Pe.team.b)} · alle +${K.FB[Pe.team.b.cat]}</span></div></div>
+    <div class="bhero e">${plateHTML(Pe)}<div class="bt"><b>${Pe.name}</b><span>${comboLabel(Pe.team.b)} · ${fbTx(Pe.team.b.cat)}</span></div></div>
     <div class="sp"></div>
     ${mk(Pe,'en')}
     <div class="bmid"><div class="blbl" id="bl">Aufstellung</div><div class="bnote" id="bn"></div><div class="bres" id="br"></div></div>
     ${mk(Pm,'me')}
     <div class="sp"></div>
-    <div class="bhero m">${plateHTML(me)}<div class="bt"><b>Du</b><span>${comboLabel(Pm.team.b)} · alle +${K.FB[Pm.team.b.cat]}</span></div></div>
+    <div class="bhero m">${plateHTML(me)}<div class="bt"><b>Du</b><span>${comboLabel(Pm.team.b)} · ${fbTx(Pm.team.b.cat)}</span></div></div>
     <div class="bfoot"><button class="plate btn ghost" data-x="fast">Schneller</button><button class="plate btn ghost" data-x="skip">Überspringen</button></div></div>`);
   const sh=sleepable(),ov=$('#ov');
   let speed=QA?60:850,skip=false,all=false;

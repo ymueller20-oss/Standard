@@ -1,5 +1,6 @@
 /* RABENBLATT-ENGINE (geteilt von Seite und Simulation) */
-const PST={2:[1,2],3:[2,2],4:[3,3],5:[3,4],6:[3,5],7:[5,4],8:[4,7],9:[6,5],10:[5,9],11:[7,6],12:[7,8],13:[8,8],14:[10,11]};
+/* Grundwerte [Angriff, Leben]: Leben dreifach, damit Kämpfe 3–4 Runden dauern und Fähigkeiten zum Zug kommen */
+const PST={2:[1,6],3:[2,6],4:[3,9],5:[3,12],6:[3,15],7:[5,12],8:[4,21],9:[6,15],10:[5,27],11:[7,18],12:[7,24],13:[8,24],14:[10,33]};
 const FULL=[];for(let s=0;s<4;s++)for(let r=2;r<=14;r++)FULL.push({r,s,id:r+'-'+s});
 const COMB={};function combos(n,k=5){const key=n+'/'+k;if(COMB[key])return COMB[key];const out=[];const rec=(st,a)=>{if(a.length===k){out.push(a.slice());return}for(let i=st;i<n;i++){a.push(i);rec(i+1,a);a.pop()}};rec(0,[]);return COMB[key]=out}
 function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=cs[1].s===s0&&cs[2].s===s0&&cs[3].s===s0&&cs[4].s===s0;
@@ -12,14 +13,15 @@ function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=c
 
 /* Balance-Parameter */
 const K={
-  FB:[0,3,6,9,12,16,20,24,28,33],      // Formationsbonus je Kombo für alle 5 Teamkarten
-  son:2, sonR:1, sonSh1:4, sonSh2:5,  // Sonnenwacht · Gottesschild: Zwillinge gleicher Stärke tragen Schild, +2/+2 je Zwilling; +1/+1 je weitere Sonnenwacht-Karte; ab 4 Karten die stärkste, ab 5 alle mit Schild
+  FB:[0,0,1,1,2,3,4,5,6,7],            // Formationsbonus je Kombo für alle 5 Teamkarten (klein: die Kombo hilft, entscheidet aber nicht allein)
+  fa:1, fh:1,                          // Anteil des Formationsbonus auf Angriff / Leben
+  son:4, sonR:3, sonSh1:4, sonSh2:5,  // Sonnenwacht · Gottesschild: Zwillinge gleicher Stärke tragen Schild, +4/+4 je Zwilling; +3/+3 je weitere Sonnenwacht-Karte; ab 4 Karten die stärkste, ab 5 alle mit Schild
   ashA:3, ashH:2, ashN:2, ashNH:2, glutN:0,  // Aschelande · Glut: +3/+2 je Kettenglied, +2/+2 je weitere Aschelande-Karte; Glut zu Kampfbeginn = Kettenlänge
-  norH:2, norA:3, norFrost:3,  // Nordmark · Frost: +3/+2 je weitere Nordmark-Karte; ab 3 Karten frieren ihre Treffer ein
-  blut:3, blutPer:1, blutF:0, rw:0.01,  // Blutmoor · Blutrausch: jede Runde +3 Angriff, +1 je weitere Blutmoor-Karte; Todesstoß im Fallen. rw: Blutrausch-Gewicht der KI-Schätzung
-  knappe:1, herold:3, banner:5,       // Sonnenwacht-Unterstützer
+  norH:1, norA:1, norFrost:3,  // Nordmark · Frost: +1/+1 je weitere Nordmark-Karte; ab 3 Karten frieren ihre Treffer ein
+  blut:2, blutPer:1, blutF:0, rw:0.01,  // Blutmoor · Blutrausch: jede Runde +2 Angriff, +1 je weitere Blutmoor-Karte; Todesstoß im Fallen. rw: Blutrausch-Gewicht der KI-Schätzung
+  knappe:1, herold:5, banner:8,       // Sonnenwacht-Unterstützer
   funke:8, zunder:2, brand:8, schmied:3,  // Aschelande-Unterstützer
-  rune:2, wall:2,                     // Nordmark-Unterstützer
+  rune:5, wall:1,                     // Nordmark-Unterstützer
   pest:3, aas:3, moor:3               // Blutmoor-Unterstützer
 };
 /* Reichseigene Unterstützer (Stärke 2–5): [Reich][Stärke] = Schlüssel */
@@ -31,7 +33,7 @@ function mkTeam(five,up,ordered){up=up||{rank:{},realm:{}};const b=eval5(five),c
   const F=(ordered?five.slice():five.slice().sort((x,y)=>y.r-x.r||x.s-y.s)).map(c=>{const st=PST[c.r],u=(up.rank[c.r]||0)+(up.realm[c.s]||0);
     return{c,r:c.r,s:c.s,up:u,atk:st[0]+u,hp:st[1]+u,form:0,realm:[0,0],rage:0,sup:supOf(c),shield:false,glut:0,frost:false,taunt:false}});
   const n=[0,0,0,0];F.forEach(f=>n[f.s]++);const has=k=>F.filter(f=>f.sup===k);
-  F.forEach(f=>{const bo=K.FB[b.cat];f.form=bo;f.atk+=bo;f.hp+=bo;let ra=0,rh=0;
+  F.forEach(f=>{const bo=K.FB[b.cat];f.form=bo;f.atk+=Math.round(bo*K.fa);f.hp+=Math.round(bo*K.fh);let ra=0,rh=0;
     if(f.s===0){const tw=cnt[f.r]-1;ra=rh=K.son*tw+K.sonR*(n[0]-1);if(tw>0||n[0]>=K.sonSh2)f.shield=true}
     else if(f.s===1){const L=chainLen(rs,f.r);if(L>=2){ra=K.ashA*(L-1);rh=K.ashH*(L-1)}ra+=K.ashN*(n[1]-1);rh+=K.ashNH*(n[1]-1);f.glut=L+K.glutN*(n[1]-1);f.chain=L}
     else if(f.s===2){rh=K.norH*(n[2]-1);ra=K.norA*(n[2]-1);if(n[2]>=K.norFrost)f.frost=true}
@@ -44,7 +46,7 @@ function mkTeam(five,up,ordered){up=up||{rank:{},realm:{}};const b=eval5(five),c
   if(has('banner').length)F.forEach(f=>{if(f.shield){const v=K.banner*has('banner').length;f.atk+=v;f.hp+=v}});
   has('schmied').forEach(k=>F.forEach(f=>{if(f!==k&&chainLen(rs,f.r)>=2)f.atk+=K.schmied}));
   has('rune').forEach(()=>F.forEach(f=>{f.hp+=K.rune}));
-  has('winterwolf').forEach(k=>F.forEach(f=>{f.frost=true}));
+  has('winterwolf').forEach(k=>{const i=F.indexOf(k);[k,F[i-1],F[i+1]].forEach(f=>{if(f)f.frost=true})});
   has('moorwolf').forEach(k=>{const i=F.indexOf(k);[F[i-1],F[i+1]].forEach(f=>{if(f)f.rage+=K.moor})});
   F.forEach(f=>f.max=f.hp);b.five=five;return{team:F,b,five}}
 function battle(A0,B0,rec){
@@ -101,7 +103,9 @@ function battle(A0,B0,rec){
     for(const s of[0,1])T[s].forEach((f,i)=>{if(!f.alive)return;if(f.r===8&&f.hp<f.max){f.hp=Math.min(f.max,f.hp+2);note('Troll regeneriert 2 Leben')}if(f.psn)hurt(s,i,f.psn,null,'psn')});
     if(hits.length||notes.length){deaths();snap(`Runde ${round} · Rundenende`)}else{hits=[];notes=[]}}
   const a0=T[0].filter(f=>f.alive),a1=T[1].filter(f=>f.alive);let w=-1;
-  if(a0.length&&!a1.length)w=0;else if(a1.length&&!a0.length)w=1;else if(a0.length&&a1.length){const h0=a0.reduce((x,f)=>x+f.hp,0),h1=a1.reduce((x,f)=>x+f.hp,0);w=h0>h1?0:h1>h0?1:-1}
+  /* Fallen beide Teams im selben Schlag, behält die bessere Formation das Feld */
+  if(!a0.length&&!a1.length){const s0=eval5(A0.map(f=>f.c)).score,s1=eval5(B0.map(f=>f.c)).score;w=s0>s1?0:s1>s0?1:-1}
+  else if(a0.length&&!a1.length)w=0;else if(a1.length&&!a0.length)w=1;else if(a0.length&&a1.length){const h0=a0.reduce((x,f)=>x+f.hp,0),h1=a1.reduce((x,f)=>x+f.hp,0);w=h0>h1?0:h1>h0?1:-1}
   return{w,snaps,rounds:round}}
 /* Teamstärke-Schätzung für Vorschlag/KI */
 function power(t){let A=0,H=0;for(const f of t.team){A+=f.atk+f.rage*(K.rw||1)+f.glut+(f.r===14?3:0)+(f.r===13?1.5:0)+(f.r===11?1.5:0)+(f.frost?2:0)+(f.sup==='funke'?3:0)+(f.sup==='pest'?4:0)+(f.sup==='brand'?2:0);
