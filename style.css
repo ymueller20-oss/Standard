@@ -625,3 +625,9 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .hud-c{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hud-c span{font-size:.86em}
 .hud-r .tag{font-size:.8rem;padding:2px 6px}
+/* Kratzer ohne Grauschleier: gereinigte Textur, nur echte Spuren */
+.card .wear::before{background-image:url(art/scratch.png)!important;opacity:calc(.3 + var(--wo,.5)*.45)!important}
+/* Fix: Mischmodus auf die Ebene selbst, sonst legt sich das Schwarz der Kratzertextur als Schleier über die Karte */
+.card .wear{mix-blend-mode:screen!important;isolation:auto}
+.card .wear::before{mix-blend-mode:normal!important}
+.card .wear::before{opacity:calc(.6 + var(--wo,.5)*.5)!important}
