@@ -414,7 +414,6 @@ body.intro #stage>*{visibility:hidden}
 #battle .lanes{gap:4px;--cw:70px}
 #battle .lanes .card{box-shadow:0 4px 8px rgba(40,20,5,.55)}
 #battle .bmid{border-color:rgba(90,60,25,.45)}
-#battle .bfoot .btn{background:#f4ead2}
 /* Anzeige rechts neben dir: im Pergament bleiben */
 #read{padding-right:34px;font-size:.92rem}
 #read b{font-size:1.02rem}
@@ -468,36 +467,59 @@ body.intro #stage>*{visibility:hidden}
 #battle .bmid{border-color:rgba(242,227,191,.25)!important}
 #battle .bmid::before,#battle .bmid::after{background:#c9a24a}
 .slot{border:1.5px dashed rgba(242,227,191,.55)!important;background:rgba(10,5,2,.42)!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
-/* ---------- Tavernen-Buttons: Holzbrett mit Eisennieten, Messing, Leder ---------- */
-.btn,.sq{position:relative;color:#f3e4c2;text-shadow:0 1px 1px #000,0 0 4px rgba(0,0,0,.8);border-radius:5px;
+/* ---------- Tavernen-Buttons: beschlagenes Eichenholz, gehämmertes Messing, genähtes Leder ---------- */
+.btn,.sq{position:relative;isolation:isolate;color:#f6e7c4;text-shadow:0 -1px 0 rgba(0,0,0,.9),0 1px 0 rgba(255,214,150,.18);border-radius:6px;
   background:
-    radial-gradient(circle at 7px 7px,#c9b48a 0 1.4px,#3a2a18 1.9px,transparent 2.6px),
-    radial-gradient(circle at calc(100% - 7px) 7px,#c9b48a 0 1.4px,#3a2a18 1.9px,transparent 2.6px),
-    radial-gradient(circle at 7px calc(100% - 7px),#c9b48a 0 1.4px,#3a2a18 1.9px,transparent 2.6px),
-    radial-gradient(circle at calc(100% - 7px) calc(100% - 7px),#c9b48a 0 1.4px,#3a2a18 1.9px,transparent 2.6px),
-    repeating-linear-gradient(90deg,rgba(0,0,0,.0) 0 18px,rgba(0,0,0,.18) 18px 19px),
-    linear-gradient(180deg,rgba(255,200,130,.16),transparent 40%,rgba(0,0,0,.35)),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.28' numOctaves='4' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0.30 0 0 0 0.09  0.17 0 0 0 0.05  0.09 0 0 0 0.025  0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E") 0 0/260px,#4a3020;
-  background-blend-mode:normal,normal,normal,normal,normal,normal,multiply,normal;
-  box-shadow:0 0 0 1.5px #140b05,inset 0 1px 0 rgba(255,220,160,.25),inset 0 -2px 0 rgba(0,0,0,.45),0 4px 8px rgba(0,0,0,.55)}
-.btn small{color:#d9c299!important;text-shadow:0 1px 1px #000}
-.btn:active{transform:translateY(2px);box-shadow:0 0 0 1.5px #140b05,inset 0 2px 4px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.5)}
-.btn.raise{color:#2a1804;text-shadow:0 1px 0 rgba(255,240,200,.6);
+    radial-gradient(circle at 9px 9px,#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),radial-gradient(circle at calc(100% - 9px) 9px,#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),radial-gradient(circle at 9px calc(100% - 9px),#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),radial-gradient(circle at calc(100% - 9px) calc(100% - 9px),#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),
+    linear-gradient(180deg,rgba(255,205,140,.22),rgba(255,205,140,0) 30%,rgba(0,0,0,0) 62%,rgba(0,0,0,.42)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.003 0.16' numOctaves='5' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16  0 0 0 0 0.09  0 0 0 0 0.04  0 0 -1.6 0 1.25'/%3E%3C/filter%3E%3Crect width='300' height='120' filter='url(%23n)'/%3E%3C/svg%3E") 0 0/300px 120px,
+    linear-gradient(90deg,#3b2414,#5a3820 30%,#4a2d19 55%,#5e3b22 80%,#3d2615);
+  box-shadow:
+    0 0 0 1px #0e0703,
+    inset 0 0 0 2px rgba(20,10,4,.85),
+    inset 0 0 0 3px #b88a3e,
+    inset 0 0 0 4px rgba(60,36,10,.9),
+    inset 0 5px 5px -3px rgba(255,220,160,.22),
+    inset 0 -6px 8px -4px rgba(0,0,0,.6),
+    0 2px 0 #1a0e06,0 6px 12px rgba(0,0,0,.6)}
+.btn{font-variant:small-caps;letter-spacing:.04em;padding-left:15px!important;padding-right:15px!important;line-height:1.05}
+.btn.raise{padding-left:19px!important;padding-right:19px!important}
+.btn small{color:#e3cb95!important;text-shadow:0 -1px 0 rgba(0,0,0,.85);letter-spacing:0;font-variant:normal}
+.btn:active{transform:translateY(2px);box-shadow:0 0 0 1px #0e0703,inset 0 0 0 2px rgba(20,10,4,.85),inset 0 0 0 3px #8f6a2e,inset 0 0 0 4px rgba(60,36,10,.9),inset 0 3px 8px rgba(0,0,0,.65),0 0 0 #1a0e06,0 2px 4px rgba(0,0,0,.5)}
+.btn.raise{color:#2b1703;text-shadow:0 1px 0 rgba(255,244,205,.75),0 -1px 0 rgba(90,55,10,.35);
   background:
-    radial-gradient(circle at 7px 50%,#fff1c2 0 1.3px,#6a4610 1.9px,transparent 2.6px),
-    radial-gradient(circle at calc(100% - 7px) 50%,#fff1c2 0 1.3px,#6a4610 1.9px,transparent 2.6px),
-    linear-gradient(180deg,#ffe7a3,#d9a640 38%,#a8741e 62%,#e6bd5e);
-  box-shadow:0 0 0 1.5px #3a2406,inset 0 1px 0 rgba(255,255,230,.7),inset 0 -2px 0 rgba(90,55,10,.6),0 4px 10px rgba(0,0,0,.55)}
-.btn.raise small{color:#4a2e08!important;text-shadow:none}
-.btn.fold{color:#ffd9c8;background:
-    radial-gradient(circle at 7px 7px,#c9b48a 0 1.4px,#2a1008 1.9px,transparent 2.6px),
-    radial-gradient(circle at calc(100% - 7px) 7px,#c9b48a 0 1.4px,#2a1008 1.9px,transparent 2.6px),
-    radial-gradient(120% 90% at 50% 30%,#7a2418,#4a120c 70%,#2c0905);
-  box-shadow:0 0 0 1.5px #140504,inset 0 0 0 3px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,180,150,.2),0 4px 8px rgba(0,0,0,.55)}
-.btn:disabled{opacity:.45;filter:grayscale(.4)}
+    radial-gradient(circle at 9px 50%,#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),radial-gradient(circle at calc(100% - 9px) 50%,#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),
+    radial-gradient(90% 70% at 35% 8%,rgba(255,252,225,.7),transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='h' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.35  0 0 0 0 0.22  0 0 0 0 0.05  0 0 -1.2 0 0.55'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23h)'/%3E%3C/svg%3E") 0 0/160px,
+    linear-gradient(180deg,#fff0b8 0%,#f0c865 16%,#cf9a35 42%,#9c6716 70%,#6e4510 88%,#a87a30 100%);
+  box-shadow:
+    0 0 0 1px #2a1604,
+    inset 0 0 0 2px rgba(255,236,170,.55),
+    inset 0 0 0 3px #7a4f12,
+    inset 0 0 0 4px rgba(255,226,150,.35),
+    inset 0 -5px 8px -3px rgba(70,40,5,.55),
+    0 2px 0 #4a2c06,0 6px 14px rgba(0,0,0,.6),0 0 18px rgba(230,170,60,.18)}
+.btn.raise small{color:#4a2c06!important;text-shadow:0 1px 0 rgba(255,240,200,.6)}
+.btn.fold{color:#ffe2d2;
+  background:
+    radial-gradient(circle at 9px 9px,#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),radial-gradient(circle at calc(100% - 9px) 9px,#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),radial-gradient(circle at 9px calc(100% - 9px),#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),radial-gradient(circle at calc(100% - 9px) calc(100% - 9px),#fff4cf 0 .7px,#e0b860 1.3px,#9a6c22 2.3px,#3a2408 3px,rgba(0,0,0,.45) 3.6px,transparent 4.4px),
+    radial-gradient(120% 100% at 50% 20%,rgba(255,140,110,.18),transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='l' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.1  0 0 0 0 0.02  0 0 0 0 0.01  0 0 -1.4 0 1'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23l)'/%3E%3C/svg%3E") 0 0/120px,
+    radial-gradient(120% 90% at 50% 30%,#7e2216,#521009 70%,#2e0704);
+  box-shadow:
+    0 0 0 1px #120302,
+    inset 0 0 0 2px rgba(10,2,1,.8),
+    inset 0 0 0 3px #a0763a,
+    inset 0 0 0 4px rgba(40,8,4,.9),
+    inset 0 -6px 8px -4px rgba(0,0,0,.6),
+    0 2px 0 #1a0503,0 6px 12px rgba(0,0,0,.6)}
+.btn.fold::after{content:'';position:absolute;inset:7px;border:1.3px dashed rgba(240,200,150,.42);border-radius:3px;pointer-events:none}
+.btn:disabled{opacity:.5;filter:grayscale(.5) brightness(.85)}
 .sq{color:#f3e4c2}
 .sq.off{color:#8a7658}
-.sq svg{filter:drop-shadow(0 1px 1px #000)}
+.sq svg{filter:drop-shadow(0 -1px 0 #000)}
+/* Kampf-Leiste: Nebenaktionen, flacher und ruhiger */
+#battle .bfoot .btn{min-height:46px;font-size:1rem}
 /* ---------- 6er-Tisch: fünf Gegner in einer Reihe ---------- */
 #opps{padding:22px 6px 0;justify-content:space-between}
 .opp{width:19.6%;--pw:clamp(50px,calc(var(--H)*.07),62px)}
