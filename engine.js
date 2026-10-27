@@ -5,7 +5,7 @@ const COMB={};function combos(n,k=5){const key=n+'/'+k;if(COMB[key])return COMB[
 function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=cs[1].s===s0&&cs[2].s===s0&&cs[3].s===s0&&cs[4].s===s0;
   let st=0;if(r[0]!==r[1]&&r[1]!==r[2]&&r[2]!==r[3]&&r[3]!==r[4]){if(r[0]-r[4]===4)st=r[0];else if(r[0]===14&&r[1]===5)st=5}
   const cnt={};for(const x of r)cnt[x]=(cnt[x]||0)+1;const g=Object.keys(cnt).map(k=>[cnt[k],+k]).sort((a,b)=>b[0]-a[0]||b[1]-a[1]);let cat,tb;
-  if(st&&fl){cat=st===14?9:8;tb=[st]}else if(g[0][0]===4){cat=7;tb=[g[0][1],g[1][1]]}else if(g[0][0]===3&&g[1][0]===2){cat=6;tb=[g[0][1],g[1][1]]}
+  if(st&&fl){cat=st===14?9:8;tb=[st]}else if(g[0][0]>=4){cat=7;tb=[g[0][1],g[1]?g[1][1]:g[0][1]]}  /* Fünfling (nur mit Söldnern möglich) zählt als Plage */else if(g[0][0]===3&&g[1][0]===2){cat=6;tb=[g[0][1],g[1][1]]}
   else if(fl){cat=5;tb=r}else if(st){cat=4;tb=[st]}else if(g[0][0]===3){cat=3;tb=g.map(x=>x[1])}else if(g[0][0]===2&&g[1][0]===2){cat=2;tb=g.map(x=>x[1])}
   else if(g[0][0]===2){cat=1;tb=g.map(x=>x[1])}else{cat=0;tb=r}
   let sc=cat;for(let i=0;i<5;i++)sc=sc*15+(tb[i]||0);return{score:sc,cat,tb}}

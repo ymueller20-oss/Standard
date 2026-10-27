@@ -88,7 +88,7 @@ const OPP=[
    q:{raise:['Schlag zu, solang es glüht.'],allin:['Alles in die Esse!'],fold:['Kaltes Eisen.'],win:['Gut geschmiedet.'],lose:['Nächstes Mal härter.']}}];
 const RANKS=[[0,'Bettler'],[100,'Tagelöhner'],[300,'Söldner'],[700,'Hauptmann'],[1400,'Ritter'],[2500,'Fürst'],[4000,'Kronenträger']];
 let FAME=0,SEEN=new Set();
-try{FAME=+localStorage.getItem('at-fame')||0;SEEN=new Set(JSON.parse(localStorage.getItem('at-seen')||'[]'))}catch(e){}
+try{FAME=+localStorage.getItem('at-fame')||0;if(!isFinite(FAME)||FAME<0)FAME=0;SEEN=new Set(JSON.parse(localStorage.getItem('at-seen')||'[]'))}catch(e){}
 const rankOf=f=>{let r=RANKS[0][1];for(const[t,n]of RANKS)if(f>=t)r=n;return r};
 const saveMeta=()=>{try{localStorage.setItem('at-fame',FAME);localStorage.setItem('at-seen',JSON.stringify([...SEEN]))}catch(e){}};
 const BLINDS=[10,15,20,25,30,40,50];
@@ -124,7 +124,7 @@ function snd(k){if(!SND.on)return;try{
   else if(k==='click')tone(300,200,.05,'square',.07)}catch(e){}}
 
 /* ---------- Hausbanner der Gegner ---------- */
-function plateHTML(p){return `<div class="hero"><div class="pf"><img src="cards/pk-${p.art}.jpg" alt="" draggable="false"></div><b class="hg gem">${p.thron}</b><span class="hn">${p.short}</span></div>`}
+function plateHTML(p){return `<div class="hero"><div class="pf"><img src="cards/s/pk-${p.art}.jpg" alt="" draggable="false"></div><b class="hg gem">${p.thron}</b><span class="hn">${p.short}</span></div>`}
 
 /* ---------- Karten-HTML (Magic-Aufbau, Wertigkeit als Stufe) ---------- */
 const cardNo=c=>String(c.s*13+c.r-1).padStart(3,'0');
@@ -136,7 +136,7 @@ function cardHTML(c,o={}){
   return `<div class="card t${t} r${c.s} ${G&&G.syn&&G.syn.has(c.id)?'syncard ':''}${o.cls||''}" data-id="${c.id}" style="--fr:${R.fr};--pl:${R.pl};--tb:${R.tb};--mc:${R.mc};${o.style||''}">
     <div class="frm">
       <div class="plate ttl"><b class="nm">${NAME[c.r]}</b><span class="cost"><i>${RL[c.r]}</i><i class="cm">${R.ic}</i></span></div>
-      <div class="art"><img src="cards/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false">${up?`<i class="plate upb">+${up}/+${up}</i>`:''}</div>
+      <div class="art"><img src="cards/${o.big?'':'s/'}pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false" decoding="async">${up?`<i class="plate upb">+${up}/+${up}</i>`:''}</div>
       <div class="plate typ"><span>${R.n}</span>${SY}</div>
       <div class="tx"><b>${abil(c)[0]}</b> · ${abil(c)[2]}</div>
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
@@ -271,7 +271,7 @@ async function betRound(){
       need.clear();live().forEach(q=>{if(q!==p&&q.stack>0)need.add(q)});
       if(p.stack<=0){pulse('rgba(232,80,44,.75)');snd('thud')}else snd('chip');
       p.rage=true;setTimeout(()=>{p.rage=false;render()},700);
-      p.say=p.stack<=0?'Alles! '+to:(toCall<=0?'Setzt ':'Erhöht auf ')+to}
+      p.say=p.stack<=0?'Alles! '+to:(toCall<=0?'Setzt ':'Erhöht ')+to}
     G.turn=null;render();await sleep(p.human?250:700);
   }
   G.turn=null;G.players.forEach(p=>{if(!p.folded)p.say=''});
@@ -280,7 +280,7 @@ async function betRound(){
 /* ---------- KI ---------- */
 async function aiAct(p,toCall,minTo,capT,canRaise){
   await sleep(650+rnd(700));
-  const n=live().length,eq=equity(p,p.st.n||14),fair=1/n,st=p.st,bb=G.bb;
+  const n=live().length,eq=equity(p,p.st.n||10),fair=1/n,st=p.st,bb=G.bb;
   const po=toCall/(G.pot+toCall||1),e=eq+(Math.random()-.5)*.08,bluff=Math.random()<st.bluff;
   const size=()=>minTo;
   if(toCall<=0){
@@ -292,9 +292,9 @@ async function aiAct(p,toCall,minTo,capT,canRaise){
   return{t:'fold'}}
 
 /* ---------- Mensch: Einsatz ---------- */
-function humanAct(toCall,minTo,capT,canRaise){
+async function humanAct(toCall,minTo,capT,canRaise){
   const p=G.players[0];
-  const eq=equity(p,24),n=live().length;
+  await sleep(30);const eq=equity(p,18),n=live().length;
   G.eq={eq,n,toCall,po:toCall/(G.pot+toCall||1)};
   return ask('bet',{toCall,minTo,capT,canRaise,raising:false,val:minTo})}
 
@@ -354,9 +354,10 @@ function perms(a){if(a.length<=1)return[a];const out=[];a.forEach((x,i)=>{for(co
 /* Starke Gegner stellen auf: jede Reihenfolge gegen die Teams der anderen am Tisch testen */
 function aiOrder(p,five,L){/* fair: Gegnerhände werden ausgelost, nicht gelesen */
   const known=new Set([...p.hole,...G.board,...G.players.flatMap(q=>q.sac)].map(c=>c.id)),deck=FULL.filter(c=>!known.has(c.id)),foes=[];
-  for(let s=0;s<2;s++){const d=shuffle(deck.slice());let k=0;for(const q of L){if(q===p)continue;const h=d.slice(k,k+q.hole.length);k+=q.hole.length;foes.push(pickTeam(h.concat(G.board,q.heer),q.up))}}
+  for(let s=0;s<1;s++){const d=shuffle(deck.slice());let k=0;for(const q of L){if(q===p)continue;const h=d.slice(k,k+q.hole.length);k+=q.hole.length;foes.push(pickTeam(h.concat(G.board,q.heer),q.up))}}
   let best=five,bv=-1;
-  for(const o of perms(five)){const t=mkTeam(o,p.up,true);let v=0;for(const e of foes){const r=battle(t.team,e.team,false);v+=r.w===0?1:r.w===-1?.5:0}if(v>bv){bv=v;best=o}}return best}
+  const cand=[five];for(let i=0;i<5;i++)for(let j=i+1;j<5;j++){const o=five.slice();[o[i],o[j]]=[o[j],o[i]];cand.push(o)}
+  for(const o of cand){const t=mkTeam(o,p.up,true);let v=0;for(const e of foes){const r=battle(t.team,e.team,false);v+=r.w===0?1:r.w===-1?.5:0}if(v>bv){bv=v;best=o}}return best}
 
 /* ---------- Aschenschmiede ---------- */
 const PF=()=>Math.max(1,G.bb/10*.6),price=b=>Math.max(1,Math.round(b*PF()));
@@ -406,7 +407,7 @@ async function gameOver(){
   const score=p=>p.out?-1:p.stack+10*p.thron;
   const rank=G.players.slice().sort((a,b)=>score(b)-score(a));
   const won=rank[0]===me;const place=rank.indexOf(me)+1;
-  const gain=(won?150:0)+[0,60,30,15,0][place]+G.stats.won*10;const before=rankOf(FAME);FAME+=gain;saveMeta();
+  const gain=(won?150:0)+([0,0,80,50,30,15,0][place]||0)+G.stats.won*10;const before=rankOf(FAME);FAME+=gain;saveMeta();
   snd(won?'win':'lose');
   await showSheet('over',{won,rank,score,gain,place,up:rankOf(FAME)!==before});
   return newGame()}
@@ -540,7 +541,7 @@ function showOv(html,clear){const o=$('#ov');o.className=clear==='title'?'titleb
 function hideOv(){const o=$('#ov');o.hidden=true;o.innerHTML='';o.onclick=null}
 function zoom(id){
   const c=cardById[id];if(!c||!G)return;const R=REALM[c.s],me=G.players[0],t=tier(c.r);
-  showOv(`<div class="zoom"><div>${cardHTML(c,{up:upOf(me,c)})}</div>
+  showOv(`<div class="zoom"><div>${cardHTML(c,{up:upOf(me,c),big:1})}</div>
     <div class="fl">»${FLAV[c.r]}«</div>
     <div class="lore"><b>${R.n} · ${TIERN[t-1]}</b>${R.lore}<br><i>${R.pn}: ${R.ptx}</i></div></div>`,true);
   const t0=Date.now();
@@ -562,10 +563,10 @@ function showSheet(kind,d){
         <p><b>1. Teilen und Kriegszoll.</b> Jeder bekommt <b>3 Kreaturenkarten</b>. Die beiden Plätze nach dem Geber zahlen vorher den <b>Kriegszoll</b>: einen halben und einen ganzen Einsatz. Wer den Flop sehen will, muss mitgehen, umsonst geht es nicht. Gesetzt wird mit <b>festen Beträgen</b>: Erhöhen geht immer um einen Einsatz, ab der Wende um zwei, höchstens dreimal pro Runde. Der Einsatz steigt alle drei Nächte.</p>
         <p><b>Heerlager.</b> In der Schmiede kannst du <b>Söldner</b> anwerben. Bis zu zwei ziehen dauerhaft in dein Heerlager und stehen dir jede Nacht beim Showdown zusätzlich zu Hand und Tisch zur Wahl. Die Heerlager der Gegner siehst du unter ihren Bannern.</p>
         <p><b>2. Flop, Opfer, Wende.</b> Nach dem Flop opfert jeder eine Handkarte, offen für alle. In der Wende kommen Turn und River zusammen, dann wird ein letztes Mal gesetzt.</p>
-        <p><b>3. Der Showdown ist ein Kampf.</b> Du wählst 5 deiner 7 Karten. Ihre Pokerkombo ist die <b>Formation</b> und gibt allen fünf Karten einen Bonus. Die Teams schlagen sich automatisch, ohne Würfel. Wer mehr Kämpfe gewinnt, holt den Pot.</p>
+        <p><b>3. Der Showdown ist ein Kampf.</b> Du wählst 5 Karten aus Hand, Tisch und Heerlager. Ihre Pokerkombo ist die Formation und gibt allen fünf einen Bonus. Danach ordnest du die <b>Schlachtreihe</b>: Jede Karte kämpft gegen die gegenüber, Nachbarn stärken oder schützen sich. Die Teams schlagen sich automatisch, ohne Würfel. Wer mehr Kämpfe gewinnt, holt den Pot. Leuchtende Karten zeigen dir starke Synergien.</p>
         <p><b>4. Thron und Beute.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers, alle drei Nächte einer mehr. Jeder gewonnene Kampf bringt <b>Beute</b> in Gold, auch ohne Pot. Wer flieht, bleibt unversehrt, zahlt aber mit Gold.</p>
         <p><b>5. Aschenschmiede.</b> Zwischen den Händen kaufst du Verstärkungen: Schmiede (+2/+2 für eine Kreatur), Schwur (+1/+1 für ein Reich), Thron flicken, Kriegstrommel (Formation eine Stufe höher), Ahnenschild (nächste Niederlage ohne Thron-Verlust), Vierte Karte, Kopfgeld (mehr Beute) und Rabenauge (je eine Gegnerkarte sehen). Gold in der Schmiede fehlt dir am Tisch. Fällt Thron oder Gold auf 0, bist du raus.</p>
-        <p><b>Seltenheit.</b> Das Kronen-Symbol in der Typzeile zeigt sie: schwarz gemein, silber ungewöhnlich, gold selten, orange mythisch. Ab Selten trägt die Karte den Holo-Stempel, Könige und Drachen die Legendenkrone, der Drache ist Folie.</p></details>
+        <p><b>Kartenrand.</b> Der Rand zeigt das Reich: <b>weiß</b> Sonnenwacht, <b>rot</b> Aschelande, <b>blau</b> Nordmark, <b>schwarz</b> Blutmoor, dazu das Reichszeichen oben rechts. Die innere Metallkante zeigt den Wert: Eisen gemein, Silber ungewöhnlich, Messing selten, Gold mythisch. Könige und Drachen tragen die Krone.</p></details>
        <details><summary>Kombos &amp; Formation</summary><ul>${rows}</ul></details>
        <details><summary>Kreaturen</summary><ul>${cr}</ul></details>
        <details><summary>Reiche</summary><ul>${rl}</ul></details>
@@ -576,7 +577,7 @@ function showSheet(kind,d){
       const{offers}=d;
       showOv(`<div class="sheet"><h2>Aschenschmiede</h2><p class="k">Gold wird hier zu Macht, und fehlt dir am Tisch.</p>
         <div class="offers">${offers.map((o,i)=>{const R=o.k==='oath'?REALM[o.s]:null;
-          const pic=o.k==='recruit'?`<img src="cards/pk-${o.c.r}-${o.c.s}.jpg" alt=""><b>${RL[o.c.r]}</b>`:o.k==='forge'?`<img src="cards/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
+          const pic=o.k==='recruit'?`<img src="cards/s/pk-${o.c.r}-${o.c.s}.jpg" alt=""><b>${RL[o.c.r]}</b>`:o.k==='forge'?`<img src="cards/s/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+2</b>`:o.k==='oath'?`${R.ic}<b>+1</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
           return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')}</div>
         <p class="k">Du hast ${me.stack} Gold · Thron ${me.thron}</p>
         <div class="row"><button class="plate btn ghost" data-x="reroll" ${me.stack>price(6)+1?'':'disabled'}>Neu würfeln<small>${price(6)} Gold</small></button><button class="plate btn" data-x="done">Nächste Hand</button></div></div>`);
@@ -584,7 +585,7 @@ function showSheet(kind,d){
         if(o)fin({t:'buy',i:+o.dataset.i});else if(x&&x.dataset.x==='reroll')fin({t:'reroll'});else if(x&&x.dataset.x==='done')fin({t:'done'})});return}
     if(kind==='over'){
       const s=G.stats;
-      showOv(`<div class="title canvas page" style="justify-content:center;gap:12px">${CORN}<h1>${d.won?'Der Thron ist dein':'Asche'}</h1>
+      showOv(`<div class="title canvas page" style="justify-content:center;gap:12px">${CORN}<h1>${d.won?'Die Krone ist dein':'Ausgenommen'}</h1>
         <p>${d.won?'Nach '+G.hand+' Nächten führt dein Banner.':d.place===2?'Knapp. Platz 2 nach '+G.hand+' Nächten.':'Platz '+d.place+' nach '+G.hand+' Nächten.'}</p>
         <div class="res" style="width:100%">${d.rank.map((p,k)=>`<div class="rrow ${k===0?'win':''}"><b class="pl">${k+1}</b>${plateHTML(p)}<b>${p.short}<small>${p.out?'gefallen':'Thron '+p.thron+' · Gold '+p.stack}</small></b><div class="d">${p.out?'—':d.score(p)}<small>Ruhm</small></div></div>`).join('')}</div>
         <p class="rang">+${d.gain} Ruhm · Rang ${rankOf(FAME)}${d.up?' (aufgestiegen)':''}${s.bestName?'<br>Stärkste Formation: '+s.bestName:''}</p>
