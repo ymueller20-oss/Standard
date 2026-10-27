@@ -524,3 +524,15 @@ body.intro #stage>*{visibility:hidden}
 #read .syn{display:block;margin-top:3px;font:italic 400 .86rem/1.25 var(--f-fell);color:#ffd76a!important;text-shadow:0 1px 2px #000,0 0 6px rgba(0,0,0,.9)}
 .card.syncard{outline:3px solid #ffe27a;outline-offset:2px;box-shadow:0 0 16px 6px rgba(255,190,60,.85)!important}
 @keyframes synp{to{outline-color:#fff5c8;box-shadow:0 0 24px 9px rgba(255,210,90,1)!important}}
+/* ---------- Farbenblind-sicher (Okabe-Ito): Reiche unterscheiden sich in Farbton UND Helligkeit, Symbole zusätzlich ---------- */
+.card.r0{--rh:#fffbd8;--rc:#f0c020;--rd:#7a5a00}
+.card.r1{--rh:#ffc08a;--rc:#e06a10;--rd:#6a2a00}
+.card.r2{--rh:#bfe4ff;--rc:#2a7fd0;--rd:#0a2f5a}
+.card.r3{--rh:#d9a8f0;--rc:#6a2d8f;--rd:#240a36}
+.card .pt .up{color:#1f5fb0!important}
+#read .g{color:#8cc8ff!important}#read .r{color:#ffb35a!important}
+.card.r0{--rh:#fffef0;--rc:#ffe9a0;--rd:#c9a040}.card.r0 .rlm{color:#5a3a00}
+.card.r1{--rh:#ff9a50;--rc:#c84f00;--rd:#5a2000}.card.r1 .rlm{color:#fff}
+.card.r2{--rh:#e6f5ff;--rc:#8fd0ff;--rd:#3a8ad0}.card.r2 .rlm{color:#0a2a5a}
+.card.r3{--rh:#4a2a44;--rc:#1c0a18;--rd:#000}.card.r3 .rlm{color:#f0d0e8}
+.card.r0 .rlm svg,.card.r2 .rlm svg{filter:none}

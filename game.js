@@ -69,11 +69,11 @@ const RIC={
 const REALM=[
   {n:'Sonnenwacht',fr:'#d6cfbd',pl:'#f1eee3',tb:'#f4f1e8',mc:'#f6efc0',col:'#d8bf6e',ic:IC.sun,pn:'Gottesschild',ptx:'Hat eine Sonnenwacht-Karte einen Zwilling gleicher Stärke im Team, trägt sie Gottesschild (der erste Treffer prallt ab), +2/+2 je Zwilling. +1/+1 je weiterer Sonnenwacht-Karte. Ab vier Sonnenwacht-Karten trägt die stärkste den Schild, bei fünf alle.',strat:'Paare, Schilde, Unverwundbarkeit',
    lore:'Die Ritter der Sonnenwacht schwören auf das letzte Licht über den Zinnen. Wer ihren Schwur bricht, dessen Name wird aus jeder Chronik gekratzt.'},
-  {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#b3382a',ic:IC.fire,pn:'Glut',ptx:'Zu Kampfbeginn brennt jede Aschelande-Karte ihren Gegner für so viel Schaden, wie ihre Stärkenkette lang ist. +3/+2 je Kettenglied, +2/+2 je weiterer Aschelande-Karte.',strat:'Jagdketten, Schaden vor dem ersten Schlag',
+  {n:'Aschelande',fr:'#c4472e',pl:'#f2dacb',tb:'#f3e1d5',mc:'#f0a08a',col:'#d55e00',ic:IC.fire,pn:'Glut',ptx:'Zu Kampfbeginn brennt jede Aschelande-Karte ihren Gegner für so viel Schaden, wie ihre Stärkenkette lang ist. +3/+2 je Kettenglied, +2/+2 je weiterer Aschelande-Karte.',strat:'Jagdketten, Schaden vor dem ersten Schlag',
    lore:'Seit der Vulkan den alten Thron verschlang, brennt das Land. Seine Fürsten sind Schmiede, Jäger und Brandstifter in einem.'},
   {n:'Nordmark',fr:'#2f72ad',pl:'#d3e3f1',tb:'#dfe9f3',mc:'#a9d2ee',col:'#2f6a9a',ic:IC.ice,pn:'Frost',ptx:'+3/+2 je weiterer Nordmark-Karte. Ab drei Nordmark-Karten lassen ihre Treffer das Ziel erstarren: es setzt seinen nächsten Angriff aus.',strat:'Banner, Kontrolle',
    lore:'Im ewigen Winter der Nordmark überlebt nur, wer zusammensteht. Ihre Wälle aus Eis hat noch keine Armee gebrochen.'},
-  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#5b2a48',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff, +1 mehr je weiterer Blutmoor-Karte. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Lange Kämpfe, Rache',
+  {n:'Blutmoor',fr:'#3c3633',pl:'#d3cdc7',tb:'#ddd7d0',mc:'#c8bdb8',col:'#6a2d8f',ic:IC.blood,pn:'Blutrausch',ptx:'Jede Kampfrunde +3 Angriff, +1 mehr je weiterer Blutmoor-Karte. Fällt sie, schlägt sie noch einmal mit vollem Angriff zu.',strat:'Lange Kämpfe, Rache',
    lore:'Das Blutmoor vergisst niemanden, der in ihm starb. Was dort fällt, steht noch einmal auf und schlägt ein letztes Mal zu.'}];
 const OPP=[
   {name:'Vargo Rotzahn',short:'Vargo',tag:'Söldner',col:'#a8321f',fr:'#c4472e',pl:'#f2dacb',art:'4-1',st:{aggr:.75,bluff:.16,tight:0},
@@ -456,7 +456,7 @@ function rTable(){G.syn=null;G.sy=null;{const me=G.players[0];if(!me.out&&me.inH
   const me=G.players[0];let r='';
   if(!me.out&&me.inHand&&!me.folded&&me.hole.length){
     const cs=me.hole.concat(G.board);r=`<b>${handLabel(cs)}</b>`;const sy=G.sy||[];if(sy.length)r+=`<span class="syn">${sy.slice(0,2).map(x=>'✦ '+x.t).join('<br>')}</span>`;
-    if(G.eq&&G.ui&&G.ui.mode==='bet'){r+=` · Chance <span class="${G.eq.eq>=1/G.eq.n?'g':'r'}">${Math.round(G.eq.eq*100)}%</span>`;
+    if(G.eq&&G.ui&&G.ui.mode==='bet'){r+=` · Chance <span class="${G.eq.eq>=1/G.eq.n?'g':'r'}">${G.eq.eq>=1/G.eq.n?'▲':'▼'} ${Math.round(G.eq.eq*100)}%</span>`;
       if(G.eq.toCall>0)r+=` · nötig ${Math.round(G.eq.po*100)}%`}}
   else if(me.folded)r='Du hast geflohen';
   if(u&&u.mode==='sac')r='<b>Opfere eine Karte</b>Sie liegt danach offen auf dem Tisch.';
