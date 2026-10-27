@@ -1,4 +1,4 @@
-# Aschenthron
+# Krug & Krone
 
 Poker + Battlegrounds im Thronsaal. Einfach `index.html` über einen lokalen Server öffnen (z. B. `python3 -m http.server`).
 

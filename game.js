@@ -86,7 +86,7 @@ const OPP=[
    q:{raise:['Das Licht ist mit mir.'],allin:['Gott will es!'],fold:['Demut ist eine Tugend.'],win:['Gesegnet sei der Pot.'],lose:['Eine Prüfung.']}},
   {name:'Kalla Eisenfaust',short:'Kalla',tag:'Schmiedin',col:'#3f6f8f',fr:'#2f72ad',pl:'#d3e3f1',art:'8-2',st:{aggr:.85,bluff:.12,tight:.1},
    q:{raise:['Schlag zu, solang es glüht.'],allin:['Alles in die Esse!'],fold:['Kaltes Eisen.'],win:['Gut geschmiedet.'],lose:['Nächstes Mal härter.']}}];
-const RANKS=[[0,'Bettler'],[100,'Tagelöhner'],[300,'Söldner'],[700,'Hauptmann'],[1400,'Ritter'],[2500,'Fürst'],[4000,'Aschenkönig']];
+const RANKS=[[0,'Bettler'],[100,'Tagelöhner'],[300,'Söldner'],[700,'Hauptmann'],[1400,'Ritter'],[2500,'Fürst'],[4000,'Kronenträger']];
 let FAME=0,SEEN=new Set();
 try{FAME=+localStorage.getItem('at-fame')||0;SEEN=new Set(JSON.parse(localStorage.getItem('at-seen')||'[]'))}catch(e){}
 const rankOf=f=>{let r=RANKS[0][1];for(const[t,n]of RANKS)if(f>=t)r=n;return r};
@@ -150,11 +150,12 @@ function seenCls(key){if(!G.seen)G.seen=new Set();if(G.seen.has(key))return '';G
 function synergies(cards,up){if(cards.length<5)return[];const t=pickTeam(cards,up);if(!t)return[];const T=t.team,out=[];
   const add=(v,txt,fs)=>out.push({v,t:txt,ids:fs.map(f=>f.c.id)});const by=s=>T.filter(f=>f.s===s),nm=f=>NAME[f.r];
   const S=by(0),A=by(1),N=by(2),B=by(3);
-  const tw=S.filter(f=>T.filter(o=>o.r===f.r).length>1);if(tw.length)add(6,`Schwur: ${[...new Set(tw.map(nm))].join(', ')} mit Gottesschild`,tw);
-  if(S.length>=4)add(5,`Sonnenwacht ×${S.length}: Gottesschild`,S);
-  const ch=A.filter(f=>f.chain>=2);if(ch.length){const L=Math.max(...ch.map(f=>f.chain));add(2+L,`Feuerkette ×${L}: Glut ${L}`,ch)}else if(A.length>=3)add(4,`Aschelande ×${A.length}`,A);
-  if(N.length>=3)add(6,`Nordmark ×${N.length}: Frost`,N);else if(N.length===2)add(2,'Nordmark ×2: Eiswall',N);
-  if(B.length>=2)add(2+B.length,`Blutmoor ×${B.length}: Blutrausch +${K.blut+K.blutPer*(B.length-1)}`,B);
+  /* Gewicht = gemessener Gewinn an Siegchance (Simulation): Blutmoor×2 ≈ +21, Aschelande×2 ≈ +11, Nordmark×2 ≈ +8 / ×3 ≈ +25, Sonnenwacht×2 ≈ +6 */
+  const tw=S.filter(f=>T.filter(o=>o.r===f.r).length>1);if(tw.length)add(7,`Schwur: ${[...new Set(tw.map(nm))].join(', ')} mit Gottesschild`,tw);
+  else if(S.length>=2)add(S.length>=4?7:5,`Sonnenwacht ×${S.length}: +${K.sonR*(S.length-1)}/+${K.sonR*(S.length-1)}${S.length>=4?', Gottesschild':''}`,S);
+  if(A.length>=2){const L=Math.max(...A.map(f=>f.chain||1));add(L>=2?8+L:8,L>=2?`Feuerkette ×${L}: Glut ${L}, +${K.ashA*(L-1)+K.ashN*(A.length-1)} Angriff`:`Aschelande ×${A.length}: +${K.ashN*(A.length-1)}/+${K.ashNH*(A.length-1)}`,A)}
+  if(N.length>=3)add(14,`Nordmark ×${N.length}: Frost, +${K.norA*(N.length-1)}/+${K.norH*(N.length-1)}`,N);else if(N.length===2)add(6,`Nordmark ×2: +${K.norA}/+${K.norH}`,N);
+  if(B.length>=2)add(12+B.length,`Blutmoor ×${B.length}: Blutrausch +${K.blut+K.blutPer*(B.length-1)} je Runde`,B);
   for(const f of T){if(!f.sup)continue;const ab=SUPTX[f.sup][0];
     if(f.sup==='knappe'){const g=T.find(o=>o.blessed);if(g)add(7,`${ab} schützt ${nm(g)}`,[f,g])}
     else if(f.sup==='banner'){const sh=T.filter(o=>o.shield&&o!==f);if(sh.length)add(5+sh.length,`${ab}: ${sh.length} Schildträger +5/+5`,[f,...sh])}
@@ -440,7 +441,7 @@ function rOpps(){
     ${p.peek&&p.hole.includes(p.peek)&&!p.folded?`<div class="opeek" data-z="${p.peek.id}">${cardHTML(p.peek,{cls:'xs'})}<span>Rabenauge</span></div>`:''}
   </div>`}).join('')}
 
-function rTable(){G.syn=null;G.sy=null;{const me=G.players[0];if(!me.out&&me.inHand&&!me.folded&&me.hole.length&&!(G.ui&&G.ui.mode==='lineup')){G.sy=synergies(me.hole.concat(G.board,me.heer),me.up).filter(x=>x.v>=5);G.syn=new Set(G.sy.slice(0,2).flatMap(x=>x.ids))}}
+function rTable(){G.syn=null;G.sy=null;{const me=G.players[0];if(!me.out&&me.inHand&&!me.folded&&me.hole.length&&!(G.ui&&G.ui.mode==='lineup')){G.sy=synergies(me.hole.concat(G.board,me.heer),me.up).filter(x=>x.v>=6);G.syn=new Set(G.sy.slice(0,2).flatMap(x=>x.ids))}}
   const pe=$('#pot');pe.style.setProperty('--fs',(1+Math.min(.9,G.pot/(START_GOLD*2.5))).toFixed(2));
   pe.innerHTML=`${IC.bowl}<div class="num">${G.pot}<small>Pot</small></div>`;
   if(G.pot>G.lastPot){pe.classList.remove('bump');void pe.offsetWidth;pe.classList.add('bump')}G.lastPot=G.pot;
@@ -551,7 +552,7 @@ function showSheet(kind,d){
       const cr=Object.keys(PST).reverse().map(r=>+r>5?`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · ${TIERN[tier(+r)-1]}<br><i>${ABIL[r][0]}: ${ABIL[r][1]}</i></div></li>`:`<li><b class="n">${RL[r]}</b><div><b>${NAME[r]}</b> ${PST[r][0]}/${PST[r][1]} · Unterstützer, je Reich anders<br>${REALM.map((R,si)=>{const a=SUPTX[SUP[si][r]];return `<i>${R.n} · ${a[0]}: ${a[1]}</i>`}).join('<br>')}</div></li>`).join('');
       const rl=REALM.map(r=>`<li><b class="n" style="display:flex;justify-content:center;align-items:flex-start;padding-top:2px"><span style="display:block;width:26px;height:26px;background:${r.col};color:#16110f;padding:3px">${r.ic}</span></b><div><b>${r.n}</b> · ${r.strat}<br><i>${r.pn}: ${r.ptx}</i></div></li>`).join('');
       const ups=Object.entries(me.up.rank).map(([r,v])=>`<li><b class="n">+${v}</b><div>${NAME[r]}-Karten</div></li>`).concat(Object.entries(me.up.realm).map(([s,v])=>`<li><b class="n">+${v}</b><div>Reich ${REALM[s].n}</div></li>`)).join('')||'<li><div><i>Noch keine Siegel gekauft.</i></div></li>';
-      showOv(`<div class="sheet paper"><h2>Grimoire</h2><p class="k">Poker auf dem Aschenthron</p>
+      showOv(`<div class="sheet paper"><h2>Tavernenregeln</h2><p class="k">Poker um die Krone</p>
        <details open><summary>So läuft eine Hand</summary>
         <p><b>Ziel.</b> Eine Partie dauert <b>12 Nächte</b>. Wer am Ende den meisten <b>Ruhm</b> hat (Gold + 10 je Thron-Leben), gewinnt. Wer vorher als Einziger übrig ist, gewinnt sofort.</p>
         <p><b>1. Teilen und Kriegszoll.</b> Jeder bekommt <b>3 Kreaturenkarten</b>. Die beiden Plätze nach dem Geber zahlen vorher den <b>Kriegszoll</b>: einen halben und einen ganzen Einsatz. Wer den Flop sehen will, muss mitgehen, umsonst geht es nicht. Gesetzt wird mit <b>festen Beträgen</b>: Erhöhen geht immer um einen Einsatz, ab der Wende um zwei, höchstens dreimal pro Runde. Der Einsatz steigt alle drei Nächte.</p>
@@ -650,7 +651,7 @@ function sleepable(){let r=null,t=null;return{wait(ms){return new Promise(res=>{
 /* ---------- Titel ---------- */
 function title(){
   document.body.classList.add('intro');
-  showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">A</span>schenthron</h1><h2>Zwölf Nächte in der Aschentaverne</h2>
+  showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">K</span>rug &amp; Krone</h1><h2>Zwölf Nächte am Tavernentisch</h2>
     <div class="cards">${cardHTML(cardById['7-0'])}${cardHTML(cardById['12-3'])}${cardHTML(cardById['14-1'])}</div>
     <p>Poker um Gold. Der Showdown ist eine Schlacht. Wer fällt, dessen Banner brennt.</p>
     <div class="rang">Rang: ${rankOf(FAME)} · Ruhm ${FAME}</div>
