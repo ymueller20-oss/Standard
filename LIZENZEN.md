@@ -44,7 +44,5 @@ Eigene Arbeit (`engine.js`, `game.js`, `index.html`, `style.css`). Es gibt keine
 | Inhalt | Herkunft | Lizenz |
 |---|---|---|
 | `audio/musik/*` | eigene Kompositionen (`audio-src/compose.py`), eingespielt mit dem FluidR3_GM-Soundfont | Musik eigene Arbeit; FluidR3_GM: MIT-Lizenz |
-| `audio/stimmen/*` | erzeugt mit Piper aus den Stimmen „Thorsten“ (thorsten-voice.de) und „Kerstin“ (rhasspy), nachbearbeitet (`audio-src/voices.py`) | beide Stimmdatensätze CC0 |
 | `audio/sfx/` Karten, Chips, Würfel, Münzen, Klingen, Treffer, Glas, Glocke, Holz, Stein, Buch, Tür | Kenney.nl: Casino Audio, Impact Sounds, RPG Audio | CC0 |
 | `audio/sfx/` Pauke, Taiko, Orchesterschlag, Röhrenglocke, Beckenschwell | mit FluidR3_GM eingespielt (`audio-src/sfx.py`) | MIT (Soundfont) |
-| `audio/sfx/` Zischen, Feuer, Gift, Heilung, Herzschlag, Peitsche, Zerfall, Kreaturenlaute | eigene Klanggestaltung (`audio-src/sfx.py`, `voices.py`) | eigene Arbeit |

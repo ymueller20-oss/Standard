@@ -116,8 +116,8 @@ function noise(d,v=.2,f=2000,type='highpass',at=0){const a=ac();if(!a)return;con
   const s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();s.buffer=b;fl.type=type;fl.frequency.value=f;g.gain.value=v;s.connect(fl).connect(g).connect(a.destination);s.start(t)}
 /* Aufnahmen aus audio.js zuerst; die erzeugten Töne bleiben als Rückfall, solange nichts geladen ist */
 const au=(f,...a)=>{try{return typeof AU!=='undefined'?AU[f](...a):0}catch(e){return 0}};
-const SMAP={tick:['schub',.45],chip:['chips',.75],thud:['holz',.7],hit:['schlag',.9],die:['zerfall',.8],click:['klick',.45]};
-function snd(k){if(!SND.on)return;if((k==='win'||k==='lose')&&typeof AU!=='undefined'&&AU.ready)return;const m=SMAP[k];if(m&&au('sfx',m[0],{vol:m[1]}))return;try{
+const SMAP={tick:null,chip:['chips',.6],thud:['pauke',.3],hit:['schlag',.8],die:null,click:['klick',.3],win:null,lose:null};
+function snd(k){if(!SND.on)return;if(typeof AU!=='undefined'&&AU.ready&&k in SMAP){const m=SMAP[k];if(m)au('sfx',m[0],{vol:m[1]});return}try{
   if(k==='tick')noise(.05,.16,3500);
   else if(k==='chip'){tone(2100,1900,.07,'square',.06);tone(2900,2600,.09,'square',.05,.05)}
   else if(k==='thud'){tone(130,38,.34,'sine',.5);noise(.09,.2,600,'lowpass')}
@@ -133,6 +133,16 @@ function plateHTML(p){return `<div class="hero"><div class="pf"><img src="cards/
 /* ---------- Karten-HTML (Magic-Aufbau, Wertigkeit als Stufe) ---------- */
 const cardNo=c=>String(c.s*13+c.r-1).padStart(3,'0');
 const RAR=['C','U','R','M','M'];
+/* Effekt-Marken: was eine Karte im gewählten Team gerade stärkt, ohne Zahlen. Stufe 1–3 = schwach, deutlich, gewaltig. */
+const FXI={crown:IC.thron,shield:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l8 3v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5z"/></svg>',fire:IC.fire,ice:IC.ice,blood:IC.blood,
+  up:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l8 9h-5v11H9V11H4z"/></svg>',seal:'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M2 8l7-6 4 4-2.5 2.5L21 19l-3 3L7.5 11.5 5 14z"/></svg>',
+  guard:'<svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="3" d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path fill="currentColor" d="M12 7v11c-2.6-1.6-4-4-4-7V9z"/></svg>'};
+const FXN={crown:'Formation',shield:'Gottesschild',fire:'Glut',ice:'Frost',blood:'Blutrausch',up:'Reichsbonus',seal:'Siegel',guard:'Leibwächter'};
+const lv=(v,a,b)=>v<=0?0:v<a?1:v<b?2:3;
+function fxList(f){const L=[];const add=(k,t)=>{if(t>0)L.push([k,t])};
+  add('crown',lv(f.form,3,9));if(f.shield)add('shield',f.blessed?2:2);add('fire',f.glut>=2?lv(f.glut,3,5):0);if(f.frost)add('ice',2);
+  add('blood',lv(f.rage,3,5));add('up',lv((f.realm?f.realm[0]+f.realm[1]:0),6,14));add('seal',lv(f.up||0,4,8));if(f.taunt)add('guard',2);return L}
+const fxBadges=f=>{const L=fxList(f);return L.length?`<span class="fxb">${L.map(([k,t])=>`<i class="fx-${k} t${t}" title="${FXN[k]}">${FXI[k]}</i>`).join('')}</span>`:''};
 function cardHTML(c,o={}){
   if(o.back)return `<div class="card back ${o.cls||''}" style="${o.style||''}"></div>`;
   const R=REALM[c.s],t=tier(c.r),up=o.up||0,team=o.st;
@@ -146,7 +156,7 @@ function cardHTML(c,o={}){
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
     </div>
     <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
-    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="wear" style="${wearOf(c)}"></i><i class="edge" style="${wearOf(c)}"></i><i class="glare"></i><i class="cvr"></i></div>`}
+    ${o.fx?fxBadges(o.fx):''}<i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="wear" style="${wearOf(c)}"></i><i class="edge" style="${wearOf(c)}"></i><i class="glare"></i><i class="cvr"></i></div>`}
 /* Abnutzung: jede Karte hat ihren eigenen Knick, Kratzer und manchmal ein Eselsohr (fest aus der Karten-ID) */
 function wearOf(c){let h=2166136261;for(const ch of String(c.id)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
   const r=k=>{let x=Math.imul(h^Math.imul(k+1,2654435761),2246822507)>>>0;x=(x^(x>>>13))>>>0;x=Math.imul(x,3266489909)>>>0;x=(x^(x>>>16))>>>0;return (x%1000)/1000};
@@ -175,6 +185,21 @@ function synergies(cards,up){if(cards.length<5)return[];const t=pickTeam(cards,u
     else if(f.sup==='moorwolf'){const i=T.indexOf(f),nb=[T[i-1],T[i+1]].filter(Boolean);add(5,`${ab}: Blutrausch für ${nb.map(nm).join(' & ')}`,[f,...nb])}
     else add(4,`${ab}: ${SUPTX[f.sup][2]}`,[f])}
   return out.sort((a,b)=>b.v-a.v)}
+
+/* ---------- Einschätzung ohne Zahlen ---------- */
+/* Kampfkraft: wie oft das Team gegen 60 typische Gegner-Teams gewinnt, als Stufe von schwach bis legendär */
+let REF=null;const RATE=new Map();
+function refTeams(){if(REF)return REF;REF=[];let s=12345;const rr=()=>(s=(s*1103515245+12345)%2147483648)/2147483648;
+  for(let k=0;k<60;k++){const d=FULL.slice();for(let i=d.length-1;i>0;i--){const j=Math.floor(rr()*(i+1));[d[i],d[j]]=[d[j],d[i]]}REF.push(pickTeam(d.slice(0,7),{rank:{},realm:{}}))}return REF}
+function rating(t){if(!t)return null;const key=t.team.map(f=>f.c.id+':'+f.atk+':'+f.hp).join(',');if(RATE.has(key))return RATE.get(key);
+  let w=0;for(const e of refTeams()){const r=battle(t.team,e.team,false);w+=r.w===0?1:r.w===-1?.5:0}const q=w/REF.length;RATE.set(key,q);return q}
+const GL=['Schwach','Brauchbar','Stark','Gewaltig','Legendär'];
+function gauge(t){const q=rating(t);if(q==null)return'';const n=q<.3?0:q<.5?1:q<.7?2:q<.88?3:4;
+  return `<span class="gauge g${n}" title="Kampfkraft"><small>Kampfkraft</small><i></i><i></i><i></i><i></i><i></i><em>${GL[n]}</em></span>`}
+/* Kombo-Leiter: zehn Stufen, die erreichte leuchtet; seltene Stufen sind golden */
+const ladder=c=>`<span class="ladder" title="Formation">${CAT.map((x,i)=>`<i class="${i===c?'on':''}${i>=6?' rare':''}" style="height:${30+i*7}%"></i>`).join('')}</span>`;
+/* Synergie als Marke: Sterne statt Zahlen */
+const synChip=x=>`<span class="sychip"><b>${'★'.repeat(x.v>=12?3:x.v>=8?2:1)}${'☆'.repeat(x.v>=12?0:x.v>=8?1:2)}</b>${x.t.replace(/:? ?[+−-]\d+(\/[+−-]?\d+)?( je Runde| Angriff)?/g,'').replace(/ ,/g,',').replace(/[,:]\s*$/,'')}</span>`;
 
 /* ---------- Kombo-Beschreibung ---------- */
 const RN=r=>NAME[r];
@@ -216,16 +241,16 @@ function coach(k){
   if(el){const r=el.getBoundingClientRect(),p=6;low=r.top+r.height/2>innerHeight/2;
     ring=`<div class="cring" style="left:${r.left-p}px;top:${r.top-p}px;width:${r.width+2*p}px;height:${r.height+2*p}px"></div>`}
   else c.classList.add('dim');
-  const last=Object.keys(TIPS).every(x=>TUT.seen.has(x));au('say','tut_'+k,{prio:3});
+  const last=Object.keys(TIPS).every(x=>TUT.seen.has(x));
   c.innerHTML=`${ring}<div class="cbub ${low?'up':'dn'}"><b>Der Wirt</b><h3>${h}</h3><p>${t}</p>
     <div class="row"><button class="btn ghost" data-c="skip">Kenn ich schon</button><button class="btn raise" data-c="ok">${last?'Los geht’s':'Verstanden'}</button></div></div>`;
   document.body.appendChild(c);snd('click');
   return new Promise(res=>{c.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;e.stopPropagation();
-    if(b.dataset.c==='skip'||last)tutDone();au('hush');c.remove();snd('click');res()}})}
+    if(b.dataset.c==='skip'||last)tutDone();c.remove();snd('click');res()}})}
 
 /* ---------- Spielzustand ---------- */
 function newGame(){
-  document.body.classList.remove('intro');au('reset');au('say','willkommen',{prio:2});
+  document.body.classList.remove('intro');au('reset');
   const P=[{name:'Du',short:'Du',human:true,col:'#efe6cf',art:'14-0'}].concat(OPP.map(o=>({...o})));
   G={players:P.map((p,i)=>({i,...p,stack:START_GOLD,thron:START_THRON,hole:[],sac:[],heer:[],up:{rank:{},realm:{}},folded:false,inHand:false,out:false,bet:0,say:'',rage:false})),
     hand:0,dealer:P.length-1,board:[],pot:0,bb:10,ante:2,curBet:0,minRaise:10,ui:null,seen:new Set(),turn:null,fast:false,lastPot:0,stats:{won:0,best:-1,bestName:''}};
@@ -257,16 +282,16 @@ async function playHand(){
   for(const p of G.players)if(p.inHand){p.hole=deck.splice(0,p.fourth?4:3);p.fourth=0}
   G.deck=deck;
   const me=G.players[0];if(me.raven&&me.inHand){for(const p of G.players.slice(1))if(p.inHand)p.peek=p.hole[rnd(p.hole.length)];me.raven=0}
-  au('music','tisch');au('sting','nacht',.8);au('say',G.hand>=MAX_HANDS?'letzte':'nacht'+G.hand,{at:.35});au('sfx','mischen',{vol:.8,at:.2});
+  au('music','tisch');au('sting','nacht',.8);au('sfx','mischen',{vol:.8,at:.2});
   render();await sleep(900);
   await coach('start');
   await betRound();if(await soleWinner())return;
-  au('say','flop');await banner('Der Flop','',G.fast?0:800);
+  await banner('Der Flop','',G.fast?0:800);
   G.board.push(...G.deck.splice(0,3));[0,.12,.24].forEach(t=>au('sfx','karte',{vol:.8,at:t}));render();await sleep(600);
   if(live().includes(G.players[0]))await coach('flop');
   await betRound();if(await soleWinner())return;
   await sacrifice();
-  au('say','wende');await banner('Die Wende','Turn und River',G.fast?0:900);
+  await banner('Die Wende','Turn und River',G.fast?0:900);
   G.board.push(...G.deck.splice(0,2));[0,.14].forEach(t=>au('sfx','karte',{vol:.8,at:t}));render();await sleep(600);
   await betRound();if(await soleWinner())return;
   await showdown()}
@@ -303,7 +328,7 @@ async function betRound(){
     const canRaise=capT>G.curBet&&p.stack>toCall&&G.raises<3;
     const a=p.human?await humanAct(toCall,minTo,capT,canRaise):await aiAct(p,toCall,minTo,capT,canRaise);
     p.say='';
-    if(a.t==='fold'){p.folded=true;p.say='Flieht';need.delete(p);if(p.human)G.fast=true;if(!au('sfx','schub',{vol:.7}))snd('click');if(!p.human&&Math.random()<.3)quip(p,'fold')}
+    if(a.t==='fold'){p.folded=true;p.say='Flieht';need.delete(p);if(p.human)G.fast=true;au('sfx','schub',{vol:.6});if(!p.human&&Math.random()<.3)quip(p,'fold')}
     else if(a.t==='call'){const amt=Math.min(toCall,p.stack);p.stack-=amt;p.bet+=amt;G.pot+=amt;need.delete(p);p.say=toCall<=0?'Schiebt':(p.stack<=0?'Alles!':'Geht mit');if(amt)snd('chip')}
     else{const to=minTo,amt=to-p.bet;G.raises++;
       G.minRaise=Math.max(G.minRaise,to-G.curBet);p.stack-=amt;p.bet=to;G.pot+=amt;G.curBet=to;
@@ -311,15 +336,15 @@ async function betRound(){
       if(p.stack<=0){pulse('rgba(232,80,44,.75)');snd('thud')}else snd('chip');
       p.rage=true;setTimeout(()=>{p.rage=false;render()},700);
       p.say=p.stack<=0?'Alles! '+to:(toCall<=0?'Setzt ':'Erhöht ')+to;
-      if(p.human){if(p.stack<=0)au('say','allin',{prio:2})}else if(p.stack<=0)quip(p,'allin',3);else if(Math.random()<.35)quip(p,'raise')}
+      if(!p.human){if(p.stack<=0)quip(p,'allin');else if(Math.random()<.35)quip(p,'raise')}}
     G.turn=null;render();await sleep(p.human?250:700);
   }
   G.turn=null;G.players.forEach(p=>{if(!p.folded)p.say=''});
   render()}
 
-/* Gegner sprechen: Stimme plus Zeile unten, solange sie redet */
-function quip(p,kind,prio=1){const w=(p.short||'').toLowerCase(),ids=[0,1,2,3].map(i=>`${w}_${kind}${i}`).filter(id=>au('has',id));if(!ids.length)return;
-  const id=ids[rnd(ids.length)],d=au('say',id,{prio});if(!d)return;G.line={who:p.short,text:au('text',id)};render();const L=G.line;setTimeout(()=>{if(G&&G.line===L){G.line=null;render()}},d*1000+700)}
+/* Gegner reden: ihr Spruch steht kurz unten am Tisch */
+function quip(p,kind){const a=p.q&&p.q[kind];if(!a)return;const t=a[rnd(a.length)];if(!t.replace(/[.\s]/g,''))return;
+  G.line={who:p.short,text:t};render();const L=G.line;setTimeout(()=>{if(G&&G.line===L){G.line=null;render()}},2600)}
 
 /* ---------- KI ---------- */
 async function aiAct(p,toCall,minTo,capT,canRaise){
@@ -347,7 +372,7 @@ async function humanAct(toCall,minTo,capT,canRaise){
 /* ---------- Opfer ---------- */
 async function sacrifice(){
   for(const p of live()){
-    if(p.human){au('say','opfer');const pr=ask('sac',{sel:null});await coach('sac');const c=await pr;p.hole=p.hole.filter(x=>x!==c);p.sac.push(c);au('sfx','klinge',{vol:.8});snd('thud')}
+    if(p.human){const pr=ask('sac',{sel:null});await coach('sac');const c=await pr;p.hole=p.hole.filter(x=>x!==c);p.sac.push(c);au('sfx','klinge',{vol:.7})}
     else{let bestI=0,bs=-1;p.hole.forEach((c,i)=>{const rest=p.hole.filter((_,j)=>j!==i).concat(G.board);const sc=bestScore(rest);if(sc>bs||(sc===bs&&c.r<p.hole[bestI].r)){bs=sc;bestI=i}});
       p.say='Opfert';const c=p.hole.splice(bestI,1)[0];p.sac.push(c);G.turn=p;render();snd('thud');await sleep(700);p.say=''}}
   G.turn=null;render();await sleep(500)}
@@ -355,7 +380,7 @@ async function sacrifice(){
 /* ---------- Showdown ---------- */
 async function showdown(){
   const L=live(),me=G.players[0];
-  au('music','showdown');au('say','showdown',{prio:2});au('sfx','orchester',{vol:.7});await banner('Showdown','',G.fast?0:900);
+  au('music','showdown');au('sfx','orchester',{vol:.6});await banner('Showdown','',G.fast?0:900);
   for(const p of L){
     const seven=p.hole.concat(G.board,p.heer);
     let five;
@@ -383,8 +408,7 @@ async function showdown(){
   if(W.includes(me)){G.stats.won++;const sc=me.team.b.cat;if(sc>=G.stats.best){G.stats.best=sc;G.stats.bestName=comboLabel(me.team.b)}}
   for(const[p,d]of dmg)p.thron=Math.max(0,p.thron-d);
   if(dmg.get(me)){pulse();snd('lose')}else if(W.includes(me))snd('win');
-  if(W.includes(me)){au('sfx','pot');au('sfx','muenzen',{at:.25});au('say','pot',{at:.3})}
-  if(me.thron>0&&me.thron<=10)au('once','thron',()=>au('say','thron',{at:1.4,prio:2}));
+  if(W.includes(me)){au('sfx','pot');au('sfx','muenzen',{at:.25})}
   await showSheet('result',{L,W,dmg,wins});
   G.pot=0;render()}
 
@@ -392,7 +416,7 @@ async function showdown(){
 function orderLineup(five,p){return new Promise(res=>{let ord=five.slice(),pick=-1;
   const draw=()=>{const t=mkTeam(ord,p.up,true);
     showOv(`<div class="sheet order"><h2>Schlachtreihe</h2><p class="k">Jede Karte kämpft gegen die gegenüber. Tippe zwei Karten, um sie zu tauschen.</p>
-      <div class="olanes">${t.team.map((f,i)=>`<div class="ol ${pick===i?'pk':''}" data-i="${i}"><b>${i+1}</b>${cardHTML(f.c,{cls:'xs'+(f.shield?' shd':''),st:[f.atk,f.hp],up:f.up||0})}<small>${f.sup?abil(f.c)[0]:f.taunt?'Leibwächter':''}</small></div>`).join('')}</div>
+      <div class="olanes">${t.team.map((f,i)=>`<div class="ol ${pick===i?'pk':''}" data-i="${i}"><b>${i+1}</b>${cardHTML(f.c,{cls:'xs'+(f.shield?' shd':''),st:[f.atk,f.hp],up:f.up||0,fx:f})}<small>${f.sup?abil(f.c)[0]:f.taunt?'Leibwächter':''}</small></div>`).join('')}</div>
       <div class="row"><button class="plate btn ghost" data-x="std">Stärkste links</button><button class="plate btn raise" data-x="go">In die Schlacht</button></div></div>`,true);
     $('#ov').onclick=e=>{const l=e.target.closest('.ol'),b=e.target.closest('[data-x]');
       if(l){const i=+l.dataset.i;if(pick<0)pick=i;else{if(pick!==i){const x=ord[pick];ord[pick]=ord[i];ord[i]=x;snd('click')}pick=-1}draw();return}
@@ -459,7 +483,7 @@ function aiShop(p){const offers=mkOffers(),reserve=G.bb*10;let best=null,bv=0;
   if(bv>.5)applyOffer(p,best)}
 async function tavern(){
   for(const p of G.players.slice(1))if(!p.out)aiShop(p);
-  const me=G.players[0];let offers=mkOffers();au('music','taverne');au('sfx','tuer',{vol:.8});au('once','taverne',()=>au('say','taverne',{at:.5}));
+  const me=G.players[0];let offers=mkOffers();au('music','taverne');au('sfx','tuer',{vol:.7});
   while(true){
     const sh=showSheet('tavern',{offers});await coach('tavern');const c=await sh;
     if(c.t==='done'){au('sfx','tuer',{vol:.6,rate:.9});return}
@@ -472,7 +496,7 @@ async function gameOver(){
   const rank=G.players.slice().sort((a,b)=>score(b)-score(a));
   const won=rank[0]===me;const place=rank.indexOf(me)+1;
   const gain=(won?150:0)+([0,0,80,50,30,15,0][place]||0)+G.stats.won*10;const before=rankOf(FAME);FAME+=gain;saveMeta();
-  snd(won?'win':'lose');if(TUT.on)tutDone();au('music','');au('sting',won?'spielsieg':'spielende');au('say',won?'krone':'aus',{at:won?1.2:.8,prio:3});
+  snd(won?'win':'lose');if(TUT.on)tutDone();au('music','');au('sting',won?'spielsieg':'spielende');
   await showSheet('over',{won,rank,score,gain,place,up:rankOf(FAME)!==before});
   return newGame()}
 
@@ -518,19 +542,19 @@ function rTable(){G.syn=null;G.sy=null;{const me=G.players[0];if(!me.out&&me.inH
   const u=G.ui,lu=u&&u.mode==='lineup',me0=G.players[0];
   const tm=lu&&u.sel.length===5?mkTeam(u.sel.map(id=>cardById[id]),me0.up):null;
   for(let i=0;i<5;i++){const c=G.board[i];let o=c?{cls:'xs '+seenCls('b'+c.id)}:{};
-    if(c&&lu){const sel=u.sel.includes(c.id),f=tm&&tm.team.find(x=>x.c===c);o={cls:'xs pick '+(sel?'sel':'off'),up:upOf(me0,c),st:f?[f.atk,f.hp]:null}}
+    if(c&&lu){const sel=u.sel.includes(c.id),f=tm&&tm.team.find(x=>x.c===c);o={cls:'xs pick '+(sel?'sel':'off'),up:upOf(me0,c),st:f?[f.atk,f.hp]:null,fx:f}}
     h+=`<div class="zone">${c?cardHTML(c,o):'<div class="slot"></div>'}<span>${ZN[i]}</span></div>`}
   $('#board').innerHTML=h;
   const left=G.deck?G.deck.length:52;$('#deck').innerHTML=left?cardHTML(null,{back:1})+(left>8?cardHTML(null,{back:1}):'')+(left>16?cardHTML(null,{back:1}):''):'';
   const me=G.players[0];let r='';
   if(!me.out&&me.inHand&&!me.folded&&me.hole.length){
-    const cs=me.hole.concat(G.board);r=`<b>${handLabel(cs)}</b>`;const sy=G.sy||[];if(sy.length)r+=`<span class="syn">${sy.slice(0,2).map(x=>'✦ '+x.t).join('<br>')}</span>`;
+    const cs=me.hole.concat(G.board);r=`<b>${handLabel(cs)}</b>`;const all7=cs.concat(me.heer);if(all7.length>=5)r+=gauge(pickTeam(all7,me.up));const sy=G.sy||[];if(sy.length)r+=`<span class="syn">${sy.slice(0,2).map(synChip).join('')}</span>`;
     if(G.eq&&G.ui&&G.ui.mode==='bet'){r+=` · Chance <span class="${G.eq.eq>=1/G.eq.n?'g':'r'}">${G.eq.eq>=1/G.eq.n?'▲':'▼'} ${Math.round(G.eq.eq*100)}%</span>`;
       if(G.eq.toCall>0)r+=` · nötig ${Math.round(G.eq.po*100)}%`}}
   else if(me.folded)r='Du hast geflohen';
   if(u&&u.mode==='sac')r='<b>Opfere eine Karte</b>Sie liegt danach offen auf dem Tisch.';
   if(u&&u.mode==='lineup'){const ch=u.sel.map(id=>cardById[id]);
-    if(ch.length===5){const t=mkTeam(ch,me.up),A=t.team.reduce((s,f)=>s+f.atk,0),H=t.team.reduce((s,f)=>s+f.hp,0);r=`<b>${comboLabel(t.b)}</b>${fbTx(t.b.cat)} · ${A} Angriff · ${H} Leben`}
+    if(ch.length===5){const t=mkTeam(ch,me.up),A=t.team.reduce((s,f)=>s+f.atk,0),H=t.team.reduce((s,f)=>s+f.hp,0);r=`<b>${comboLabel(t.b)}</b>${ladder(t.b.cat)}${gauge(t)}<span class="num2">${fbTx(t.b.cat)} · ${A} Angriff · ${H} Leben</span>`}
     else r=`<b>Wähle 5 Karten</b>vom Tisch und aus deiner Hand`}
   $('#read').innerHTML=r}
 
@@ -540,7 +564,7 @@ function rHand(){
     const sel=u.sel,tm=sel.length===5?mkTeam(sel.map(id=>cardById[id]),me.up):null;
     const hc=me.hole.concat(me.heer);
     el.innerHTML=`<div class="fan n${hc.length}">${hc.map(c=>{const f=tm&&tm.team.find(x=>x.c===c);
-      return cardHTML(c,{cls:'pick '+(c.merc?'merc ':'')+(sel.includes(c.id)?'sel':'off'),up:upOf(me,c),st:f?[f.atk,f.hp]:null})}).join('')}</div>`;return}
+      return cardHTML(c,{cls:'pick '+(c.merc?'merc ':'')+(sel.includes(c.id)?'sel':'off'),up:upOf(me,c),st:f?[f.atk,f.hp]:null,fx:f})}).join('')}</div>`;return}
   const cs=me.inHand&&!me.out?me.hole:[];
   if(!cs.length){el.innerHTML='';return}
   const n=cs.length;
@@ -608,17 +632,17 @@ function zoom(id){
   showOv(`<div class="zoom"><div>${cardHTML(c,{up:upOf(me,c),big:1})}</div>
     <div class="fl">»${FLAV[c.r]}«</div>
     <div class="lore"><b>${R.n} · ${TIERN[t-1]}</b>${R.lore}<br><i>${R.pn}: ${R.ptx}</i></div></div>`,true);
-  const t0=Date.now();au('say','karte'+c.r,{prio:2});au('sfx','faecher',{vol:.6});
-  $('#ov').onclick=()=>{if(Date.now()-t0<350)return;au('hush');hideOv()}}
+  const t0=Date.now();au('sfx','faecher',{vol:.5});
+  $('#ov').onclick=()=>{if(Date.now()-t0<350)return;hideOv()}}
 
-/* Ton: Musik, Stimmen, Geräusche einzeln */
-function tonSheet(){const o=typeof AU!=='undefined'?AU.opt:{mus:1,voc:1,sfx:1};
+/* Ton: Musik und Geräusche einzeln */
+function tonSheet(){const o=typeof AU!=='undefined'?AU.opt:{mus:1,sfx:1};
   const row=(k,t)=>`<button class="plate btn ${SND.on&&o[k]?'raise':'ghost'}" data-t="${k}">${t}<small>${SND.on&&o[k]?'an':'aus'}</small></button>`;
-  const draw=()=>{showOv(`<div class="sheet ton"><h2>Ton</h2><div class="row">${row('mus','Musik')}${row('voc','Stimmen')}${row('sfx','Geräusche')}</div>
+  const draw=()=>{showOv(`<div class="sheet ton"><h2>Ton</h2><div class="row">${row('mus','Musik')}${row('sfx','Geräusche')}</div>
     <div class="row"><button class="plate btn ghost" data-t="all">${SND.on?'Alles stumm':'Ton an'}</button><button class="plate btn" data-t="x">Fertig</button></div></div>`,true);
     $('#ov').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;const k=b.dataset.t;
       if(k==='x'){hideOv();return render()}
-      if(k==='all'){SND.on=!SND.on;try{localStorage.setItem('at-snd',SND.on?'1':'0')}catch(x){}if(!SND.on){au('hush');au('setOpt','mus',false);o.mus=true}else{au('setOpt','mus',o.mus)}}
+      if(k==='all'){SND.on=!SND.on;try{localStorage.setItem('at-snd',SND.on?'1':'0')}catch(x){}if(!SND.on){au('setOpt','mus',false);o.mus=true}else{au('setOpt','mus',o.mus)}}
       else{if(!SND.on){SND.on=true;try{localStorage.setItem('at-snd','1')}catch(x){}}au('setOpt',k,!o[k])}
       snd('click');draw()}};
   draw()}
@@ -645,6 +669,12 @@ function showSheet(kind,d){
        <details><summary>Kombos &amp; Formation</summary><ul>${rows}</ul></details>
        <details><summary>Kreaturen</summary><ul>${cr}</ul></details>
        <details><summary>Reiche</summary><ul>${rl}</ul></details>
+       <details><summary>Zeichen &amp; Stärke</summary><ul>
+        <li><div><b>Marken links an der Karte</b> zeigen, was sie im gewählten Team stärkt. Matt = ein wenig, leuchtend = deutlich, pulsierend = gewaltig.</div></li>
+        ${Object.keys(FXN).map(k=>`<li><b class="n"><span class="card xs" style="--cw:40px;background:none;box-shadow:none;width:auto;aspect-ratio:auto;padding:0"><span class="fxb" style="position:static"><i class="fx-${k} t2">${FXI[k]}</i></span></span></b><div><b>${FXN[k]}</b> · ${{crown:'Bonus der Pokerkombo für das ganze Team',shield:'Der erste Treffer prallt ab',fire:'Brennt zu Kampfbeginn, je länger die Kette, desto heißer',ice:'Treffer lassen das Ziel erstarren',blood:'Wird jede Runde stärker',up:'Gestärkt durch Karten desselben Reichs',seal:'Gestärkt durch Käufe in der Schmiede',guard:'Fängt Angriffe auf die stärkste Karte ab'}[k]}</div></li>`).join('')}
+        <li><div><b>Kampfkraft</b> · fünf Balken von <i>Schwach</i> bis <i>Legendär</i>: so oft gewinnt dein bestes Team gegen typische Gegner.</div></li>
+        <li><div><b>Kombo-Leiter</b> · zehn Stufen, die erreichte leuchtet. Die goldenen oben sind selten und entscheiden Kämpfe fast immer.</div></li>
+        <li><div><b>Sterne</b> · wie stark eine Synergie ist: ★ hilft, ★★ deutlich, ★★★ stark.</div></li></ul></details>
        <details><summary>Deine Siegel</summary><ul>${ups}</ul></details>
        <div class="row" style="margin-top:18px"><button class="plate btn dk" data-x="close">Schließen</button></div></div>`);
       bindOnce(e=>{if(e.target.closest('[data-x=close]'))fin()});return}
@@ -698,7 +728,7 @@ function credits(){
   showOv(`<div class="sheet info"><h2>Lizenzen &amp; Hinweise</h2>
     <p><b>Bilder.</b> Kartenmotive, Porträts, der Tavernentisch und einige Texturen wurden mit KI-Bildgeneratoren erstellt. Kartenrahmen, Reichszeichen und Layout sind eigene Arbeit.</p>
     <p><b>Schriften.</b> Crimson Pro, Grenze Gotisch, IM Fell English und Vollkorn stehen unter der SIL Open Font License 1.1 und liegen dem Spiel bei. Es werden keine Schriften von fremden Servern geladen.</p>
-    <p><b>Klang.</b> Musik eigene Komposition, eingespielt mit dem FluidR3-Soundfont (MIT). Stimmen erzeugt mit Piper aus den freien Stimmen Thorsten und Kerstin (CC0). Geräusche teils von Kenney.nl (CC0), teils selbst gestaltet.</p>
+    <p><b>Klang.</b> Musik eigene Komposition, eingespielt mit dem FluidR3-Soundfont (MIT). Geräusche von Kenney.nl (CC0) und mit demselben Soundfont eingespielte Orchesterschläge.</p>
     <p><b>Daten.</b> Das Spiel speichert nur deinen Ruhm, gesehene Karten und Einstellungen in deinem Browser. Nichts davon verlässt dein Gerät.</p>
     <p class="k">Krug &amp; Krone ist ein Spiel um erfundenes Gold. Es gibt keine Einsätze mit echtem Geld und keine Gewinne.</p>
     <div class="row"><button class="plate btn" data-x="back">Zurück</button></div></div>`);

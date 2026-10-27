@@ -46,30 +46,24 @@ const S={
   lose(){if(!SND.on)return;const ch=[[220,261.6,329.6],[174.6,220,261.6],[146.8,174.6,220]];ch.forEach((c,k)=>c.forEach(f=>osc('sawtooth',f,f*.98,k===2?2:.6,.06,k*.55,.12)));S.boom()}
 };
 
-/* Aufnahmen aus audio/ haben Vorrang; ohne sie bleiben die erzeugten Klänge oben */
-{const P=(n,o)=>typeof AU!=='undefined'&&AU.sfx(n,o),M={
-  whoosh:(p=1)=>P('wusch',{vol:.5*p}),
-  impact:p=>{if(!P('schlag',{vol:.55+.45*Math.min(1,p)}))return false;if(p>.45)P('metall',{vol:.45*p});if(p>.85)P('pauke',{vol:.5});return true},
-  clang:()=>P('glocke',{vol:.85})&&(P('glas',{vol:.4}),true),
-  fire:(p=1)=>P('feuer',{vol:.75*p}),
-  roar:()=>P('feuersturm',{vol:.9})&&(P('brull',{vol:.75}),true),
-  ice:()=>P('glas',{vol:.7,rate:1.25}),
-  poison:()=>P('gift',{vol:.8}),
-  heal:()=>P('heilung',{vol:.7}),
-  rage:()=>P('grollen',{vol:.35,rate:1.15}),
-  death:()=>P('zerfall',{vol:.9})&&(P('stein',{vol:.5}),true),
-  heart:()=>P('herz',{vol:1,vary:false}),
-  drum:(p=1)=>P('pauke',{vol:.75*p}),
-  flip:()=>P('karte',{vol:.75}),
-  slam:()=>P('holz',{vol:.6})&&(P('karte',{vol:.5}),true),
-  roll:()=>P('paukenwirbel',{vol:.8}),
-  boom:()=>P('pauketief',{vol:.9})&&(P('taiko',{vol:.7}),true),
-  rise:()=>P('schwell',{vol:.6}),
-  win:()=>typeof AU!=='undefined'&&AU.ready&&(AU.sting('sieg'),true),
-  lose:()=>typeof AU!=='undefined'&&AU.ready&&(AU.sting('niederlage'),true)};
- for(const k of Object.keys(M)){const f=S[k];S[k]=(...a)=>{if(SND.on&&M[k](...a))return;f(...a)}}}
-/* Kreaturen geben Laut, wenn sie zuschlagen */
-const CRY={14:'brull',13:'brull',9:'brull',8:'grollen',10:'grollen',11:'grollen',7:'schrei',12:'schrei',3:'schrei',6:'fauchen',2:'fauchen'};
+/* Sobald audio/ geladen ist, klingen nur noch Aufnahmen und Orchesterschläge; die erzeugten Töne oben sind nur der Rückfall davor */
+{const P=(n,o)=>{AU.sfx(n,o);return true},M={
+  whoosh:(p=1)=>P('klinge',{vol:.35*p}),
+  impact:p=>{P('schlag',{vol:.5+.4*Math.min(1,p)});if(p>.7)P('metall',{vol:.35});return true},
+  clang:()=>P('glocke',{vol:.7}),
+  fire:(p=1)=>p<.8?P('schwell',{vol:.35}):P('taiko',{vol:.55}),
+  roar:()=>P('schwell',{vol:.6})&&P('taiko',{vol:.7,at:.5}),
+  ice:()=>P('glas',{vol:.55,rate:1.2}),
+  poison:()=>true,heal:()=>P('roehrenglocke',{vol:.3}),rage:()=>true,
+  death:()=>P('pauketief',{vol:.55})&&P('stein',{vol:.45}),
+  heart:()=>P('pauketief',{vol:.5,rate:1.25,vary:false}),
+  drum:(p=1)=>P('pauke',{vol:.6*p}),flip:()=>P('karte',{vol:.6}),slam:()=>P('karte',{vol:.7}),
+  roll:()=>P('paukenwirbel',{vol:.7}),boom:()=>P('pauketief',{vol:.8}),rise:()=>P('schwell',{vol:.45}),
+  win:()=>(AU.sting('sieg'),true),lose:()=>(AU.sting('niederlage'),true)};
+ for(const k of Object.keys(M)){const f=S[k];S[k]=(...a)=>{if(!SND.on)return;if(typeof AU!=='undefined'&&AU.ready){M[k](...a);return}f(...a)}}}
+/* Kriegsruf eines Reichs, wenn ein Team aus mindestens drei seiner Karten besteht */
+const VS={vargo:'Ich zähl schon mal dein Gold.',grauweid:'Die Krähen haben deinen Namen gerufen.',ysa:'Leise jetzt.',anselm:'Möge das Licht dir gnädig sein.',kalla:'Ich schmiede dich in Form.'};
+const RUF=['Für das letzte Licht!','Asche zu Asche!','Der Winter holt euch alle!','Blut für das Moor!'];
 
 /* ================= Partikel: eigene Leinwand über dem Kampf ================= */
 const FX={cv:null,ctx:null,P:[],on:false,w:0,h:0};
@@ -146,7 +140,7 @@ async function playBattle(x){
   const wait=ms=>skip?Promise.resolve():new Promise(r=>{wk=r;wt=setTimeout(()=>{wk=null;r()},D(ms))});
   const later=(ms,fn)=>skip?fn():setTimeout(fn,D(ms));
 
-  const lane=(P,cls,idx)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map((f,i)=>`<div class="slotc" data-i="${i}">${cardHTML(f.c,{cls:'xs'+(f.sup?' sup':''),st:[f.atk,f.hp],up:f.up||0})}<i class="hpb2"><b class="g"></b><b class="v"></b></i></div>`).join('')}</div>`;
+  const lane=(P,cls,idx)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map((f,i)=>`<div class="slotc" data-i="${i}">${cardHTML(f.c,{cls:'xs'+(f.sup?' sup':''),st:[f.atk,f.hp],up:f.up||0,fx:f})}<i class="hpb2"><b class="g"></b><b class="v"></b></i></div>`).join('')}</div>`;
   const heroBox=(P,cls,name)=>`<div class="bhero ${cls}">${plateHTML(P)}<div class="bt"><b>${name}</b><span>${comboLabel(P.team.b)} · ${fbTx(P.team.b.cat)}</span></div></div>`;
   showOv(`<div id="battle" class="canvas page sd${first?' intro':''}">
     <div class="arena">
@@ -202,11 +196,11 @@ async function playBattle(x){
   if(!skip){
     if(first){
       const it=document.createElement('div');it.className='bintro';
-      it.innerHTML=`<div class="bi e">${plateHTML(Pe)}<b>${Pe.name}</b><span>${comboLabel(Pe.team.b)}</span></div><div class="bivs"><i></i><b>gegen</b><i></i></div><div class="bi m">${plateHTML(Pm)}<b>Du</b><span>${comboLabel(Pm.team.b)}</span></div>`;
-      B.appendChild(it);au('sting','duell');au('sfx','schwert',{vol:.7,at:.15});S.roll();await wait(520);S.slam();au('sfx','peitsche',{vol:.8});shake(.5);vib(30);au('say',opp+'_vs',{prio:2,at:.5});await wait(380);
+      it.innerHTML=`<div class="bi e">${plateHTML(Pe)}<b>${Pe.name}</b><span>${comboLabel(Pe.team.b)}</span>${VS[opp]?`<i class="bq">»${VS[opp]}«</i>`:''}</div><div class="bivs"><i></i><b>gegen</b><i></i></div><div class="bi m">${plateHTML(Pm)}<b>Du</b><span>${comboLabel(Pm.team.b)}</span></div>`;
+      B.appendChild(it);au('sting','duell');au('sfx','schwert',{vol:.6,at:.15});S.roll();await wait(520);S.slam();shake(.5);vib(30);await wait(380);
       const vs=it.querySelector('.bivs').getBoundingClientRect();fx.sparks(vs.left+vs.width/2,vs.top+vs.height/2,'#ffcf6a',36,1.4);fx.ring(vs.left+vs.width/2,vs.top+vs.height/2,'rgba(255,210,120,.9)',90,24,.5);S.clang();flash('#ffe9b0',.35);
       await wait(1150);it.classList.add('out');await wait(380);it.remove()}
-    else{stamp(Pe.short,'Nächster Gegner','nx');S.drum();au('sfx','schwert',{vol:.6});au('say',opp+'_vs',{prio:2,at:.3});await wait(700)}
+    else{stamp(Pe.short,'Nächster Gegner','nx');S.drum();au('sfx','schwert',{vol:.5});await wait(700)}
   }else B.querySelector('.bintro')&&B.querySelector('.bintro').remove();
 
   /* ---------- 2. Aufdecken: Gegner umdrehen, deine Karten aufschlagen ---------- */
@@ -227,7 +221,7 @@ async function playBattle(x){
       callout(L.children[2].querySelector('.card'),`${comboLabel(P.team.b).split(' · ')[0]}: alle +${bo}/+${bo}`,'form');await wait(520)}
     /* Kriegsruf, wenn ein Team aus mindestens drei Karten eines Reichs besteht */
     for(const[side,P]of[[myIdx,Pm],[enIdx,Pe]]){const n=[0,0,0,0];P.team.team.forEach(f=>n[f.s]++);const r=n.findIndex(v=>v>=3);
-      if(r>=0){const d=au('say','ruf'+r,{prio:2});if(d){callout(B.querySelector(side===myIdx?'#bp':'#be').children[2].querySelector('.card'),au('text','ruf'+r),'blood');await wait(Math.min(1800,d*1000))}break}}
+      if(r>=0){callout(B.querySelector(side===myIdx?'#bp':'#be').children[2].querySelector('.card'),RUF[r],'blood');await wait(900);break}}
   }else enC.forEach(c=>c.classList.remove('fd'));
   B.classList.remove('cine');
 
@@ -262,7 +256,6 @@ async function playBattle(x){
     const s=scaleOf(),A0=ctr(att),T0=ctr(tgt),dx=(T0.x-A0.x)/s,dy=(T0.y-A0.y)/s,dist=Math.hypot(dx,dy)||1,ux=dx/dist,uy=dy/dist;
     const reach=Math.max(0,dist-(A0.h/s)*.62),tot=slow?1500:520,hitAt=.6;
     att.parentNode.classList.add('act');
-    {const r=teams[a[0]][a[1]].r,k=a[0]+'-'+a[1];if(CRY[r]&&!cried.has(k)&&(slow||Math.random()<.45)){cried.add(k);later(tot*.2,()=>au('sfx',CRY[r],{vol:r>=13?.7:.5}))}}
     const fin=att.animate([{transform:'translate(0,0) scale(1) rotate(0)'},{transform:`translate(${-ux*14}px,${-uy*14}px) scale(1.14) rotate(${ux*-4}deg)`,offset:.32},
       {transform:`translate(${ux*reach}px,${uy*reach}px) scale(1.2) rotate(${ux*3}deg)`,offset:hitAt},{transform:`translate(${ux*reach*.82}px,${uy*reach*.82}px) scale(1.12)`,offset:.72},
       {transform:'translate(0,0) scale(1) rotate(0)'}],{duration:D(tot),easing:'cubic-bezier(.45,0,.25,1)'});
@@ -329,14 +322,14 @@ async function playBattle(x){
 
   for(let k=1;k<snaps.length&&!skip;k++){
     const s=snaps[k],m=/^Runde (\d+)/.exec(s.label),rd=m?+m[1]:0,isLast=k===lastIdx;
-    if(rd&&rd!==round){round=rd;label('Runde '+rd);B.classList.add('stamping');stamp(rd,'Runde');S.drum(1);au('say','runde'+rd);await wait(440);later(500,()=>B.classList.remove('stamping'))}
-    else if(!rd){label(s.label);if(s.label==='Kampfbeginn'){B.classList.add('stamping');stamp('Kampfbeginn','','sm');S.drum(.8);au('say','kampf');au('sfx','taiko',{vol:.7});await wait(500);later(500,()=>B.classList.remove('stamping'))}}
+    if(rd&&rd!==round){round=rd;label('Runde '+rd);B.classList.add('stamping');stamp(rd,'Runde');S.drum(1);await wait(440);later(500,()=>B.classList.remove('stamping'))}
+    else if(!rd){label(s.label);if(s.label==='Kampfbeginn'){B.classList.add('stamping');stamp('Kampfbeginn','','sm');S.drum(.8);au('sfx','taiko',{vol:.6});await wait(500);later(500,()=>B.classList.remove('stamping'))}}
     if(rd)label(s.label);note(s);
     await doEvents(s.ev||[],'pre');
     const acts=actionsOf(s);
     /* Zeitlupe für den letzten, entscheidenden Schlag */
     const killActs=isLast&&decisive?acts.filter(a=>a.type==='atk'):[];const finisher=killActs[killActs.length-1];
-    if(finisher&&!skip){B.classList.add('finale');au('say','zeitlupe',{prio:2});S.heart();await wait(420);S.heart();await wait(420)}
+    if(finisher&&!skip){B.classList.add('finale');S.heart();await wait(420);S.heart();await wait(420)}
     const ticks=[];
     /* Beide Karten einer Bahn schlagen gleichzeitig zu und prallen aufeinander */
     const pend=[];
@@ -354,8 +347,8 @@ async function playBattle(x){
     await wait(rd?220:300)}
   /* Endstand sicher übernehmen (auch nach Überspringen) */
   await syncTo(endSt,skip);
-  /* Nach dem letzten Schlag spricht der Erzähler den Spruch der Kreatur, die ihn geführt hat */
-  if(killer&&!skip){const d=au('say','karte'+killer,{prio:3});if(d){$('#bn').textContent='»'+au('text','karte'+killer)+'«';await wait(Math.min(3600,d*1000+400))}}
+  /* Nach dem letzten Schlag steht der Spruch der Kreatur, die ihn geführt hat */
+  if(killer&&!skip){$('#bn').textContent='»'+FLAV[killer]+'«';await wait(2400)}
   clearInterval(hb);B.classList.remove('clutch','finale');
 
   /* ---------- 4. Finale ---------- */
@@ -364,8 +357,8 @@ async function playBattle(x){
   const sub=win==='d'?'Kein Schaden':x.shield?(win==='w'?`Ahnenschild schützt ${Pe.short}`:'Dein Ahnenschild hält'):win==='w'?`${Pe.short} verliert ${x.dmg} Thron`:`Du verlierst ${x.dmg} Thron`;
   label(win==='w'?'Sieg':win==='l'?'Niederlage':'Unentschieden');$('#bn').textContent='';
   const end=document.createElement('div');end.className='bend '+win;
-  end.innerHTML=`${win==='w'?'<div class="rays"></div>':''}<b>${win==='w'?'Sieg':win==='l'?'Niederlage':'Patt'}</b><span>${sub}</span>`;B.appendChild(end);
-  if(win!=='d')au('say',win==='w'?'sieg':'niederlage',{prio:2,at:.35});if(win!=='d')later(1700,()=>au('say',opp+(win==='w'?'_lose0':'_win0')));
+  const qq=Pe.q&&Pe.q[win==='w'?'lose':'win'],qt=win!=='d'&&qq?qq[0]:'';
+  end.innerHTML=`${win==='w'?'<div class="rays"></div>':''}<b>${win==='w'?'Sieg':win==='l'?'Niederlage':'Patt'}</b><span>${sub}</span>${qt?`<i class="bq">${Pe.short}: »${qt}«</i>`:''}`;B.appendChild(end);
   if(win==='w'){S.win();vib([50,50,50,50,120]);if(!QA){const h=ctr(B.querySelector('.bhero.m .hero'));fx.coins(h.x,h.y,40);const e2=ctr(B.querySelector('.bhero.e .hero'));fx.gold(e2.x,e2.y,60,60)}}
   else if(win==='l'){S.lose();vib([120,60,200]);B.classList.add('lost');if(!QA)for(let i=0;i<40;i++)add({type:'glow',x:R(0,innerWidth),y:R(-40,0),vx:R(-.5,.5),vy:R(.6,1.6),life:R(90,150),size:R(2,4),c:'rgba(255,140,60,1)',c2:'rgba(160,30,10,.5)'})}
   else S.drum(.7);
