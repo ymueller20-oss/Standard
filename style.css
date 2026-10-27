@@ -573,3 +573,19 @@ body.intro #stage>*{visibility:hidden}
 /* Namens- und Werteschilder: altes Pergament statt glänzend weiß */
 .card .plate.ttl,.card .plate.pt,.card .plate.typ{filter:sepia(.35) saturate(.8) brightness(.93)}
 .card .xrk{filter:sepia(.4) saturate(.75) brightness(.92)}
+/* ---------- Reichsrand: weiß · rot · blau · schwarz. Kartenwert als innere Metallkante ---------- */
+.card.r0{background:#e6dfcb url(art/grime.jpg) 50% 50%/cover!important;background-blend-mode:multiply!important;animation:none!important}
+.card.r1{background:#9c2418 url(art/grime.jpg) 50% 50%/cover!important;background-blend-mode:multiply!important;animation:none!important}
+.card.r2{background:#1f4f86 url(art/grime.jpg) 50% 50%/cover!important;background-blend-mode:multiply!important;animation:none!important}
+.card.r3{background:#151012 url(art/grime.jpg) 50% 50%/cover!important;background-blend-mode:multiply!important;animation:none!important}
+.card.t1 .frm{box-shadow:inset 0 0 0 .14em rgba(0,0,0,.55)!important}
+.card.t2 .frm{box-shadow:inset 0 0 0 .2em #8d949a,inset 0 0 0 .26em rgba(0,0,0,.5)!important}
+.card.t3 .frm{box-shadow:inset 0 0 0 .22em #9a7a3a,inset 0 0 0 .28em rgba(0,0,0,.5)!important}
+.card.t4 .frm,.card.t5 .frm{box-shadow:inset 0 0 0 .24em #c9a24e,inset 0 0 0 .3em #4a3210,inset 0 0 0 .34em rgba(255,230,160,.35)!important}
+.card.t4 .crown,.card.t5 .crown{filter:sepia(.4) saturate(.7)}
+.card.back{background:#2a1a10!important}
+/* Abgeschabte Ränder: helle Abplatzer, Ecken am stärksten */
+.card .edge{position:absolute;inset:0;z-index:7;pointer-events:none;border-radius:inherit;background:url(art/edgewear.png) 0 0/100% 100%;transform:scale(var(--fx,1),var(--fy,1));opacity:calc(.4 + var(--wo,.5)*.55)}
+.card.xs .edge{opacity:calc(.4 + var(--wo,.5)*.5)}
+.card.back .edge{opacity:.6}
+.card.r0 .edge{filter:invert(1) sepia(.6) brightness(.55);opacity:calc(.5 + var(--wo,.5)*.5)}

@@ -142,7 +142,7 @@ function cardHTML(c,o={}){
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
     </div>
     <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
-    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="wear" style="${wearOf(c)}"></i><i class="glare"></i><i class="cvr"></i></div>`}
+    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="wear" style="${wearOf(c)}"></i><i class="edge" style="${wearOf(c)}"></i><i class="glare"></i><i class="cvr"></i></div>`}
 /* Abnutzung: jede Karte hat ihren eigenen Knick, Kratzer und manchmal ein Eselsohr (fest aus der Karten-ID) */
 function wearOf(c){let h=2166136261;for(const ch of String(c.id)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
   const r=k=>{let x=Math.imul(h^Math.imul(k+1,2654435761),2246822507)>>>0;x=(x^(x>>>13))>>>0;x=Math.imul(x,3266489909)>>>0;x=(x^(x>>>16))>>>0;return (x%1000)/1000};
