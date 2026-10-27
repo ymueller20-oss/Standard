@@ -1,11 +1,19 @@
 # Krug & Krone
 
-Poker + Battlegrounds im Thronsaal. Einfach `index.html` über einen lokalen Server öffnen (z. B. `python3 -m http.server`).
+Poker trifft Battlegrounds am Tavernentisch: zwölf Nächte, sechs Spieler. Zum Starten `index.html` über einen lokalen Server öffnen (z. B. `python3 -m http.server`).
 
-- Hold'em um Gold mit Opfer-Runde; der Showdown ist eine automatische Schlacht (5 von 7 Karten, die Pokerkombo ist die Formation).
-- Verlierer verlieren Thron-Leben, zwischen den Händen kaufst du dauerhafte Siegel in der Aschenschmiede.
-- Das untere Drittel gehört deinen Karten; Kampf-Engine in `engine.js`.
+- Gespielt wird Hold'em um Gold mit Kriegszoll (Blinds) und einer Opfer-Runde.
+- Der Showdown ist eine automatische Schlacht: Du stellst 5 von 7 Karten auf, die Pokerkombo wird zur Formation, und die Reihenfolge wählst du frei.
+- Wer verliert, verliert Thron-Leben. Zwischen den Nächten kaufst du in der Taverne Siegel und Söldner fürs Heerlager.
+- Beim ersten Spiel erklärt der Wirt jeden Schritt einmal (Lehrstunde). Auf dem Titelbild lässt sie sich überspringen oder neu starten.
+- Die Kampf-Engine steckt in `engine.js`, Oberfläche und Ablauf in `game.js`.
 
 ## Balance messen
-
 `node sim/balance.js` simuliert 3.000 Kämpfe und zeigt, wie stark Kombo, Reiche und einzelne Karten entscheiden. Zielwerte: bessere Kombo gewinnt 60–70 %, Kämpfe dauern 3–4 Runden, kaum Remis. Alle Stellschrauben stehen in `engine.js` unter `K` und `PST`.
+
+## Veröffentlichen
+`./build.sh` erzeugt `dist/krug-und-krone.zip`. Das Zip lässt sich direkt als HTML-Spiel auf itch.io oder CrazyGames hochladen.
+
+Das Spiel lädt nichts von fremden Servern: Die Schriften liegen in `fonts/`, die Klänge werden im Browser erzeugt.
+
+Herkunft und Lizenzen aller Inhalte stehen in [LIZENZEN.md](LIZENZEN.md).

@@ -189,6 +189,37 @@ function equity(p,samples){
   const opps=G.players.filter(q=>q!==p&&q.inHand&&!q.folded).map(q=>({n:q.hole.length,up:q.up,heer:q.heer}));
   return battleEquity({hole:p.hole,up:p.up,heer:p.heer},G.board,opps,known,samples)}
 
+
+/* ---------- Lehrstunde: beim ersten Spiel erklärt der Wirt jeden Schritt genau einmal ---------- */
+const TUT={on:false,seen:new Set()};
+try{TUT.on=!localStorage.getItem('kk-tut')}catch(e){}
+if(QA&&!/[?&]tut\b/.test(location.search))TUT.on=false;
+const TIPS={
+  start:['#hand','Deine Hand','Unten liegen deine drei Karten. Tippe eine an, um sie groß zu sehen. Zwölf Nächte lang spielst du um Gold – wer am Ende das meiste hat und dessen Thron noch steht, trägt die Krone.'],
+  bet:['#ctrl','Setzen wie beim Poker','Vor dem Flop zahlen die zwei Plätze nach dem Geber den Kriegszoll. Danach gehst du mit, erhöhst oder fliehst. Über den Knöpfen steht deine Gewinnchance: liegt sie klar über dem fairen Anteil, lohnt sich Druck.'],
+  flop:['#table','Der Flop','Die offenen Karten in der Mitte gehören allen. Nach dem Opfer kommen noch zwei dazu.'],
+  syn:['#read','Synergien','Leuchtende Karten passen zusammen. Zwei Karten aus demselben Reich oder ein kleiner Unterstützer, der deine Kombo ergänzt, machen dein Team deutlich stärker.'],
+  sac:['#hand','Das Opfer','Jetzt musst du eine Handkarte opfern. Alle sehen sie – also auch, was dir fehlt. Opfere die Karte, die deinem Team am wenigsten bringt.'],
+  lineup:['#hand','Showdown: dein Team','Wähle 5 deiner 7 Karten aus Hand, Tisch und Heerlager. Deine Pokerkombo wird zur Formation: je besser die Kombo, desto stärker alle Kämpfer. »Stärkstes Team« wählt für dich.'],
+  order:[null,'Die Schlachtreihe','Jede Karte kämpft gegen die gegenüber, links beginnt. Tippe zwei Karten, um sie zu tauschen – etwa einen Leibwächter nach vorn.'],
+  battle:[null,'Die Schlacht','Dein Team kämpft gegen jeden, der noch im Pot ist. Wer die meisten Duelle gewinnt, nimmt den Pot. Wer verliert, nimmt Schaden am Thron. Mit »Alle überspringen« geht es schneller.'],
+  tavern:[null,'Die Taverne','Zwischen den Nächten tauschst du Gold gegen Siegel, die Karten dauerhaft stärken, oder gegen Söldner fürs Heerlager. Aber Gold ist auch dein Einsatz am Tisch.']};
+function tutDone(){TUT.on=false;try{localStorage.setItem('kk-tut','1')}catch(e){}}
+function coach(k){
+  if(!TUT.on||TUT.seen.has(k)||!TIPS[k])return Promise.resolve();TUT.seen.add(k);
+  const[sel,h,t]=TIPS[k],el=sel&&document.querySelector(sel),c=document.createElement('div');
+  c.id='coach';c.setAttribute('role','dialog');c.setAttribute('aria-label',h);
+  let ring='',low=false;
+  if(el){const r=el.getBoundingClientRect(),p=6;low=r.top+r.height/2>innerHeight/2;
+    ring=`<div class="cring" style="left:${r.left-p}px;top:${r.top-p}px;width:${r.width+2*p}px;height:${r.height+2*p}px"></div>`}
+  else c.classList.add('dim');
+  const last=Object.keys(TIPS).every(x=>TUT.seen.has(x));
+  c.innerHTML=`${ring}<div class="cbub ${low?'up':'dn'}"><b>Der Wirt</b><h3>${h}</h3><p>${t}</p>
+    <div class="row"><button class="btn ghost" data-c="skip">Kenn ich schon</button><button class="btn raise" data-c="ok">${last?'Los geht’s':'Verstanden'}</button></div></div>`;
+  document.body.appendChild(c);snd('click');
+  return new Promise(res=>{c.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;e.stopPropagation();
+    if(b.dataset.c==='skip'||last)tutDone();c.remove();snd('click');res()}})}
+
 /* ---------- Spielzustand ---------- */
 function newGame(){
   document.body.classList.remove('intro');
@@ -217,15 +248,18 @@ async function playHand(){
   const lvl=Math.min(BLINDS.length-1,Math.floor((G.hand-1)/HAND_EVERY));G.bb=BLINDS[lvl];G.ante=Math.round(G.bb*ANTE_F);
   do{G.dealer=(G.dealer+1)%G.players.length}while(G.players[G.dealer].out);
   const deck=shuffle(FULL.slice());
+  if(TUT.on&&G.hand===1)for(const id of['13-0','13-2','4-0'].reverse()){const i=deck.findIndex(c=>c.id===id);deck.unshift(deck.splice(i,1)[0])}  /* Lehrstunde: ein Königspaar mit Unterstützer zum Einstieg */
   for(const p of G.players){p.hole=[];p.sac=[];p.folded=false;p.bet=0;p.say='';p.team=null;p.peek=null;p.loot=0;p.inHand=!p.out;
     if(p.inHand&&G.ante){const a=Math.min(p.stack,G.ante);p.stack-=a;G.pot+=a}}
   for(const p of G.players)if(p.inHand){p.hole=deck.splice(0,p.fourth?4:3);p.fourth=0}
   G.deck=deck;
   const me=G.players[0];if(me.raven&&me.inHand){for(const p of G.players.slice(1))if(p.inHand)p.peek=p.hole[rnd(p.hole.length)];me.raven=0}
   render();await sleep(900);
+  await coach('start');
   await betRound();if(await soleWinner())return;
   await banner('Der Flop','',G.fast?0:800);
   G.board.push(...G.deck.splice(0,3));render();await sleep(600);
+  if(live().includes(G.players[0]))await coach('flop');
   await betRound();if(await soleWinner())return;
   await sacrifice();
   await banner('Die Wende','Turn und River',G.fast?0:900);
@@ -298,12 +332,13 @@ async function humanAct(toCall,minTo,capT,canRaise){
   const p=G.players[0];
   let eq=0;for(let k=0;k<6;k++){await sleep(0);eq+=equity(p,3)/6}const n=live().length;  /* in Häppchen, damit nichts ruckelt */
   G.eq={eq,n,toCall,po:toCall/(G.pot+toCall||1)};
-  return ask('bet',{toCall,minTo,capT,canRaise,raising:false,val:minTo})}
+  const pr=ask('bet',{toCall,minTo,capT,canRaise,raising:false,val:minTo});
+  if(G.syn&&G.syn.size)await coach('syn');await coach('bet');return pr}
 
 /* ---------- Opfer ---------- */
 async function sacrifice(){
   for(const p of live()){
-    if(p.human){const c=await ask('sac',{sel:null});p.hole=p.hole.filter(x=>x!==c);p.sac.push(c);snd('thud')}
+    if(p.human){const pr=ask('sac',{sel:null});await coach('sac');const c=await pr;p.hole=p.hole.filter(x=>x!==c);p.sac.push(c);snd('thud')}
     else{let bestI=0,bs=-1;p.hole.forEach((c,i)=>{const rest=p.hole.filter((_,j)=>j!==i).concat(G.board);const sc=bestScore(rest);if(sc>bs||(sc===bs&&c.r<p.hole[bestI].r)){bs=sc;bestI=i}});
       p.say='Opfert';const c=p.hole.splice(bestI,1)[0];p.sac.push(c);G.turn=p;render();snd('thud');await sleep(700);p.say=''}}
   G.turn=null;render();await sleep(500)}
@@ -315,7 +350,7 @@ async function showdown(){
   for(const p of L){
     const seven=p.hole.concat(G.board,p.heer);
     let five;
-    if(p.human)five=await ask('lineup',{cards:seven.slice().sort((a,b)=>b.r-a.r||a.s-b.s),sel:bestFive(seven).five.map(c=>c.id)});
+    if(p.human){const pr=ask('lineup',{cards:seven.slice().sort((a,b)=>b.r-a.r||a.s-b.s),sel:bestFive(seven).five.map(c=>c.id)});await coach('lineup');five=await pr}
     else five=pickTeam(seven,p.up).five;
     five=mkTeam(five,p.up).team.map(f=>f.c);  /* Standard: stärkste links */
     if(p.human)five=await orderLineup(five,p);else if(p.st&&p.st.pos)five=aiOrder(p,five,L);
@@ -330,6 +365,7 @@ async function showdown(){
       dmg.set(Lo,(dmg.get(Lo)||0)+rec.dmg);const loot=Math.round(G.bb/2)*(1+(Wn.bounty||0));Wn.stack+=loot;Wn.loot=(Wn.loot||0)+loot};
     if(r.w===0)hit(A,B,aliveA);else if(r.w===1)hit(B,A,aliveB)}
   const mine=pairs.filter(x=>x.A===me||x.B===me);
+  if(mine.length)await coach('battle');
   for(const x of mine){const skip=await playBattle(x);if(skip==='all')break}
   const top=Math.max(...wins.values());
   let W=L.filter(p=>wins.get(p)===top);
@@ -351,7 +387,7 @@ function orderLineup(five,p){return new Promise(res=>{let ord=five.slice(),pick=
       if(l){const i=+l.dataset.i;if(pick<0)pick=i;else{if(pick!==i){const x=ord[pick];ord[pick]=ord[i];ord[i]=x;snd('click')}pick=-1}draw();return}
       if(b&&b.dataset.x==='std'){ord=five.slice();pick=-1;draw();return}
       if(b&&b.dataset.x==='go'){hideOv();res(ord)}}};
-  draw()})}
+  draw();coach('order')})}
 function perms(a){if(a.length<=1)return[a];const out=[];a.forEach((x,i)=>{for(const r of perms(a.slice(0,i).concat(a.slice(i+1))))out.push([x,...r])});return out}
 /* Starke Gegner stellen auf: jede Reihenfolge gegen die Teams der anderen am Tisch testen */
 function aiOrder(p,five,L){/* fair: Gegnerhände werden ausgelost, nicht gelesen */
@@ -399,7 +435,7 @@ async function tavern(){
   for(const p of G.players.slice(1))if(!p.out)aiShop(p);
   const me=G.players[0];let offers=mkOffers();
   while(true){
-    const c=await showSheet('tavern',{offers});
+    const sh=showSheet('tavern',{offers});await coach('tavern');const c=await sh;
     if(c.t==='done')return;
     if(c.t==='reroll'){me.stack-=price(6);offers=mkOffers();continue}
     if(c.t==='buy'){const o=offers[c.i];if(!o.sold&&me.stack-o.cost>=1){applyOffer(me,o);o.sold=true;snd('chip')}}}}
@@ -410,7 +446,7 @@ async function gameOver(){
   const rank=G.players.slice().sort((a,b)=>score(b)-score(a));
   const won=rank[0]===me;const place=rank.indexOf(me)+1;
   const gain=(won?150:0)+([0,0,80,50,30,15,0][place]||0)+G.stats.won*10;const before=rankOf(FAME);FAME+=gain;saveMeta();
-  snd(won?'win':'lose');
+  snd(won?'win':'lose');if(TUT.on)tutDone();
   await showSheet('over',{won,rank,score,gain,place,up:rankOf(FAME)!==before});
   return newGame()}
 
@@ -662,10 +698,24 @@ function title(){
     <div class="cards">${cardHTML(cardById['7-0'])}${cardHTML(cardById['12-3'])}${cardHTML(cardById['14-1'])}</div>
     <p>Poker um Gold. Der Showdown ist eine Schlacht. Wer fällt, dessen Banner brennt.</p>
     <div class="rang">Rang: ${rankOf(FAME)} · Ruhm ${FAME}</div>
-    <div class="row"><button class="plate btn raise" data-x="go">An den Tisch setzen</button><button class="plate btn ghost" data-x="book">Regeln lesen</button></div></div>`,'title');
+    <div class="row"><button class="plate btn raise" data-x="go">An den Tisch setzen</button><button class="plate btn ghost" data-x="book">Regeln lesen</button></div>
+    <div class="tlinks">${TUT.on?'<button data-x="notut">Ohne Lehrstunde spielen</button>':'<button data-x="tut">Lehrstunde</button>'}<span>·</span><button data-x="info">Lizenzen &amp; Hinweise</button></div></div>`,'title');
   $('#ov').onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
+    if(b.dataset.x==='tut'){TUT.on=true;TUT.seen.clear();hideOv();snd('thud');return newGame()}
+    if(b.dataset.x==='info')return credits();
+    if(b.dataset.x==='notut'){tutDone();hideOv();snd('thud');return newGame()}
     if(b.dataset.x==='book'){G={players:[{up:{rank:{},realm:{}},heer:[]}],dealer:0};return showSheet('book',{}).then(()=>{G=null;title()})}
     hideOv();snd('thud');newGame()}}
+
+function credits(){
+  showOv(`<div class="sheet info"><h2>Lizenzen &amp; Hinweise</h2>
+    <p><b>Bilder.</b> Kartenmotive, Porträts, der Tavernentisch und einige Texturen wurden mit KI-Bildgeneratoren erstellt. Kartenrahmen, Reichszeichen und Layout sind eigene Arbeit.</p>
+    <p><b>Schriften.</b> Crimson Pro, Grenze Gotisch, IM Fell English und Vollkorn stehen unter der SIL Open Font License 1.1 und liegen dem Spiel bei. Es werden keine Schriften von fremden Servern geladen.</p>
+    <p><b>Klänge.</b> Alle Klänge werden live im Browser erzeugt.</p>
+    <p><b>Daten.</b> Das Spiel speichert nur deinen Ruhm, gesehene Karten und Einstellungen in deinem Browser. Nichts davon verlässt dein Gerät.</p>
+    <p class="k">Krug &amp; Krone ist ein Spiel um erfundenes Gold. Es gibt keine Einsätze mit echtem Geld und keine Gewinne.</p>
+    <div class="row"><button class="plate btn" data-x="back">Zurück</button></div></div>`);
+  $('#ov').onclick=e=>{if(e.target.closest('[data-x="back"]'))title()}}
 
 /* ---------- Asche & Funken (Canvas): eckige Flocken, kein Leuchten ---------- */
 let spark=()=>{};
