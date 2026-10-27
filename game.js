@@ -142,7 +142,11 @@ function cardHTML(c,o={}){
       <div class="plate pt"><i class="at ${team&&st[0]>bA?'up':''}">${st[0]}</i>/<i class="hpb ${team&&st[1]>bH?'up':''}">${st[1]}</i></div>
     </div>
     <span class="col">${cardNo(c)}/052 ${RAR[t-1]} · ASH · DE</span>
-    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="glare"></i><i class="cvr"></i></div>`}
+    <i class="xrk">${RL[c.r]}</i><i class="rlm" title="${R.n}">${R.ic}</i>${c.merc?'<i class="mtag">Heer</i>':''}<i class="crown"></i><i class="stamp"></i><i class="foil"></i><i class="wear" style="${wearOf(c)}"></i><i class="glare"></i><i class="cvr"></i></div>`}
+/* Abnutzung: jede Karte hat ihren eigenen Knick, Kratzer und manchmal ein Eselsohr (fest aus der Karten-ID) */
+function wearOf(c){let h=2166136261;for(const ch of String(c.id)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
+  const r=k=>{let x=Math.imul(h^Math.imul(k+1,2654435761),2246822507)>>>0;x=(x^(x>>>13))>>>0;x=Math.imul(x,3266489909)>>>0;x=(x^(x>>>16))>>>0;return (x%1000)/1000};
+  return `--wa:${(r(1)*140-70).toFixed(0)}deg;--wx:${(15+r(5)*70).toFixed(0)}%;--wy:${(15+r(9)*70).toFixed(0)}%;--wo:${(.35+r(13)*.45).toFixed(2)};--dog:${r(17)<.3?1:0};--dc:${r(21)<.5?0:1};--fx:${r(25)<.5?-1:1};--fy:${r(29)<.5?-1:1}`}
 const upOf=(p,c)=>(p.up.rank[c.r]||0)+(p.up.realm[c.s]||0);
 function seenCls(key){if(!G.seen)G.seen=new Set();if(G.seen.has(key))return '';G.seen.add(key);G.dealt=(G.dealt||0)+1;return 'deal'}
 
