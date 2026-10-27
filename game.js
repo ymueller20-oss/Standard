@@ -280,7 +280,8 @@ async function betRound(){
 /* ---------- KI ---------- */
 async function aiAct(p,toCall,minTo,capT,canRaise){
   await sleep(650+rnd(700));
-  const n=live().length,eq=equity(p,p.st.n||10),fair=1/n,st=p.st,bb=G.bb;
+  let eq0=0;for(let k=0;k<2;k++){eq0+=equity(p,5)/2;await sleep(0)}
+  const n=live().length,eq=eq0,fair=1/n,st=p.st,bb=G.bb;
   const po=toCall/(G.pot+toCall||1),e=eq+(Math.random()-.5)*.08,bluff=Math.random()<st.bluff;
   const size=()=>minTo;
   if(toCall<=0){
@@ -294,7 +295,7 @@ async function aiAct(p,toCall,minTo,capT,canRaise){
 /* ---------- Mensch: Einsatz ---------- */
 async function humanAct(toCall,minTo,capT,canRaise){
   const p=G.players[0];
-  await sleep(30);const eq=equity(p,18),n=live().length;
+  let eq=0;for(let k=0;k<6;k++){await sleep(0);eq+=equity(p,3)/6}const n=live().length;  /* in Häppchen, damit nichts ruckelt */
   G.eq={eq,n,toCall,po:toCall/(G.pot+toCall||1)};
   return ask('bet',{toCall,minTo,capT,canRaise,raising:false,val:minTo})}
 

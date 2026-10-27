@@ -618,3 +618,10 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .say{width:max-content;max-width:none;font-size:.72rem!important;padding:1px 7px!important;letter-spacing:0}
 .sq{width:44px!important;height:44px!important}
 .sq svg{width:20px;height:20px}
+.sq{width:50px!important;height:50px!important}
+#hud{padding:12px 10px 0;gap:6px}
+.hbtns{gap:5px}
+.sq{width:46px!important;height:46px!important}
+.hud-c{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud-c span{font-size:.86em}
+.hud-r .tag{font-size:.8rem;padding:2px 6px}
