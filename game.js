@@ -638,58 +638,7 @@ function showSheet(kind,d){
       bindOnce(e=>{if(e.target.closest('[data-x]'))fin()});return}
     res()})}
 
-/* ---------- Kampf ---------- */
-async function playBattle(x){
-  const me=G.players[0],mineA=x.A===me,Pm=mineA?x.A:x.B,Pe=mineA?x.B:x.A;
-  const myIdx=mineA?0:1,enIdx=1-myIdx,snaps=x.r.snaps;
-  await banner(comboLabel(Pm.team.b),`Formation: ${fbTx(Pm.team.b.cat)}`,G.fast?400:1500);
-  const mk=(P,cls)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map(f=>cardHTML(f.c,{cls:'xs'+(f.shield?' shd':'')+(f.sup?' sup':''),st:[f.atk,f.hp],up:f.up||0})).join('')}</div>`;
-  showOv(`<div id="battle" class="canvas page">${CORN}
-    <div class="bhero e">${plateHTML(Pe)}<div class="bt"><b>${Pe.name}</b><span>${comboLabel(Pe.team.b)} · ${fbTx(Pe.team.b.cat)}</span></div></div>
-    <div class="sp"></div>
-    ${mk(Pe,'en')}
-    <div class="bmid"><div class="blbl" id="bl">Aufstellung</div><div class="bnote" id="bn"></div><div class="bres" id="br"></div></div>
-    ${mk(Pm,'me')}
-    <div class="sp"></div>
-    <div class="bhero m">${plateHTML(me)}<div class="bt"><b>Du</b><span>${comboLabel(Pm.team.b)} · ${fbTx(Pm.team.b.cat)}</span></div></div>
-    <div class="bfoot"><button class="plate btn ghost" data-x="fast">Schneller</button><button class="plate btn ghost" data-x="skip">Überspringen</button></div></div>`);
-  const sh=sleepable(),ov=$('#ov');
-  let speed=QA?60:850,skip=false,all=false;
-  ov.onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;
-    if(b.dataset.x==='fast'){speed=speed>500?380:850;b.textContent=speed>500?'Schneller':'Normal'}
-    if(b.dataset.x==='skip'){skip=true;sh.wake()}
-    if(b.dataset.x==='all'){all=true;skip=true;sh.wake()}
-    if(b.dataset.x==='next'){sh.wake()}};
-  const rowCards=id=>[...document.querySelectorAll('#'+id+' .card')];
-  const sidesCards=side=>rowCards((side===myIdx)?'bp':'be');
-  const prevAlive=[[],[]];
-  const burst=(el,col,n)=>{const r=el.getBoundingClientRect();spark(r.left+r.width/2,r.top+r.height/2,col,n)};
-  const paint=(s,quiet)=>{
-    for(const side of[0,1])sidesCards(side).forEach((c,i)=>{const st=s.st[side][i];if(!st)return;
-      c.querySelector('.at').textContent=st.atk;c.querySelector('.hpb').textContent=Math.max(0,st.hp);
-      if(prevAlive[side][i]!==false&&!st.alive&&!quiet){burst(c,'#6e170f',9);snd('die');if(navigator.vibrate)navigator.vibrate(40)}
-      prevAlive[side][i]=st.alive;c.classList.toggle('dead',!st.alive);c.classList.toggle('shd',!!st.sh&&st.alive);c.classList.toggle('frz',!!st.fz&&st.alive)});
-    if(quiet)return;
-    s.hits.forEach(h=>{const c=sidesCards(h.s)[h.i];if(!c)return;if(h.sh){const f=document.createElement('div');f.className='fl num shf';f.textContent='Schild';c.appendChild(f);setTimeout(()=>f.remove(),950);snd('click');return}c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit');
-      const al=sidesCards(1-h.s)[h.i];if(al){al.classList.remove('lunge');void al.offsetWidth;al.classList.add('lunge')}
-      burst(c,'#a3261b',h.d>=6?6:3);snd('hit');
-      if(h.d>=6){const b=$('#battle');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}
-      const f=document.createElement('div');f.className='fl num';f.textContent='−'+h.d;c.appendChild(f);setTimeout(()=>f.remove(),950)})};
-  for(let k=0;k<snaps.length;k++){
-    const s=snaps[k];$('#bl').textContent=s.label;
-    $('#bn').innerHTML=s.notes.slice(-2).join('<br>');paint(s,skip);
-    if(skip)continue;
-    await sh.wait(speed);
-    if(skip){const l=snaps[snaps.length-1];$('#bl').textContent=l.label;paint({st:l.st,hits:[]},true)}}
-  if(skip){const l=snaps[snaps.length-1];$('#bl').textContent=l.label;paint({st:l.st,hits:[]},true)}
-  const win=x.w===-1?'d':(x.w===myIdx?'w':'l');
-  $('#br').className='bres '+win;$('#br').textContent=win==='w'?'Sieg':win==='l'?'Niederlage':'Unentschieden';
-  $('#bn').textContent=win==='l'?`Du verlierst ${x.dmg} Thron`:win==='w'?`${Pe.short} verliert ${x.dmg} Thron`:'Kein Schaden';
-  snd(win==='w'?'win':win==='l'?'lose':'click');
-  document.querySelector('.bfoot').innerHTML=`<button class="plate btn" data-x="next">Weiter</button><button class="plate btn ghost" data-x="all">Alle überspringen</button>`;
-  await sh.wait(1e9);
-  hideOv();return all?'all':''}
-function sleepable(){let r=null,t=null;return{wait(ms){return new Promise(res=>{r=res;t=setTimeout(()=>{r=null;res()},ms)})},wake(){clearTimeout(t);if(r){const f=r;r=null;f()}}}}
+/* ---------- Kampf: Inszenierung in battle.js (playBattle) ---------- */
 
 /* ---------- Titel ---------- */
 function title(){

@@ -673,3 +673,100 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 #ov .title .tlinks{display:flex;gap:6px;align-items:center;justify-content:center;color:#cbb48a;background:rgba(25,14,6,.7);padding:2px 10px;border-radius:6px}
 #ov .title .tlinks button{background:none;border:0;color:#efc96a;font:400 .95rem/1 var(--f-fsc);min-height:44px;padding:0 6px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 #ov .sheet.info p{text-align:left;margin:.5em 0;line-height:1.4}
+
+/* ================= Showdown-Inszenierung (battle.js) ================= */
+#bfx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70}
+#battle.sd{display:block;padding:0!important;overflow:hidden}
+#battle.sd::after{background:radial-gradient(100% 70% at 50% 50%,transparent 40%,rgba(10,5,2,.7) 100%)!important;z-index:2}
+#battle.sd .arena{position:absolute;inset:0;z-index:3;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto auto minmax(0,1fr) auto auto;gap:10px;padding:22px 14px 18px;transition:transform 1s cubic-bezier(.3,0,.2,1),filter 1.2s}
+#battle.sd .lanes{gap:5px;--cw:70px}
+.slotc{position:relative;flex:none;width:var(--cw)}
+.slotc.act{z-index:20}
+.slotc.pre{opacity:0}
+.slotc.down{opacity:.55}
+.slotc.down .hpb2{opacity:0}
+.hpb2{position:absolute;left:7%;right:7%;bottom:-9px;height:6px;border-radius:3px;background:rgba(10,5,2,.85);box-shadow:0 0 0 1px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.6);overflow:hidden;transition:opacity .4s}
+.hpb2 b{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:3px}
+.hpb2 .g{background:rgba(255,240,210,.75);transition:width .45s ease-in}
+.hpb2 .v{background:linear-gradient(#9be06a,#3f9a2a);transition:width .16s ease-out,background .3s}
+#battle.sd .card .pt i.bump{display:inline-block;animation:sbump .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes sbump{0%{transform:scale(1.9);color:#fff}100%{transform:scale(1)}}
+#battle.sd .lanes .card.hit{animation:hitf .38s ease-out}
+@keyframes hitf{0%{filter:brightness(3.2) saturate(0);translate:0 0}15%{translate:-5px 2px}35%{filter:brightness(1.5);translate:5px -2px}60%{translate:-2px 1px}100%{filter:none;translate:0 0}}
+#battle.sd .card.doom{box-shadow:0 0 0 1.5px #b3200f;filter:saturate(.5) brightness(.7) sepia(.3);animation:doom .5s ease-in-out infinite alternate}
+@keyframes doom{to{filter:saturate(.4) brightness(.55) sepia(.5)}}
+#battle.sd .card.dead{filter:grayscale(1) brightness(.4)!important;transform:translateY(6px) scale(.9) rotate(-2deg)}
+#battle.sd .card.psnd{box-shadow:0 0 0 1.5px #8fdc4a,0 0 10px 2px rgba(120,220,60,.5)}
+#battle.sd .card.fd .cvr{display:block!important;opacity:1;animation:none;background:radial-gradient(ellipse 30% 22% at 50% 50%,#c9a86a 0 68%,#2a1a10 70% 76%,transparent 78%),repeating-linear-gradient(45deg,rgba(0,0,0,.18) 0 3px,transparent 3px 7px),#4a2e1c}
+#battle.sd .lanes.aura .card{animation:aura .9s ease-out both}
+#battle.sd .lanes.aura .slotc:nth-child(2) .card{animation-delay:.07s}#battle.sd .lanes.aura .slotc:nth-child(3) .card{animation-delay:.14s}
+#battle.sd .lanes.aura .slotc:nth-child(4) .card{animation-delay:.21s}#battle.sd .lanes.aura .slotc:nth-child(5) .card{animation-delay:.28s}
+@keyframes aura{0%{box-shadow:0 0 0 0 rgba(255,215,110,0)}35%{box-shadow:0 0 0 2px #ffe08a,0 0 22px 6px rgba(255,200,80,.8);filter:brightness(1.35)}100%{box-shadow:0 4px 8px rgba(40,20,5,.55)}}
+/* Mitte: Runde, Kräfteverhältnis, Fähigkeit */
+#battle.sd .bmid{min-height:118px;gap:6px}
+.tug{position:relative;width:84%;height:9px;border-radius:5px;background:linear-gradient(#c23a22,#6e140a);box-shadow:0 0 0 1px #000,0 0 0 2px rgba(232,200,120,.45),0 2px 6px rgba(0,0,0,.6)}
+.tug .tm{position:absolute;left:0;top:0;bottom:0;width:50%;border-radius:5px 0 0 5px;background:linear-gradient(#ffe7a0,#c8922c);transition:width .5s cubic-bezier(.3,0,.2,1)}
+.tug .tk{position:absolute;top:50%;left:50%;width:13px;height:13px;transform:translate(-50%,-50%) rotate(45deg);background:#fff3c8;box-shadow:0 0 0 1px #000,0 0 10px 3px rgba(255,220,140,.8);transition:left .5s cubic-bezier(.3,0,.2,1)}
+#battle.sd .bnote{min-height:2.4em;font-size:1rem}
+/* Zahlen und Ansagen */
+#bfl{position:absolute;inset:0;z-index:25;pointer-events:none}
+.bdmg{position:absolute;transform:translate(-50%,-50%);font:800 var(--fs,1.6rem)/1 var(--f-ttl);color:#fff;letter-spacing:-.02em;white-space:nowrap;
+  text-shadow:0 0 1px #000,0 2px 0 #3a0a04,0 0 2px #000,2px 2px 0 #000,-2px 2px 0 #000,2px -2px 0 #000,-2px -2px 0 #000,0 0 14px rgba(255,60,20,.7);animation:dmg 1s cubic-bezier(.2,.9,.3,1) forwards}
+.bdmg.crit{color:#ffdc5a;font-size:calc(var(--fs,1.6rem)*1.35);text-shadow:0 0 1px #000,2px 2px 0 #000,-2px 2px 0 #000,2px -2px 0 #000,-2px -2px 0 #000,0 0 20px rgba(255,180,40,.95)}
+.bdmg.psn{color:#c8ff8a}.bdmg.fire{color:#ffc06a}.bdmg.heal{color:#a8ffa0;text-shadow:0 0 1px #000,2px 2px 0 #000,-2px 2px 0 #000,0 0 12px rgba(80,255,80,.7)}
+@keyframes dmg{0%{transform:translate(-50%,-50%) scale(2.6);opacity:0}12%{transform:translate(-50%,-50%) scale(.9);opacity:1}22%{transform:translate(-50%,-50%) scale(1.08)}70%{transform:translate(-50%,-110%) scale(1);opacity:1}100%{transform:translate(-50%,-160%) scale(.9);opacity:0}}
+.bcall{position:absolute;transform:translate(-50%,-115%);padding:3px 9px 4px;border-radius:4px;white-space:nowrap;font:400 .92rem/1 var(--f-fsc);letter-spacing:.03em;color:#f6e7c4;background:rgba(18,9,4,.9);
+  box-shadow:0 0 0 1px #000,inset 0 0 0 1px rgba(232,200,120,.6),0 4px 10px rgba(0,0,0,.6);animation:call 1.3s ease-out forwards}
+.bcall.fire{color:#ffc27a;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #e8702c,0 0 12px rgba(255,110,30,.5)}
+.bcall.ice{color:#cfeaff;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #6fb6ff,0 0 12px rgba(120,190,255,.5)}
+.bcall.psn{color:#c8ff8a;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #6cc040,0 0 12px rgba(120,220,60,.45)}
+.bcall.blood{color:#ff9a8a;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #c0261a,0 0 12px rgba(220,30,20,.5)}
+.bcall.gold,.bcall.form{color:#ffe39a;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #e0b050,0 0 14px rgba(255,200,80,.55)}
+.bcall.dark{color:#d9c2ff;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #7a4aa8}
+@keyframes call{0%{transform:translate(-50%,-80%) scale(.6);opacity:0}12%{transform:translate(-50%,-125%) scale(1.08);opacity:1}22%{transform:translate(-50%,-115%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-150%);opacity:0}}
+.bstamp{position:absolute;left:50%;top:50%;z-index:26;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;animation:stamp 1.25s cubic-bezier(.2,.9,.25,1) forwards}
+.bstamp b{font:700 5.2rem/.9 var(--f-got);color:#f8e8bc;text-shadow:0 3px 0 #2a1406,0 0 2px #000,0 0 30px rgba(255,170,60,.65)}
+.bstamp span{font:400 1.2rem/1 var(--f-fsc);letter-spacing:.3em;color:#efc96a;text-shadow:0 1px 2px #000}
+.bstamp.sm b{font-size:3.4rem}.bstamp.nx b{font-size:3.6rem}
+@keyframes stamp{0%{transform:translate(-50%,-50%) scale(3);opacity:0;filter:blur(8px)}16%{transform:translate(-50%,-50%) scale(.94);opacity:1;filter:none}24%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1}100%{transform:translate(-50%,-50%) scale(1.12);opacity:0}}
+/* Kino: Balken, Intro, Blitz, Vignette */
+.lbox{position:absolute;left:0;right:0;z-index:24;height:0;background:#000;transition:height .45s cubic-bezier(.3,0,.2,1)}
+.lbox.t{top:0}.lbox.b{bottom:0}
+#battle.cine .lbox{height:54px}
+.bflash{position:absolute;inset:0;z-index:28;pointer-events:none;opacity:0;mix-blend-mode:screen}
+.vig{position:absolute;inset:0;z-index:23;pointer-events:none;opacity:0;transition:opacity .6s}
+#battle.clutch .vig{opacity:1;background:radial-gradient(90% 70% at 50% 50%,transparent 45%,rgba(170,10,0,.55) 100%);animation:beat .95s ease-in-out infinite}
+@keyframes beat{0%,100%{opacity:.55}12%{opacity:1}24%{opacity:.6}36%{opacity:.95}}
+#battle.finale .arena{transform:scale(1.045)}
+#battle.finale::after{background:radial-gradient(80% 55% at 50% 50%,transparent 30%,rgba(5,2,1,.85) 100%)!important}
+#battle.lost .arena{filter:grayscale(.75) brightness(.6)}
+.bintro{position:absolute;inset:0;z-index:27;display:grid;grid-template-rows:1fr auto 1fr;align-items:center;justify-items:center;padding:70px 20px;background:radial-gradient(80% 60% at 50% 50%,rgba(60,25,8,.55),rgba(5,2,1,.92));animation:fadein .3s ease-out}
+.bintro.out{animation:fadeout .38s ease-in forwards}
+@keyframes fadein{from{opacity:0}}@keyframes fadeout{to{opacity:0;transform:scale(1.08)}}
+.bi{display:flex;flex-direction:column;align-items:center;gap:8px}
+.bi .hero{--pw:118px}.bi .hero .hn{display:none}.bi .hero .hg{font-size:20px}
+.bi b{font:700 2rem/1 var(--f-got);color:#f6e7c1;text-shadow:0 2px 3px #000,0 0 18px rgba(255,170,60,.45)}
+.bi span{font:italic 400 1.1rem/1 var(--f-fell);color:#e5cf9c;text-shadow:0 1px 2px #000}
+.bi.e{animation:drop .5s cubic-bezier(.2,1.3,.4,1) both}.bi.m{animation:rise .5s cubic-bezier(.2,1.3,.4,1) .12s both}
+@keyframes drop{from{transform:translateY(-220px);opacity:0}}@keyframes rise{from{transform:translateY(220px);opacity:0}}
+.bivs{display:flex;align-items:center;gap:12px;width:100%;justify-content:center;animation:vs .45s cubic-bezier(.2,1.6,.4,1) .5s both}
+.bivs b{font:700 3.6rem/1 var(--f-got);color:#ffd36a;text-shadow:0 3px 0 #3a1a04,0 0 26px rgba(255,150,40,.9)}
+.bivs i{flex:1;height:2px;max-width:90px;background:linear-gradient(90deg,transparent,#efc96a)}.bivs i:last-child{background:linear-gradient(90deg,#efc96a,transparent)}
+@keyframes vs{from{transform:scale(4);opacity:0;filter:blur(6px)}}
+/* Finale */
+.bend{position:absolute;left:0;right:0;top:50%;z-index:26;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;animation:endin .7s cubic-bezier(.2,1.2,.3,1) both}
+.bend b{position:relative;z-index:1;font:700 5.6rem/.9 var(--f-got)}
+.bend.w b{color:#ffe08a;background:linear-gradient(#fff6cf,#ffd25a 45%,#b8761c);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 3px 0 #3a1a04) drop-shadow(0 0 22px rgba(255,180,50,.8))}
+.bend.l b{color:#ff5a3a;text-shadow:0 3px 0 #2a0502,0 0 24px rgba(200,20,0,.85)}
+.bend.d b{color:#e8dcc0;text-shadow:0 3px 0 #000}
+.bend span{position:relative;z-index:1;padding:5px 14px;border-radius:5px;font:400 1.15rem/1.1 var(--f-fsc);color:#f6e7c4;background:rgba(15,7,3,.88);box-shadow:0 0 0 1px #000,inset 0 0 0 1px rgba(232,200,120,.55)}
+.bend .rays{position:absolute;left:50%;top:50%;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,215,120,.38) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 8%,transparent 62%);mask:radial-gradient(circle,#000 8%,transparent 62%);animation:rays 9s linear infinite,fadein .8s ease-out}
+@keyframes rays{to{transform:rotate(360deg)}}
+@keyframes endin{from{transform:translateY(-50%) scale(2.4);opacity:0;filter:blur(8px)}}
+#battle.sd .hg.hurt{animation:gem .5s ease-in-out 3;box-shadow:0 0 0 2px #ff3b1f,0 0 16px 4px rgba(255,40,10,.85)}
+@keyframes gem{25%{transform:translateX(-3px) scale(1.2)}75%{transform:translateX(3px) scale(1.2)}}
+#battle.sd .bfoot{position:relative;z-index:29}
+@media (prefers-reduced-motion:reduce){.bend .rays{display:none}}
+#battle.stamping .bmid .blbl,#battle.stamping .bmid .bnote{opacity:0;transition:opacity .15s}
+#battle.sd .card.frz::after{background:linear-gradient(160deg,rgba(220,240,255,.42),rgba(140,190,235,.12) 45%,rgba(220,240,255,.38));box-shadow:inset 0 0 0 2px #cfeeff,inset 0 0 12px rgba(160,210,255,.8),0 0 10px rgba(120,190,255,.6)}

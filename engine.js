@@ -50,58 +50,60 @@ function mkTeam(five,up,ordered){up=up||{rank:{},realm:{}};const b=eval5(five),c
   has('moorwolf').forEach(k=>{const i=F.indexOf(k);[F[i-1],F[i+1]].forEach(f=>{if(f)f.rage+=K.moor})});
   F.forEach(f=>f.max=f.hp);b.five=five;return{team:F,b,five}}
 function battle(A0,B0,rec){
-  const T=[A0.map(f=>({...f,alive:true,psn:0,first:true,frz:0})),B0.map(f=>({...f,alive:true,psn:0,first:true,frz:0}))];const snaps=rec?[]:null;let hits=[],notes=[];
+  const T=[A0.map(f=>({...f,alive:true,psn:0,first:true,frz:0})),B0.map(f=>({...f,alive:true,psn:0,first:true,frz:0}))];const snaps=rec?[]:null;let hits=[],notes=[],evs=[];
   const note=t=>{if(rec&&!notes.includes(t))notes.push(t)};
-  const snap=label=>{if(rec)snaps.push({label,notes,st:T.map(t=>t.map(f=>({atk:f.atk,hp:Math.max(0,f.hp),alive:f.alive,sh:f.shield,fz:f.frz>0}))),hits});hits=[];notes=[]};
+  /* Ereignisse nur für die Darstellung (rec): wer trifft wen, was leuchtet auf */
+  const ev=o=>{if(rec)evs.push(o)};
+  const snap=label=>{if(rec)snaps.push({label,notes,st:T.map(t=>t.map(f=>({atk:f.atk,hp:Math.max(0,f.hp),alive:f.alive,sh:f.shield,fz:f.frz>0,psn:f.psn>0}))),hits,ev:evs});hits=[];notes=[];evs=[]};
   const hasSup=(s,k)=>T[s].filter(f=>f.alive&&f.sup===k).length;
-  const hurt=(s,i,n,src,kind)=>{const f=T[s][i];if(!f||!f.alive||n<=0)return;let d=n;
-    if(f.shield){f.shield=false;hits.push({s,i,d:0,sh:1});note('Gottesschild bricht');
-      const h=hasSup(s,'herold');if(h){T[s].forEach(o=>{if(o.alive)o.atk+=K.herold*h});note('Herold: Verbündete +'+K.herold*h+' Angriff')}return}
+  const hurt=(s,i,n,src,kind,by)=>{const f=T[s][i];if(!f||!f.alive||n<=0)return;let d=n;const a=by||(src?[src.s,src.i]:null);
+    if(f.shield){f.shield=false;hits.push({s,i,d:0,sh:1,a,k:kind});note('Gottesschild bricht');
+      const h=hasSup(s,'herold');if(h){T[s].forEach(o=>{if(o.alive)o.atk+=K.herold*h});ev({t:'buff',s,n:K.herold*h});note('Herold: Verbündete +'+K.herold*h+' Angriff')}return}
     if(f.r===6){d--;note('Ghul ist zäh: 1 Schaden weniger')}
     if(T[s].some((o,j)=>o.alive&&o.r===10&&Math.abs(j-i)===1)){d--;note('Riese schützt seine Nachbarn')}
     if(kind!=='psn'&&T[s].some(o=>o.alive&&o.sup==='wall')){d-=K.wall;note('Schildwall: alle nehmen weniger Schaden')}
-    d=Math.max(0,d);if(!d)return;f.hp-=d;hits.push({s,i,d});if(kind==='psn')note('Gift wirkt');
-    if(src&&src.f.r===9&&!f.psn){f.psn=1;note('Lindwurm vergiftet sein Ziel')}
-    if(src&&src.f.frost&&kind==='atk'&&f.hp>0){f.frz=1;note('Frost: das Ziel erstarrt')}};
+    d=Math.max(0,d);if(!d)return;f.hp-=d;hits.push({s,i,d,a,k:kind});if(kind==='psn')note('Gift wirkt');
+    if(src&&src.f.r===9&&!f.psn){f.psn=1;ev({t:'psn',s,i});note('Lindwurm vergiftet sein Ziel')}
+    if(src&&src.f.frost&&kind==='atk'&&f.hp>0){f.frz=1;ev({t:'frz',s,i});note('Frost: das Ziel erstarrt')}};
   let reborn=[false,false];
   const deaths=()=>{let guard=0;while(guard++<6){const died=[],last=[];
     for(const s of[0,1])T[s].forEach((f,i)=>{if(f.alive&&f.hp<=0){f.alive=false;died.push({s,i,f});if(f.rage)last.push({s,i,f})}});
     if(!died.length)break;
-    last.forEach(a=>{const j=target(a.s,a.i,a.f);if(j>=0){note('Blutmoor: Todesstoß im Fallen');hurt(1-a.s,j,a.f.atk,{s:a.s,i:a.i,f:a.f},'last')}});
+    last.forEach(a=>{const j=target(a.s,a.i,a.f);if(j>=0){note('Blutmoor: Todesstoß im Fallen');hurt(1-a.s,j,a.f.atk,{s:a.s,i:a.i,f:a.f},'last');ev({t:'last',s:a.s,i:a.i})}});
     note(died.length===1?'Eine Karte fällt':died.length+' Karten fallen');
     died.forEach(({s,i,f})=>{
       const br=hasSup(1-s,'brand');if(br){[i-1,i+1].forEach(k=>hurt(s,k,K.brand*br,null,'fire'));note('Flächenbrand greift über')}
       T[1-s].forEach(o=>{if(o.alive&&o.r===3&&!o.sup)o.atk+=1});
-      for(const t of[0,1])T[t].forEach(o=>{if(o.alive&&o.sup==='aas'){o.atk+=K.aas;o.hp+=K.aas;o.max+=K.aas;note('Aaskrähe frisst: +'+K.aas+'/+'+K.aas)}});
-      if(!reborn[s]&&f.sup!=='priester'&&T[s].some(o=>o.alive&&o.sup==='priester')){reborn[s]=true;f.alive=true;f.hp=Math.ceil(f.max/2);f.rage=f.rage;note('Blutpriester: die Gefallene kehrt zurück')}})}};
+      for(const t of[0,1])T[t].forEach((o,oi)=>{if(o.alive&&o.sup==='aas'){o.atk+=K.aas;o.hp+=K.aas;o.max+=K.aas;ev({t:'grow',s:t,i:oi,n:K.aas});note('Aaskrähe frisst: +'+K.aas+'/+'+K.aas)}});
+      if(!reborn[s]&&f.sup!=='priester'&&T[s].some(o=>o.alive&&o.sup==='priester')){reborn[s]=true;f.alive=true;f.hp=Math.ceil(f.max/2);f.rage=f.rage;ev({t:'rev',s,i});note('Blutpriester: die Gefallene kehrt zurück')}})}};
   const live=s=>T[s].some(f=>f.alive);
   const target=(s,i,f)=>{const E=T[1-s],al=[];let pick;E.forEach((o,j)=>{if(o.alive)al.push(j)});if(!al.length)return-1;
     pick=j=>{const g=E[j].guard;if(g&&g.alive!==false){const gi=E.findIndex(o=>o.c===g.c);if(gi>=0&&E[gi].alive&&gi!==j){note('Wächter fängt den Schlag ab');return gi}}return j};
     if(f.r===7){note('Greif stürzt sich auf den schwächsten Gegner');return pick(al.reduce((a,j)=>E[j].hp<E[a].hp?j:a,al[0]))}
     if(E[i]&&E[i].alive)return pick(i);return pick(al.reduce((a,j)=>Math.abs(j-i)<Math.abs(a-i)?j:a,al[0]))};
   const strongest=s=>{let b=-1;T[s].forEach((o,j)=>{if(o.alive&&(b<0||o.atk*o.hp>T[s][b].atk*T[s][b].hp))b=j});return b};
-  const strike=sel=>{const acts=[];for(const s of[0,1])T[s].forEach((f,i)=>{if(f.alive&&sel(f)){if(f.frz>0){f.frz--;note('Eingefroren: setzt aus');return}const j=target(s,i,f);if(j>=0)acts.push({s,i,f,j,atk:f.atk*(f.r===4&&!f.sup&&f.first?2:1)})}});
+  const strike=sel=>{const acts=[];for(const s of[0,1])T[s].forEach((f,i)=>{if(f.alive&&sel(f)){if(f.frz>0){f.frz--;ev({t:'skip',s,i});note('Eingefroren: setzt aus');return}const j=target(s,i,f);if(j>=0)acts.push({s,i,f,j,atk:f.atk*(f.r===4&&!f.sup&&f.first?2:1)})}});
     acts.forEach(a=>{if(a.f.r===13)note('Wyvern schlägt zuerst zu');if(a.f.r===11)note('Mantikor-Stachel trifft die Nachbarn');
-      a.f.first=false;hurt(1-a.s,a.j,a.atk,{s:a.s,i:a.i,f:a.f},'atk');if(a.f.r===11)[a.j-1,a.j+1].forEach(k=>hurt(1-a.s,k,2,null,'splash'))});return acts.length};
-  for(const s of[0,1])T[s].forEach((f,i)=>{if(f.r===12&&T[1-s][i]){T[1-s][i].atk=Math.max(0,T[1-s][i].atk-2);note('Nachtmahr: Gegner gegenüber −2 Angriff')}});
+      a.f.first=false;hurt(1-a.s,a.j,a.atk,{s:a.s,i:a.i,f:a.f},'atk');if(a.f.r===11)[a.j-1,a.j+1].forEach(k=>hurt(1-a.s,k,2,null,'splash',[a.s,a.i]))});return acts.length};
+  for(const s of[0,1])T[s].forEach((f,i)=>{if(f.r===12&&T[1-s][i]){T[1-s][i].atk=Math.max(0,T[1-s][i].atk-2);ev({t:'fear',s:1-s,i,by:[s,i]});note('Nachtmahr: Gegner gegenüber −2 Angriff')}});
   note('Stärkste Karte links. Jede kämpft gegen die gegenüber.');snap('Aufstellung');
   /* Kampfbeginn */
   for(const s of[0,1]){const z=hasSup(s,'zunder')*K.zunder;
-    if(hasSup(s,'pest')){T[1-s].forEach(o=>{o.psn=Math.max(o.psn,K.pest*hasSup(s,'pest'))});note('Pestratte: alle Gegner sind verseucht')}
-    T[s].forEach((f,i)=>{if(f.sup==='frostbiss'){const j=strongest(1-s);if(j>=0){T[1-s][j].frz=1;note('Frostbiss: die stärkste Gegnerkarte erstarrt')}}});
+    if(hasSup(s,'pest')){T[1-s].forEach(o=>{o.psn=Math.max(o.psn,K.pest*hasSup(s,'pest'))});ev({t:'pest',s:1-s});note('Pestratte: alle Gegner sind verseucht')}
+    T[s].forEach((f,i)=>{if(f.sup==='frostbiss'){const j=strongest(1-s);if(j>=0){T[1-s][j].frz=1;ev({t:'frz',s:1-s,i:j,by:[s,i]});note('Frostbiss: die stärkste Gegnerkarte erstarrt')}}});
     T[s].forEach((f,i)=>{
-      if(f.glut){const j=target(s,i,{r:0});if(j>=0){hurt(1-s,j,f.glut+z,null,'fire');note('Glut: Aschelande brennt zu Kampfbeginn')}}
-      if(f.sup==='funke'){const j=strongest(1-s);if(j>=0){hurt(1-s,j,K.funke+z,null,'fire');note('Funke trifft die stärkste Gegnerkarte')}}
-      if(f.r===14){note('Drache speit Feuer: 2 an alle Gegner');T[1-s].forEach((o,j)=>hurt(1-s,j,2+z,null,'fire'))}})}
-  if(hits.length){deaths();snap('Kampfbeginn')}else{hits=[];notes=notes.filter(x=>x.startsWith('Frostbiss'));if(notes.length)snap('Kampfbeginn')}
+      if(f.glut){const j=target(s,i,{r:0});if(j>=0){hurt(1-s,j,f.glut+z,null,'fire',[s,i]);note('Glut: Aschelande brennt zu Kampfbeginn')}}
+      if(f.sup==='funke'){const j=strongest(1-s);if(j>=0){hurt(1-s,j,K.funke+z,null,'fire',[s,i]);note('Funke trifft die stärkste Gegnerkarte')}}
+      if(f.r===14){note('Drache speit Feuer: 2 an alle Gegner');ev({t:'breath',s,i});T[1-s].forEach((o,j)=>hurt(1-s,j,2+z,null,'breath',[s,i]))}})}
+  if(hits.length){deaths();snap('Kampfbeginn')}else{hits=[];notes=notes.filter(x=>x.startsWith('Frostbiss'));evs=evs.filter(e=>e.t==='frz');if(notes.length)snap('Kampfbeginn')}
   let round=0;
   while(live(0)&&live(1)&&round<8){round++;
-    let any=false;for(const s of[0,1])T[s].forEach(f=>{if(f.alive&&f.rage){f.atk+=f.rage;any=true}});if(any){note('Blutrausch: Blutmoor-Karten werden stärker');snap(`Runde ${round} · Blutrausch`)}
+    let any=false;for(const s of[0,1])T[s].forEach((f,i)=>{if(f.alive&&f.rage){f.atk+=f.rage;any=true;ev({t:'rage',s,i,n:f.rage})}});if(any){note('Blutrausch: Blutmoor-Karten werden stärker');snap(`Runde ${round} · Blutrausch`)}
     if(strike(f=>f.r===13)){deaths();snap(`Runde ${round} · Erstschlag`)}
     if(!live(0)||!live(1))break;
     strike(f=>f.r!==13);deaths();snap(`Runde ${round}`);
-    for(const s of[0,1])T[s].forEach((f,i)=>{if(!f.alive)return;if(f.r===8&&f.hp<f.max){f.hp=Math.min(f.max,f.hp+2);note('Troll regeneriert 2 Leben')}if(f.psn)hurt(s,i,f.psn,null,'psn')});
-    if(hits.length||notes.length){deaths();snap(`Runde ${round} · Rundenende`)}else{hits=[];notes=[]}}
+    for(const s of[0,1])T[s].forEach((f,i)=>{if(!f.alive)return;if(f.r===8&&f.hp<f.max){f.hp=Math.min(f.max,f.hp+2);ev({t:'heal',s,i,n:2});note('Troll regeneriert 2 Leben')}if(f.psn)hurt(s,i,f.psn,null,'psn')});
+    if(hits.length||notes.length){deaths();snap(`Runde ${round} · Rundenende`)}else{hits=[];notes=[];evs=[]}}
   const a0=T[0].filter(f=>f.alive),a1=T[1].filter(f=>f.alive);let w=-1;
   /* Fallen beide Teams im selben Schlag, behält die bessere Formation das Feld */
   if(!a0.length&&!a1.length){const s0=eval5(A0.map(f=>f.c)).score,s1=eval5(B0.map(f=>f.c)).score;w=s0>s1?0:s1>s0?1:-1}
