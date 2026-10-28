@@ -14,6 +14,6 @@ Poker trifft Battlegrounds am Tavernentisch: zwölf Nächte, sechs Spieler. Zum 
 ## Veröffentlichen
 `./build.sh` erzeugt `dist/krug-und-krone.zip`. Das Zip lässt sich direkt als HTML-Spiel auf itch.io oder CrazyGames hochladen.
 
-Das Spiel lädt nichts von fremden Servern: Die Schriften liegen in `fonts/`, die Klänge werden im Browser erzeugt.
+Das Spiel lädt nichts von fremden Servern: Die Schriften liegen in `fonts/`, Musik und Geräusche in `audio/` (Quellen und Skripte in `audio-src/`).
 
 Herkunft und Lizenzen aller Inhalte stehen in [LIZENZEN.md](LIZENZEN.md).
