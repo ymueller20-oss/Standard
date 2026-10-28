@@ -8,7 +8,9 @@ Stand: 28.10.2026. Diese Datei reicht, um das Spiel auf einem anderen Claude-Acc
 2. Eine Session mit diesem Repo starten und schreiben: „Lies KRUG-UND-KRONE.md auf Branch `ccr-b73866f8-agrhad`“.
 3. Gearbeitet und gepusht wird auf genau diesem Branch. Dort liegt das ganze Spiel.
 
-**Wichtig zum Handy-Link:** Die bisherige Spielseite https://claude.ai/artifact/AasaopibDpG9Q4eU1TGRwd gehört dem alten Account. Ein neuer Account kann sie nicht aktualisieren. Er veröffentlicht stattdessen eine neue Seite mit einem neuen Link. Danach das alte Symbol vom Startbildschirm löschen und den neuen Link per „Zum Startbildschirm hinzufügen“ anlegen. Ab dann kommt jedes Update über diesen neuen Link an.
+**Handy-Link (aktuell, seit 28.10.2026):** https://claude.ai/artifact/MMZFJzFrU1g3JBs7qCLsrm, gehört dem Account `y.mueller@tigamedia.de`. Updates immer an diese URL veröffentlichen (aus einer anderen Unterhaltung: URL als `url` mitgeben), sonst entsteht ein neuer Link. Die alte Seite https://claude.ai/artifact/AasaopibDpG9Q4eU1TGRwd gehört dem alten Account und wird nicht mehr aktualisiert.
+
+**Lokal auf dem Windows-Laptop:** Das Repo liegt unter `Documents\krug-und-krone`, Git und GitHub CLI sind installiert und mit `ymueller20-oss` angemeldet. Python fehlt dort; zum Testen reicht ein kleiner Node-Server (Node ist installiert). Das Spiel startet mit Musik, beim Testen im Browser-Fenster also stumm schalten.
 
 ## Wer der Nutzer ist
 
