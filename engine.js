@@ -66,7 +66,7 @@ function battle(A0,B0,rec){
     if(src&&src.f.r===9&&!f.psn){f.psn=1;ev({t:'psn',s,i});note('Lindwurm vergiftet sein Ziel')}
     if(src&&src.f.frost&&kind==='atk'&&f.hp>0){f.frz=1;ev({t:'frz',s,i});note('Frost: das Ziel erstarrt')}};
   let reborn=[false,false];
-  const deaths=()=>{let guard=0;while(guard++<6){const died=[],last=[];
+  const deaths=()=>{let guard=0;while(guard++<20){const died=[],last=[];
     for(const s of[0,1])T[s].forEach((f,i)=>{if(f.alive&&f.hp<=0){f.alive=false;died.push({s,i,f});if(f.rage)last.push({s,i,f})}});
     if(!died.length)break;
     last.forEach(a=>{const j=target(a.s,a.i,a.f);if(j>=0){note('Blutmoor: Todesstoß im Fallen');hurt(1-a.s,j,a.f.atk,{s:a.s,i:a.i,f:a.f},'last');ev({t:'last',s:a.s,i:a.i})}});
@@ -75,7 +75,9 @@ function battle(A0,B0,rec){
       const br=hasSup(1-s,'brand');if(br){[i-1,i+1].forEach(k=>hurt(s,k,K.brand*br,null,'fire'));note('Flächenbrand greift über')}
       T[1-s].forEach(o=>{if(o.alive&&o.r===3&&!o.sup)o.atk+=1});
       for(const t of[0,1])T[t].forEach((o,oi)=>{if(o.alive&&o.sup==='aas'){o.atk+=K.aas;o.hp+=K.aas;o.max+=K.aas;ev({t:'grow',s:t,i:oi,n:K.aas});note('Aaskrähe frisst: +'+K.aas+'/+'+K.aas)}});
-      if(!reborn[s]&&f.sup!=='priester'&&T[s].some(o=>o.alive&&o.sup==='priester')){reborn[s]=true;f.alive=true;f.hp=Math.ceil(f.max/2);f.rage=f.rage;ev({t:'rev',s,i});note('Blutpriester: die Gefallene kehrt zurück')}})}};
+      if(!reborn[s]&&f.sup!=='priester'&&T[s].some(o=>o.alive&&o.sup==='priester')){reborn[s]=true;f.alive=true;f.hp=Math.ceil(f.max/2);f.rage=f.rage;ev({t:'rev',s,i});note('Blutpriester: die Gefallene kehrt zurück')}})}
+    /* Notbremse: wer nach einer langen Kette von Todesstößen noch ohne Leben steht, fällt ohne weiteren Schlag */
+    for(const s of[0,1])T[s].forEach(f=>{if(f.alive&&f.hp<=0)f.alive=false})};
   const live=s=>T[s].some(f=>f.alive);
   const target=(s,i,f)=>{const E=T[1-s],al=[];let pick;E.forEach((o,j)=>{if(o.alive)al.push(j)});if(!al.length)return-1;
     pick=j=>{const g=E[j].guard;if(g&&g.alive!==false){const gi=E.findIndex(o=>o.c===g.c);if(gi>=0&&E[gi].alive&&gi!==j){note('Wächter fängt den Schlag ab');return gi}}return j};
