@@ -34,7 +34,7 @@ Stand: 28.10.2026. Diese Datei reicht, um das Spiel auf einem anderen Claude-Acc
 
 Poker trifft Battlegrounds am Tavernentisch.
 
-- **Partie:** sechs Spieler, du gegen fünf KI-Gegner. Start mit 500 Gold und 30 Thron-Leben, gespielt werden 12 Nächte (der Nutzer will die 12 behalten).
+- **Partie:** sechs Spieler, du gegen fünf KI-Gegner. Start mit 500 Gold und 30 Thron-Leben, gespielt werden 8 Nächte, die letzte ist die Krönungsnacht mit doppeltem Thron-Schaden. Jede Nacht: 2 Karten ziehen, 1 aus 3 wählen. Wer flieht, muss ins Scharmützel (1 Thron). Pleite kostet per Schuldschein 8 Thron statt sofort raus. Kampf: Vergeltung (+2 Angriff, wenn ein Verbündeter fällt) und Letztes Aufgebot (+4/+4).
 - **Hand:** Hold'em um Gold mit Kriegszoll (Blinds) und einer Opfer-Runde, in der eine Handkarte abgelegt wird.
 - **Showdown:** eine automatische Schlacht. Jeder stellt 5 seiner 7 Karten auf. Die Pokerkombo wird zur Formation und gibt allen fünf Karten einen Bonus. Die Reihenfolge der Karten wählt der Spieler.
 - **Karten:** Stärken 2 bis 14 sind Kreaturen, von der Ratte bis zum Drachen. Die vier Farben sind Reiche mit eigener Synergie:
@@ -158,7 +158,8 @@ Ziel des Nutzers: „Nägel abkauen, große Augen, wie ein AAA-Titel.“
 ## Was der Nutzer abgelehnt oder entschieden hat
 
 - Canva-Vorlagen als Geschäftsidee: abgelehnt.
-- Es bleibt bei 12 Nächten.
+- Früher: 12 Nächte. Am 29.10.2026 auf Wunsch umgestellt auf 8 Nächte mit Krönungsnacht (QA-Bericht, Alternativen).
+- Kampflänge ist kein Problem, solange der Kampf unterhaltsam anzusehen ist. Kämpfe nicht kürzen.
 - Versteckte, überstarke Kombos: abgelehnt („Ne bro“).
 - Billig wirkende Knöpfe wurden neu gestaltet. Beim Design immer auf hochwertig achten.
 

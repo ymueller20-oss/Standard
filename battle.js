@@ -133,6 +133,13 @@ const fx={
       upd:(q)=>{for(let k=0;k<2;k++)add({type:'glow',x:q.x+R(-3,3),y:q.y+R(-3,3),vx:R(-.5,.5),vy:R(-.5,.5)-.3,life:R(10,20),size:R(2.5,5),c:col,c2:'rgba(120,20,0,.2)',shrink:1})}});setTimeout(onHit,dur)}
 };
 
+/* ================= Kampfkarte =================
+   Auf dem Schlachtfeld zählt Lesbarkeit: Bild randlos, Rahmen in Reichsfarbe (weiß, rot, blau, schwarz), Stärke oben links,
+   Angriff und Leben groß unten. Gottesschild, Frost und Gift liegen als Zustand auf der ganzen Karte. */
+const BCOL=['#f3ead2','#e0452a','#3d8be0','#17101a'],BGLO=['rgba(255,236,170,.6)','rgba(255,100,40,.6)','rgba(90,170,255,.6)','rgba(210,30,50,.65)'];
+const bcard=f=>{const c=f.c,R=REALM[c.s],a=abil(c);
+  return `<div class="card bc r${c.s}${f.sup?' sup':''}" data-id="${c.id}" style="--bc:${BCOL[c.s]};--bg:${BGLO[c.s]}"><img class="ba" src="cards/s/pk-${c.r}-${c.s}.jpg" alt="${NAME[c.r]}" draggable="false"><b class="brk">${RL[c.r]}</b><i class="brl">${R.ic}</i><span class="bnm">${a[0]}</span><i class="at">${f.atk}</i><i class="hpb">${f.hp}</i><i class="cvr"></i></div>`};
+
 /* ================= Showdown ================= */
 let lastHand=-1,nInHand=0;
 async function playBattle(x){
@@ -146,7 +153,7 @@ async function playBattle(x){
   const wait=ms=>skip?Promise.resolve():new Promise(r=>{wk=r;wt=setTimeout(()=>{wk=null;r()},D(ms))});
   const later=(ms,fn)=>skip?fn():setTimeout(fn,D(ms));
 
-  const lane=(P,cls,idx)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map((f,i)=>`<div class="slotc" data-i="${i}">${cardHTML(f.c,{cls:'xs'+(f.sup?' sup':''),st:[f.atk,f.hp],up:f.up||0,fx:f})}<i class="hpb2"><b class="g"></b><b class="v"></b></i></div>`).join('')}</div>`;
+  const lane=(P,cls,idx)=>`<div class="lanes ${cls}" id="${cls==='me'?'bp':'be'}">${P.team.team.map((f,i)=>`<div class="slotc" data-i="${i}">${bcard(f)}<i class="hpb2"><b class="g"></b><b class="v"></b></i></div>`).join('')}</div>`;
   const heroBox=(P,cls,name)=>`<div class="bhero ${cls}">${plateHTML(P)}<div class="bt"><b>${name}</b><span>${comboLabel(P.team.b)} · ${fbTx(P.team.b.cat)}</span></div></div>`;
   showOv(`<div id="battle" class="canvas page sd${first?' intro':''}">
     <div class="arena">
@@ -187,7 +194,7 @@ async function playBattle(x){
     B.querySelector('.tug .tm').style.width=sh*100+'%';B.querySelector('.tug .tk').style.left=sh*100+'%';
     /* Worum es gerade geht: Thron-Schaden, falls der Kampf jetzt endete (1 + Überlebende des Führenden + Nacht-Zuschlag) */
     const n=[0,1].map(s=>alive[s].filter((v,i)=>v&&cur[s][i]>0).length),ld=n[myIdx]!==n[enIdx]?(n[myIdx]>n[enIdx]?myIdx:enIdx):(sh>.5?myIdx:sh<.5?enIdx:-1),bs=$('#bs');
-    if(bs){if(!fought){bs.className='bstake';bs.innerHTML=`Es geht um bis zu <b>${6+bonus}</b> Thron`}else if(ld<0)bs.innerHTML='Ausgeglichen';else{const d=1+n[ld]+bonus;bs.className='bstake '+(ld===myIdx?'up':'dn');bs.innerHTML=ld===myIdx?`${Pe.short} verliert <b>${d}</b> Thron`:`Du verlierst <b>${d}</b> Thron`}}
+    if(bs){if(!fought){bs.className='bstake';bs.innerHTML=`Es geht um ${x.skirm?'':'bis zu '}<b>${x.skirm?SKIRM_DMG:thronDmg(5)}</b> Thron`}else if(ld<0)bs.innerHTML='Ausgeglichen';else{const d=x.skirm?SKIRM_DMG:thronDmg(n[ld]);bs.className='bstake '+(ld===myIdx?'up':'dn');bs.innerHTML=ld===myIdx?`${Pe.short} verliert <b>${d}</b> Thron`:`Du verlierst <b>${d}</b> Thron`}}
     return{m:m/startTot[myIdx],e:e/startTot[enIdx],ld}};
   for(const s of[0,1])for(let i=0;i<5;i++)setStat(s,i,false);tug();
 
@@ -264,30 +271,97 @@ async function playBattle(x){
     c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit');
     if(kill){c.classList.add('doom')}
     if(h.a&&h.a[0]!==h.s){const k=key(h.a);dealt.set(k,(dealt.get(k)||0)+Math.max(0,h.d+Math.min(0,cur[h.s][h.i])));
-      if(kill){const n=(kills.get(k)||0)+1;kills.set(k,n);if(n>=2&&streaks++<2){const a=cardEl(h.a[0],h.a[1]);later(250,()=>callout(a,n===2?'Doppelschlag!':n===3?'Gemetzel!':'Unaufhaltsam!','gold'));S.clang()}}}
-    if(!kill&&cur[h.s][h.i]===1&&!said.has('1:'+key([h.s,h.i]))){said.add('1:'+key([h.s,h.i]));later(300,()=>callout(c,'Mit 1 Leben!','gold'))}
+      if(kill)kills.set(k,(kills.get(k)||0)+1)}
     tug()};
 
+  /* ---------- Angriffe: jede Kreatur bewegt sich anders, jedes Reich trifft in seinem Element ----------
+     Bewegung nach Stärke (Ratte knabbert, Keiler stürmt, Greif stößt von oben herab, Nachtmahr springt durch den Schatten …),
+     Element nach Reich: Sonnenwacht Licht, Aschelande Feuer, Nordmark Eis, Blutmoor Blut. */
+  const ELC=[{g:'rgba(255,244,205,1)',g2:'rgba(255,196,80,.45)',sl:'rgba(255,248,220,.95)'},{g:'rgba(255,180,90,1)',g2:'rgba(220,60,10,.5)',sl:'rgba(255,200,140,.95)'},
+    {g:'rgba(205,236,255,1)',g2:'rgba(70,150,255,.5)',sl:'rgba(225,245,255,.95)'},{g:'rgba(255,80,90,1)',g2:'rgba(90,0,20,.6)',sl:'rgba(255,140,140,.95)'}];
+  const elHit=(s,p,pw)=>{const e=ELC[s];
+    if(s===0){fx.glow(p.x,p.y,e.g,30+pw*40,16,e.g2);fx.ring(p.x,p.y,'rgba(255,235,170,.95)',p.w*(.6+pw*.6),20,1,4);
+      for(let i=0;i<10+pw*16;i++){const a=R(0,6.283),v=R(3,8);add({type:'line',x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,drag:.88,life:R(10,18),size:R(1.4,2.6),c:'rgba(255,240,190,1)',tail:5})}}
+    else if(s===1){fx.fire(p.x,p.y,.45+pw*.6)}
+    else if(s===2){fx.ice(p.x,p.y);if(pw>.4)fx.ring(p.x,p.y,'rgba(200,235,255,.9)',p.w*.9,20,.7,4)}
+    else{for(let i=0;i<14+pw*22;i++){const a=R(-3.1,0);add({type:'dot',x:p.x,y:p.y,vx:Math.cos(a)*R(1,5),vy:Math.sin(a)*R(2,6),ay:.35,drag:.97,life:R(22,40),size:R(1.5,3.6),c:Math.random()<.5?'#c0141f':'#5a0610'})}
+      fx.glow(p.x,p.y,'rgba(255,60,70,.7)',26+pw*30,12,'rgba(80,0,10,.5)')}};
+  /* Spur hinter der angreifenden Karte */
+  const trail=(el,ms,s,kind)=>{if(skip||RM)return;const e=ELC[s],end=performance.now()+D(ms);
+    const tick=()=>{if(skip)return;const p=ctr(el);
+      if(kind==='dust')add({type:'smoke',x:p.x+R(-8,8),y:p.y+p.h*.35,vx:R(-.4,.4),vy:R(-.6,0),life:R(24,40),size:R(10,18),grow:1,c:'rgba(120,90,60,.4)'});
+      else if(kind==='shadow')add({type:'smoke',x:p.x+R(-10,10),y:p.y+R(-14,14),vx:0,vy:-.3,life:R(20,34),size:R(12,22),grow:.8,c:'rgba(25,5,35,.55)'});
+      else if(kind==='feather')add({type:'shard',x:p.x+R(-10,10),y:p.y+R(-10,10),vx:R(-1,1),vy:R(-.5,.8),ay:.04,drag:.96,life:R(30,50),size:R(3,5),rot:R(0,6),vr:R(-.2,.2),c:s===0?'#f4ead0':'#1d1820',edge:'rgba(0,0,0,.4)'});
+      else add({type:'glow',x:p.x+R(-p.w/4,p.w/4),y:p.y+R(-p.h/4,p.h/4),vx:R(-.4,.4),vy:R(-.6,.2),life:R(14,26),size:R(2.5,5),c:e.g,c2:e.g2,shrink:1});
+      if(performance.now()<end)requestAnimationFrame(tick)};tick()};
+  const T=(x,y,sc=1,r=0,o)=>Object.assign({transform:`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${sc}) rotate(${r.toFixed(1)}deg)`},o||{});
+  const at=(v,k,side=0,sc=1,r=0,o)=>T(v.ux*v.L*k+v.px*side,v.uy*v.L*k+v.py*side,sc,r,o);
+  const slashes=(p,ang,n,col,gap=9,len=.9)=>{for(let i=0;i<n;i++){const o=(i-(n-1)/2)*gap;later(i*55,()=>fx.slash(p.x-Math.sin(ang)*o,p.y+Math.cos(ang)*o,ang+Math.PI/2+R(-.15,.15),p.w*len,col))}};
+  const MOVES={
+    /* Ratte: drei schnelle Bisse */
+    2:v=>({tot:700,hitAt:.5,trail:'glow',k:[T(0,0),at(v,.55,9,1.05,-8,{offset:.16}),at(v,.4,-9,1,6,{offset:.3}),at(v,1,0,1.1,0,{offset:.5}),at(v,.8,6,1.05,-9,{offset:.62}),at(v,1,-4,1.1,8,{offset:.74}),T(0,0)],
+      hit:(p,pw,ang)=>{for(let i=0;i<3;i++)later(i*110,()=>{fx.slash(p.x+R(-12,12),p.y+R(-14,14),ang+R(-1.2,1.2),p.w*.45,ELC[v.s].sl);fx.sparks(p.x,p.y,v.col,5,.5)})}}),
+    /* Krähe: hoch hinaus, dann im Sturzflug */
+    3:v=>({tot:760,hitAt:.58,trail:'feather',k:[T(0,0),T(-v.ux*10,-38,1.12,-18,{offset:.3}),at(v,.6,0,1.15,14,{offset:.46}),at(v,1,0,1.12,20,{offset:.58}),at(v,.7,0,1.05,0,{offset:.72}),T(0,0)],
+      hit:(p,pw,ang)=>{slashes(p,ang,2,ELC[v.s].sl,7,.7);for(let i=0;i<10;i++)add({type:'shard',x:p.x,y:p.y,vx:R(-3,3),vy:R(-4,1),ay:.12,drag:.95,life:R(30,55),size:R(3,5),rot:R(0,6),vr:R(-.3,.3),c:v.s===0?'#f4ead0':'#1d1820'})}}),
+    /* Keiler: Anlauf zurück, dann Sturmangriff geradeaus */
+    4:v=>({tot:760,hitAt:.55,trail:'dust',ease:'linear',k:[T(0,0),at(v,-.18,0,1.05,0,{offset:.32,easing:'ease-out'}),at(v,1.04,0,1.2,0,{offset:.55,easing:'ease-in'}),at(v,.9,0,1.1,0,{offset:.66}),T(0,0)],
+      hit:(p,pw,ang,tgt)=>{fx.ring(p.x,p.y+p.h*.3,'rgba(220,190,140,.8)',p.w*1.1,20,.35,5);tgt.animate([T(0,0),T(v.ux*16,v.uy*16,1,v.ux*6),T(0,0)],{duration:D(380),easing:'ease-out'})}}),
+    /* Wolf: Sprung im Bogen, dreifacher Prankenhieb */
+    5:v=>({tot:720,hitAt:.55,trail:'glow',k:[T(0,0),at(v,.1,0,.94,0,{offset:.18}),at(v,.55,-24,1.2,-12,{offset:.38}),at(v,1,0,1.15,0,{offset:.55}),at(v,.85,0,1.05,0,{offset:.7}),T(0,0)],
+      hit:(p,pw,ang)=>slashes(p,ang+.5,3,ELC[v.s].sl,10,.85)}),
+    /* Ghul: langsames Heranschleichen, dann der Biss */
+    6:v=>({tot:900,hitAt:.62,trail:'shadow',k:[T(0,0),at(v,.35,4,1.02,-3,{offset:.42,easing:'ease-in-out'}),at(v,.3,0,.96,0,{offset:.5}),at(v,1,0,1.18,0,{offset:.62}),at(v,.85,0,1.05,0,{offset:.74}),T(0,0)],
+      hit:(p,pw,ang)=>{fx.slash(p.x,p.y-p.h*.12,ang+Math.PI/2+.55,p.w*.9,ELC[v.s].sl);fx.slash(p.x,p.y+p.h*.12,ang+Math.PI/2-.55,p.w*.9,ELC[v.s].sl)}}),
+    /* Greif: steigt auf und stößt von oben herab */
+    7:v=>({tot:860,hitAt:.6,trail:'feather',k:[T(0,0),T(-v.ux*18,-70,1.35,-10,{offset:.34,easing:'ease-out'}),T(v.ux*v.L*.6,-50+v.uy*v.L*.6,1.3,8,{offset:.48,easing:'ease-in'}),at(v,1,0,1.2,0,{offset:.6}),at(v,.75,0,1.05,0,{offset:.74}),T(0,0)],
+      hit:(p,pw,ang)=>{fx.ring(p.x,p.y,'rgba(255,255,255,.85)',p.w*1.3,22,.55,4);slashes(p,ang,2,ELC[v.s].sl,8,1)}}),
+    /* Troll: holt weit aus und schmettert, der Boden bebt */
+    8:v=>({tot:980,hitAt:.6,shake:1.6,k:[T(0,0),at(v,-.08,0,1.22,-6,{offset:.38,easing:'ease-out'}),at(v,.95,0,1.28,4,{offset:.6,easing:'cubic-bezier(.7,0,1,1)'}),at(v,.85,0,1.1,0,{offset:.72}),T(0,0)],
+      hit:(p,pw,ang,tgt)=>{fx.ring(p.x,p.y+p.h*.2,'rgba(230,200,150,.85)',p.w*1.5,26,.3,7);fx.ring(p.x,p.y+p.h*.2,'rgba(255,240,210,.6)',p.w*.9,18,.3,4);
+        for(let i=0;i<14;i++)add({type:'shard',x:p.x+R(-p.w/2,p.w/2),y:p.y+p.h*.3,vx:R(-3,3),vy:R(-6,-2),ay:.3,drag:.97,life:R(24,40),size:R(2,4),rot:R(0,6),vr:R(-.3,.3),c:'#6b5a48'});
+        tgt.animate([{transform:'scale(1,1)'},{transform:'scale(1.12,.82)'},{transform:'scale(1,1)'}],{duration:D(360),easing:'ease-out'})}}),
+    /* Lindwurm: windet sich heran, Giftbiss */
+    9:v=>({tot:860,hitAt:.6,trail:'glow',k:[T(0,0),at(v,.22,16,1.05,10,{offset:.18}),at(v,.45,-16,1.08,-10,{offset:.33}),at(v,.7,12,1.1,8,{offset:.47}),at(v,1,0,1.15,0,{offset:.6}),at(v,.8,0,1.05,0,{offset:.72}),T(0,0)],
+      hit:(p,pw,ang)=>{fx.slash(p.x,p.y,ang+Math.PI/2,p.w*.8,ELC[v.s].sl);fx.poison(p.x,p.y)}}),
+    /* Riese: hebt einen Felsbrocken und wirft */
+    10:v=>({tot:1000,hitAt:.72,shake:1.4,k:[T(0,0),T(0,-10,1.18,-4,{offset:.36,easing:'ease-out'}),at(v,.1,0,1.06,3,{offset:.46}),T(0,0,1,0,{offset:.7}),T(0,0)],
+      proj:{at:.46,go:(a,b,ms)=>{const n=Math.max(1,ms/16.67),ay=.32;add({type:'shard',x:a.x,y:a.y-a.h*.3,vx:(b.x-a.x)/n,vy:(b.y-a.y+a.h*.3)/n-ay*n/2,ay,life:n,size:13,rot:0,vr:.25,c:'#7a6a58',edge:'#2a2018'})}},
+      hit:(p,pw)=>{fx.smokeRow({left:p.x-p.w*.7,right:p.x+p.w*.7,top:p.y-p.h*.2,bottom:p.y+p.h*.4},'rgba(120,100,80,.4)');for(let i=0;i<12;i++)add({type:'shard',x:p.x,y:p.y,vx:R(-4,4),vy:R(-5,1),ay:.3,drag:.97,life:R(24,40),size:R(3,6),rot:R(0,6),vr:R(-.3,.3),c:'#7a6a58',edge:'#2a2018'})}}),
+    /* Mantikor: dreht sich, der Stachel schießt hinüber */
+    11:v=>({tot:820,hitAt:.62,k:[T(0,0),at(v,-.08,8,1.1,-14,{offset:.3}),at(v,.12,0,1.06,10,{offset:.42}),T(0,0,1,0,{offset:.7}),T(0,0)],
+      proj:{at:.4,go:(a,b,ms)=>fx.bolt(a,b,ELC[v.s].g,ms)},hit:(p,pw,ang)=>fx.slash(p.x,p.y,ang,p.w*1.1,ELC[v.s].sl)}),
+    /* Nachtmahr: verschwindet im Schatten, taucht vor dem Ziel auf */
+    12:v=>({tot:980,hitAt:.6,trail:'shadow',k:[T(0,0),T(0,0,.75,0,{opacity:0,offset:.26}),at(v,.92,0,.8,0,{opacity:0,offset:.44}),at(v,1,0,1.18,0,{opacity:1,offset:.56}),at(v,1,0,1.1,0,{opacity:1,offset:.7}),at(v,1,0,.8,0,{opacity:0,offset:.82}),T(0,0,.8,0,{opacity:0,offset:.9}),T(0,0,1,0,{opacity:1})],
+      hit:(p,pw,ang)=>{fx.slash(p.x,p.y,ang+Math.PI/2+.8,p.w*1.2,'rgba(200,150,255,.95)');later(70,()=>fx.slash(p.x,p.y,ang+Math.PI/2-.8,p.w*1.2,'rgba(200,150,255,.95)'));fx.smokeRow(p.r,'rgba(60,20,90,.45)')}}),
+    /* Wyvern: blitzschneller Sturzflug */
+    13:v=>({tot:520,hitAt:.48,trail:'speed',k:[T(0,0),at(v,-.08,0,1.08,0,{offset:.2}),at(v,1,0,1.2,0,{offset:.48,easing:'ease-in'}),at(v,.85,0,1.08,0,{offset:.6}),T(0,0)],
+      hit:(p,pw,ang)=>{fx.slash(p.x,p.y,ang+Math.PI/2,p.w*1.4,ELC[v.s].sl);fx.ring(p.x,p.y,'rgba(255,255,255,.7)',p.w,16,.5,3)}}),
+    /* Drache: bäumt sich auf, ein Feuerstrahl im Element seines Reichs */
+    14:v=>({tot:1100,hitAt:.66,shake:1.3,k:[T(0,0),at(v,-.12,0,1.3,0,{offset:.3,easing:'ease-out'}),at(v,-.08,0,1.32,0,{offset:.62}),at(v,.1,0,1.15,0,{offset:.72}),T(0,0)],
+      proj:{at:.32,go:(a,b,ms)=>{const e=ELC[v.s],n=Math.max(4,ms/16.67);let k=0;const tick=()=>{if(skip||k++>n)return;for(let j=0;j<5;j++)add({type:'glow',x:a.x+R(-6,6),y:a.y+R(-6,6),vx:(b.x-a.x)/22+R(-1.4,1.4),vy:(b.y-a.y)/22+R(-1.4,1.4),drag:.995,life:R(20,26),size:R(4,9),c:Math.random()<.35?'rgba(255,250,230,.95)':e.g,c2:e.g2});requestAnimationFrame(tick)};tick()}},
+      hit:(p,pw)=>{elHit(v.s,p,1);fx.glow(p.x,p.y,ELC[v.s].g,60,20,ELC[v.s].g2)}}),
+    /* Rückfall: Ausfallschritt */
+    0:v=>({tot:520,hitAt:.6,k:[T(0,0),at(v,-.06,0,1.14,v.ux*-4,{offset:.32}),at(v,1,0,1.2,v.ux*3,{offset:.6}),at(v,.82,0,1.12,0,{offset:.72}),T(0,0)],hit:(p,pw,ang)=>fx.slash(p.x,p.y,ang+R(-.5,.5)+Math.PI/2,p.w*1.5)})};
+
   const doAttack=async(act,slow)=>{const {a,main}=act,att=cardEl(a[0],a[1]),tgt=cardEl(main.s,main.i);if(!att||!tgt)return;
-    const s=scaleOf(),A0=ctr(att),T0=ctr(tgt),dx=(T0.x-A0.x)/s,dy=(T0.y-A0.y)/s,dist=Math.hypot(dx,dy)||1,ux=dx/dist,uy=dy/dist;
-    const reach=Math.max(0,dist-(A0.h/s)*.62),tot=slow?1500:520,hitAt=.6;
+    const f=teams[a[0]][a[1]],s=f.c.s,sc=scaleOf(),A0=ctr(att),T0=ctr(tgt),dx=(T0.x-A0.x)/sc,dy=(T0.y-A0.y)/sc,dist=Math.hypot(dx,dy)||1,ux=dx/dist,uy=dy/dist;
+    const v={ux,uy,px:-uy,py:ux,L:Math.max(0,dist-(A0.h/sc)*.62),s,col:REALM[s].col},m=(MOVES[f.c.r]||MOVES[0])(v),tot=m.tot*(slow?2.2:1);
     att.parentNode.classList.add('act');
-    const fin=att.animate([{transform:'translate(0,0) scale(1) rotate(0)'},{transform:`translate(${-ux*14}px,${-uy*14}px) scale(1.14) rotate(${ux*-4}deg)`,offset:.32},
-      {transform:`translate(${ux*reach}px,${uy*reach}px) scale(1.2) rotate(${ux*3}deg)`,offset:hitAt},{transform:`translate(${ux*reach*.82}px,${uy*reach*.82}px) scale(1.12)`,offset:.72},
-      {transform:'translate(0,0) scale(1) rotate(0)'}],{duration:D(tot),easing:'cubic-bezier(.45,0,.25,1)'});
-    later(tot*.3,()=>S.whoosh(slow?1.4:1));
-    await wait(tot*hitAt);
+    const fin=att.animate(m.k,{duration:D(tot),easing:m.ease||'cubic-bezier(.45,0,.25,1)'});
+    later(tot*m.hitAt*.55,()=>S.whoosh(slow?1.4:1));if(m.trail)trail(att,tot*m.hitAt,s,m.trail);
+    if(m.proj)later(tot*m.proj.at,()=>{if(!skip)m.proj.go(ctr(att),ctr(tgt),D(tot*(m.hitAt-m.proj.at)))});
+    await wait(tot*m.hitAt);
     /* Treffer */
-    const p=ctr(tgt),col=REALM[teams[a[0]][a[1]].s].col,dmg=main.sh?0:main.d,pw=Math.min(1,dmg/Math.max(8,maxHp(main.s,main.i)*.5));
-    if(!skip){fx.slash(p.x,p.y,Math.atan2(uy,ux)+R(-.5,.5)+Math.PI/2,p.w*1.5);fx.sparks(p.x,p.y,col,10+pw*18,.8+pw);fx.glow(p.x,p.y,'rgba(255,245,220,.8)',18+pw*26,10,'rgba(255,200,140,.15)');
-      if(pw>.5)fx.ring(p.x,p.y,'rgba(255,230,190,.9)',p.w*.9,18,.6);if(teams[a[0]][a[1]].frost&&!main.sh)fx.ice(p.x,p.y)}
-    if(!main.sh)S.impact(slow?1:pw);shake(slow?1:pw*.8);vib(slow?[60,30,90]:Math.round(15+pw*40));
-    applyHit(main,{crit:slow});for(const h of act.extra){applyHit(h);const q=ctr(cardEl(h.s,h.i)||tgt);if(!skip)fx.sparks(q.x,q.y,'#ffb070',8,.7)}
+    const p=ctr(tgt),ang=Math.atan2(uy,ux),dmg=main.sh?0:main.d,pw=Math.min(1,dmg/Math.max(8,maxHp(main.s,main.i)*.5));
+    if(!skip){elHit(s,p,pw);if(m.hit)m.hit(p,pw,ang,tgt);if(f.frost&&!main.sh)fx.ice(p.x,p.y)}
+    if(!main.sh)S.impact(slow?1:pw);shake(Math.min(1,(slow?1:pw*.8)*(m.shake||1)));vib(slow?[60,30,90]:Math.round(15+pw*40));
+    applyHit(main,{crit:slow});for(const h of act.extra){applyHit(h);const q=ctr(cardEl(h.s,h.i)||tgt);if(!skip)elHit(s,q,.3)}
     if(act.last)callout(att,'Todesstoß!','blood');
-    if(slow&&!skip){flash(`radial-gradient(circle at ${(p.x/innerWidth*100).toFixed(0)}% ${(p.y/innerHeight*100).toFixed(0)}%,rgba(255,255,255,.95),rgba(255,230,190,.25) 35%,transparent 70%)`,.85,600);fx.ring(p.x,p.y,'rgba(255,255,255,.95)',p.w*2.2,30,.7,8);fx.sparks(p.x,p.y,'#fff',40,1.8)}
+    if(slow&&!skip){flash(`radial-gradient(circle at ${(p.x/innerWidth*100).toFixed(0)}% ${(p.y/innerHeight*100).toFixed(0)}%,rgba(255,255,255,.95),rgba(255,230,190,.25) 35%,transparent 70%)`,.85,600);fx.ring(p.x,p.y,'rgba(255,255,255,.95)',p.w*2.2,30,.7,8);elHit(s,p,1)}
     /* Trefferstopp: bei großen Treffern friert das Bild kurz ein */
     if(pw>.55&&!skip){fin.pause();await wait(slow?260:90);fin.play()}
-    later(tot*(1-hitAt),()=>att.parentNode.classList.remove('act'))};
+    later(tot*(1-m.hitAt),()=>att.parentNode.classList.remove('act'))};
 
   const doBolt=async act=>{const att=cardEl(act.a[0],act.a[1]),h=act.hits[0],tgt=cardEl(h.s,h.i);if(!att||!tgt)return;
     const f=teams[act.a[0]][act.a[1]],from=ctr(att),to=ctr(tgt);bump(att);
@@ -329,11 +403,10 @@ async function playBattle(x){
       else if(e.t==='grow'&&c){callout(c,'+'+e.n+'/+'+e.n,'dark');await wait(100)}
       else if(e.t==='buff'){S.rage();slots(e.s).forEach((sl,i)=>{if(alive[e.s][i]){const q=ctr(sl.querySelector('.card'));if(!skip)fx.glow(q.x,q.y,'rgba(255,230,150,.9)',40,20)}});callout(slots(e.s)[2].querySelector('.card'),'Herold: alle +'+e.n+' Angriff','gold');await wait(260)}}}};
 
-  const mid=kind=>{const L=MID[opp];if(skip||!L||midN>=2||Math.random()<.4)return;midN++;const h=B.querySelector('.bhero.e');if(!h)return;
+  const mid=kind=>{const L=MID[opp];if(skip||!L||midN>=1||Math.random()<.5)return;midN++;const h=B.querySelector('.bhero.e');if(!h)return;
     const d=document.createElement('div');d.className='bsay';d.textContent='»'+L[kind][Math.floor(Math.random()*L[kind].length)]+'«';h.appendChild(d);setTimeout(()=>d.remove(),D(2200)+100)};
   /* Nach jedem Schlagabtausch: erstes Blut, Wende, Duell */
   const story=async fell=>{if(skip)return;
-    if(fell.length&&!blood){blood=true;const[s,i]=fell[0];callout(cardEl(s,i),'Erstes Blut!','blood');await wait(300)}
     if(fell.some(([s])=>s===enIdx))mid('autsch');else if(fell.some(([s])=>s===myIdx))mid('treffer');
     const t=tug();if(t.ld>=0){if(leadBy&&t.ld!==leadBy&&turned<2){turned++;stamp(t.ld===myIdx?'Das Blatt wendet sich':'Der Gegner dreht es','','sm wende');S.rise();await wait(900)}leadBy=t.ld}
     const n=[0,1].map(s=>alive[s].filter(Boolean).length);

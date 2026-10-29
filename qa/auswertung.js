@@ -2,7 +2,7 @@
 /* Wertet qa/spiel.json aus: Kennzahlen je Lauf und Prüfungen für Spielablauf und Spielspaß.
    Spielzeit = gemessene Wartezeit im Spiel (KI, Animationen, Kämpfe) plus angenommene Bedenkzeit des Menschen. */
 const fs=require('fs'),path=require('path');
-const THINK={bet:4,sac:6,lineup:6,order:5,tavern:12,buy:3};  // Sekunden Bedenkzeit je Entscheidung (Annahme)
+const THINK={bet:4,sac:6,lineup:6,order:5,tavern:12,buy:3,draft:4};  // Sekunden Bedenkzeit je Entscheidung (Annahme)
 const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0,pct=(a,f)=>a.length?100*a.filter(f).length/a.length:0;
 
 function run(R){const G=R.games,B=G.flatMap(g=>g.battles),H=G.flatMap(g=>g.hands);
@@ -15,7 +15,7 @@ function run(R){const G=R.games,B=G.flatMap(g=>g.battles),H=G.flatMap(g=>g.hands
     ende:{raus:pct(G,g=>g.res.end==='raus'),allein:pct(G,g=>g.res.end==='allein'),zeit:pct(G,g=>g.res.end==='zeit')},
     naechte:avg(per),minuten:avg(mins),minMin:Math.min(...mins),maxMin:Math.max(...mins),
     showdownTisch:pct(H,h=>h.sd),showdownIch:pct(H,h=>h.sdMe),gegnerImShowdown:avg(H.filter(h=>h.sd).map(h=>h.nSd)),
-    kaempfeIch:avg(G.map(g=>g.battles.filter(b=>b.me).length)),kaempfeJeNacht:avg(G.map(g=>g.battles.filter(b=>b.me).length/g.hands.length)),
+    kaempfeIch:avg(G.map(g=>g.bt.length)),scharmuetzel:avg(G.map(g=>g.skirm||0)),kaempfeJeNacht:avg(G.map(g=>g.battles.filter(b=>b.me).length/g.hands.length)),
     runden:avg(B.map(b=>b.rounds)),knapp:pct(B.filter(b=>b.w>=0),b=>b.surv<=1),wende:pct(B.filter(b=>b.w>=0),b=>b.comeback),
     fuehrungswechsel:avg(B.map(b=>b.lc)),ueberraschung:pct(B.filter(b=>b.cats[0]!==b.cats[1]),b=>b.upset),patt:pct(B,b=>b.w<0),
     zuschauSek:avg(G.flatMap(g=>g.bt))/1000,

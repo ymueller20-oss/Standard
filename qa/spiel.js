@@ -14,10 +14,6 @@ const RUNS=[
   {id:'profi',strat:'profi',v:'Standard'},
   {id:'passiv',strat:'passiv',v:'Standard'},
   {id:'zufall',strat:'zufall',v:'Standard'},
-  {id:'kurz',strat:'ki',v:'8 Nächte, Zoll steigt alle 2',rep:[['MAX_HANDS=12','MAX_HANDS=8'],['HAND_EVERY=3','HAND_EVERY=2'],['DMG_EVERY=3','DMG_EVERY=2']]},
-  {id:'pleite',strat:'ki',v:'Pleite kostet 8 Thron statt Aus (Schuldschein über 150 Gold)',rep:[['for(const p of G.players)if(!p.out&&(p.stack<=0||p.thron<=0)){p.out=true;p.inHand=false}','for(const p of G.players){if(!p.out&&p.stack<=0&&p.thron>8){p.thron-=8;p.stack=150}if(!p.out&&(p.stack<=0||p.thron<=0)){p.out=true;p.inHand=false}}']]},
-  {id:'schaden',strat:'ki',v:'Doppelter Thron-Schaden je verlorenem Kampf',rep:[['rec.dmg=1+alive+bonus','rec.dmg=2*(1+alive+bonus)']]},
-  {id:'hart',strat:'ki',v:'Thron 20 statt 30',rep:[['START_THRON=30','START_THRON=20']]},
 ];
 
 function bot(strat){
@@ -28,13 +24,13 @@ function bot(strat){
   const score=p=>p.out?-1:p.stack+10*p.thron;
   const ob=battle;battle=function(A,B,rec){const r=ob(A,B,rec);if(rec)pend.push(r);return r};
   const oh=playHand;playHand=async function(){
-    const h={n:G.hand+1};await oh();
+    const h={n:G.hand+1};pend=[];await oh();
     const p0=me();h.in=p0.inHand;h.fold=p0.folded;h.board=G.board.length;
     h.sd=!!G._sd;h.sdMe=!!G._sdMe;h.nSd=G._nSd||0;G._sd=G._sdMe=false;G._nSd=0;
     h.sc=G.players.map(score);h.th=G.players.map(p=>p.out?0:p.thron);Q.hands.push(h)};
   coach=()=>Promise.resolve();
   /* Kampfanimation läuft echt mit; am Ende tippt der Bot auf »Weiter«. Gemessen wird die Zuschauzeit. */
-  const opb=playBattle;playBattle=function(x){const t=Date.now(),pr=opb(x);
+  const opb=playBattle;playBattle=function(x){const t=Date.now(),pr=opb(x);if(x.skirm)Q.skirm=(Q.skirm||0)+1;
     const iv=setInterval(()=>{const b=document.querySelector('#ov [data-x="next"]');if(b){if(!x._t){x._t=1;Q.bt.push((Date.now()-t)/0.04)}b.click()}},20);
     return pr.then(v=>{clearInterval(iv);return v})};
   ask=function(mode,d){const p=me();
@@ -53,6 +49,8 @@ function bot(strat){
       if(strat==='zufall')return Promise.resolve(pick(p.hole));
       let bi=0,bs=-1;p.hole.forEach((c,i)=>{const sc=bestScore(p.hole.filter((_,j)=>j!==i).concat(G.board));if(sc>bs||(sc===bs&&c.r<p.hole[bi].r)){bs=sc;bi=i}});
       return Promise.resolve(p.hole[bi])}
+    if(mode==='draft'){Q.dec.draft=(Q.dec.draft||0)+1;
+      if(strat==='zufall')return Promise.resolve(pick(d.offer));if(strat==='passiv')return Promise.resolve(d.offer[0]);return Promise.resolve(aiDraft(p,d.offer))}
     if(mode==='lineup'){Q.dec.lineup++;G._sdMe=true;
       if(strat==='zufall'){const a=d.cards.slice().sort(()=>Math.random()-.5);return Promise.resolve(a.slice(0,5))}
       if(strat==='passiv')return Promise.resolve(d.cards.filter(c=>d.sel.includes(c.id)));

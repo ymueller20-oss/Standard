@@ -826,3 +826,50 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .bend .mvp{position:relative;z-index:1;padding:4px 12px;border-radius:4px;background:rgba(20,12,6,.75);box-shadow:0 0 0 1px rgba(232,200,120,.6);font:400 .95rem/1.2 var(--f-fell);color:#f3e4c0}
 .bend .mvp b,.bend.w .mvp b,.bend.l .mvp b{font:700 1rem/1 var(--f-got);color:#ffd25a;background:none;-webkit-text-fill-color:currentColor;filter:none;text-shadow:none}
 @media (prefers-reduced-motion:reduce){.bsay{animation:none}}
+/* Kartenwahl */
+.sheet.draft .dhand{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 14px;--cw:46px}
+.sheet.draft .dhand span{font:italic 400 .95rem var(--f-fell);color:var(--ink-soft);margin-right:4px}
+.sheet.draft .dpick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;justify-items:center}
+.sheet.draft .dp{--cw:min(104px,26vw);background:none;border:0;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;border-radius:6px;font:inherit;color:inherit}
+.sheet.draft .dp small{font:400 .85rem/1.15 var(--f-fell);color:var(--ink-soft);text-align:center;min-height:2.3em}
+.sheet.draft .dp:hover,.sheet.draft .dp:focus-visible{background:rgba(180,130,50,.15);outline:2px solid rgba(180,130,50,.6)}
+.offer .hint .warnx{color:#b3200f;font-weight:600}
+/* ================= Kampfkarte: randloses Bild, Reichsrahmen, große Werte ================= */
+#battle .card.bc{padding:0;background:#000;border-radius:7px;overflow:visible;
+  box-shadow:0 0 0 2.5px var(--bc),0 0 0 4px #0b0705,0 0 14px 1px var(--bg),0 6px 10px rgba(0,0,0,.6)}
+#battle .card.bc.r3{box-shadow:0 0 0 2.5px #2a1a2c,0 0 0 3.5px #c0263a,0 0 14px 2px var(--bg),0 6px 10px rgba(0,0,0,.6)}
+#battle .card.bc .ba{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%;border-radius:7px;filter:saturate(1.2) contrast(1.1) brightness(1.06)}
+#battle .card.bc::after{content:'';position:absolute;inset:0;border-radius:7px;pointer-events:none;background:linear-gradient(transparent 52%,rgba(0,0,0,.78) 100%)}
+#battle .card.bc .brk{position:absolute;z-index:3;top:-7px;left:-7px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;
+  font:700 14px/1 var(--f-ttl);color:#1a1210;background:var(--bc);box-shadow:0 0 0 2px #0b0705,0 2px 4px rgba(0,0,0,.6)}
+#battle .card.bc.r3 .brk{color:#ffd9de;background:#3a1420;box-shadow:0 0 0 2px #c0263a,0 2px 4px rgba(0,0,0,.6)}
+#battle .card.bc .brl{position:absolute;z-index:3;top:-6px;right:-6px;width:21px;height:21px;display:grid;place-items:center;border-radius:50%;background:#0b0705;color:var(--bc);box-shadow:0 0 0 1.5px var(--bc)}
+#battle .card.bc.r3 .brl{color:#ff5a6a;box-shadow:0 0 0 1.5px #c0263a}
+#battle .card.bc .brl svg{width:13px;height:13px}
+#battle .card.bc .bnm{position:absolute;z-index:2;left:2px;right:2px;bottom:21px;text-align:center;font:600 9px/1 var(--f-fsc);letter-spacing:.04em;color:#f6ead0;text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#battle .card.bc .at,#battle .card.bc .hpb{position:absolute;z-index:4;bottom:-9px;min-width:27px;height:27px;padding:0 3px;display:grid;place-items:center;
+  font:800 17px/1 var(--f-ttl);font-style:normal;color:#fff;text-shadow:0 1px 0 #000,0 0 3px #000;font-variant-numeric:tabular-nums}
+#battle .card.bc .at{left:-8px;border-radius:50% 50% 50% 8px;background:radial-gradient(circle at 35% 30%,#ffe9a0,#d99a1c 60%,#7a4a08);box-shadow:0 0 0 2px #0b0705,0 2px 4px rgba(0,0,0,.6)}
+#battle .card.bc .hpb{right:-8px;border-radius:50% 50% 8px 50%;background:radial-gradient(circle at 35% 30%,#ff9a8a,#d02a1a 60%,#6e0a04);box-shadow:0 0 0 2px #0b0705,0 2px 4px rgba(0,0,0,.6)}
+#battle .card.bc .at.bump,#battle .card.bc .hpb.bump{animation:sbump .35s cubic-bezier(.2,1.6,.4,1)}
+#battle .card.bc.sup .ba{filter:saturate(1.05) contrast(1.05) brightness(.95)}
+#battle .card.bc.shd::before{inset:-6px;border-radius:12px;box-shadow:0 0 0 2.5px #ffe79a,0 0 16px 5px rgba(255,214,110,.9),inset 0 0 14px rgba(255,230,150,.7)!important}
+#battle .card.bc.dead .at,#battle .card.bc.dead .hpb,#battle .card.bc.dead .bnm{opacity:0;transition:opacity .3s}
+#battle .card.bc .cvr{border-radius:7px}
+#battle.sd .slotc .hpb2{bottom:-15px;left:22%;right:22%;height:4px}
+#battle .card.bc .brk{top:3px;left:3px;width:21px;height:21px;font-size:13px}
+#battle .card.bc .brl{top:3px;right:3px;width:19px;height:19px}
+#battle .card.bc .at{left:1px;bottom:-8px}#battle .card.bc .hpb{right:1px;bottom:-8px}
+#battle .card.bc .at,#battle .card.bc .hpb{min-width:25px;height:25px;font-size:16px}
+#battle.sd .lanes{gap:6px;--cw:68px}
+/* Siegchance am Tisch: die wichtigste Zahl, groß und farbig */
+.eqm{display:flex;align-items:center;gap:12px;margin:0 6px 8px;padding:6px 12px;border-radius:8px;background:rgba(15,9,4,.78);box-shadow:0 0 0 1.5px var(--eqc),0 0 14px rgba(0,0,0,.5)}
+.eqm{--eqc:#c0402a}.eqm.g{--eqc:#7cc05a}.eqm.s{--eqc:#ffd25a}
+.eqm>b{font:800 2.3rem/1 var(--f-ttl);color:var(--eqc);text-shadow:0 2px 0 #000;min-width:2.6em;text-align:right}
+.eqm>b small{font-size:.5em;margin-left:1px}
+.eqx{flex:1;min-width:0;display:grid;gap:4px}
+.eqx span{font:400 .8rem/1 var(--f-fsc);letter-spacing:.06em;color:#e8d9b4}
+.eqx em{font:italic 600 .95rem/1.1 var(--f-fell);color:var(--eqc)}
+.eqb{position:relative;height:9px;border-radius:5px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6)}
+.eqb>i:first-child{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--eqc);box-shadow:0 0 8px var(--eqc)}
+.eqn{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:#fff;border-radius:2px;box-shadow:0 0 0 1px #000}

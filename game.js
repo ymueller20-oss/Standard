@@ -95,7 +95,10 @@ const saveMeta=()=>{try{localStorage.setItem('at-fame',FAME);localStorage.setIte
 const BLINDS=[10,15,20,25,30,40,50];
 const ZOLL=1,ANTE_F=0;  // Kriegszoll (Blinds): kleiner = ZOLL/2, großer = ZOLL Einsätze; Ante-Anteil am Einsatz
 const HEER_CAP=2;  // Heerlager: so viele dauerhafte Söldner-Karten stehen jeder Nacht zusätzlich zur Wahl
-const START_GOLD=500,START_THRON=30,HAND_EVERY=3,MAX_HANDS=12,DMG_EVERY=3;  // Format per Simulation geprüft: siehe README
+const START_GOLD=500,START_THRON=30,HAND_EVERY=2,MAX_HANDS=8,DMG_EVERY=2;  // Format per Simulation geprüft: siehe qa/spiel.js
+const DMG_X=2,FINAL_X=2,SKIRM_DMG=1,SCHULD=8,SCHULD_GOLD=150;  // Thron-Schaden ×2, Krönungsnacht (letzte Nacht) nochmal ×2, Scharmützel kostet 1 Thron, Schuldschein: 8 Thron gegen 150 Gold
+/* Thron-Schaden eines verlorenen Kampfs: 1 + Überlebende des Siegers + Nacht-Zuschlag, verdoppelt, in der Krönungsnacht nochmals */
+const thronDmg=alive=>(1+alive+Math.floor((G.hand-1)/DMG_EVERY))*DMG_X*(G.hand>=MAX_HANDS?FINAL_X:1);
 
 /* ---------- Helfer ---------- */
 const $=s=>document.querySelector(s);
@@ -223,10 +226,11 @@ const TUT={on:false,seen:new Set()};
 try{TUT.on=!localStorage.getItem('kk-tut')}catch(e){}
 if(QA&&!/[?&]tut\b/.test(location.search))TUT.on=false;
 const TIPS={
-  start:['#hand','Deine Hand','Unten liegen deine drei Karten. Tippe eine an, um sie groß zu sehen. Zwölf Nächte lang spielst du um Gold – wer am Ende das meiste hat und dessen Thron noch steht, trägt die Krone.'],
+  start:['#hand','Deine Hand','Unten liegen deine drei Karten: zwei gezogen, eine gewählt. Tippe eine an, um sie groß zu sehen. Acht Nächte lang spielst du um Gold – wer am Ende das meiste hat und dessen Thron noch steht, trägt die Krone.'],
   bet:['#ctrl','Setzen wie beim Poker','Vor dem Flop zahlen die zwei Plätze nach dem Geber den Kriegszoll. Danach gehst du mit, erhöhst oder fliehst. Über den Knöpfen steht deine Gewinnchance: liegt sie klar über dem fairen Anteil, lohnt sich Druck.'],
   flop:['#table','Der Flop','Die offenen Karten in der Mitte gehören allen. Nach dem Opfer kommen noch zwei dazu.'],
   syn:['#read','Synergien','Leuchtende Karten passen zusammen. Zwei Karten aus demselben Reich oder ein kleiner Unterstützer, der deine Kombo ergänzt, machen dein Team deutlich stärker.'],
+  draft:[null,'Kartenwahl','Jede Nacht ziehst du zwei Karten und wählst die dritte aus drei offenen. Unter jeder Karte steht, was sie aus deiner Hand macht.'],
   sac:['#hand','Das Opfer','Jetzt musst du eine Handkarte opfern. Alle sehen sie – also auch, was dir fehlt. Opfere die Karte, die deinem Team am wenigsten bringt.'],
   lineup:['#hand','Showdown: dein Team','Wähle 5 deiner 7 Karten aus Hand, Tisch und Heerlager. Deine Pokerkombo wird zur Formation: je besser die Kombo, desto stärker alle Kämpfer. »Stärkstes Team« wählt für dich.'],
   order:[null,'Die Schlachtreihe','Jede Karte kämpft gegen die gegenüber, links beginnt. Tippe zwei Karten, um sie zu tauschen – etwa einen Leibwächter nach vorn.'],
@@ -260,6 +264,9 @@ async function runGame(){
   const me=G.players[0];
   while(true){
     await playHand();
+    await skirmish();
+    /* Pleite heißt nicht sofort raus: ein Schuldschein kostet Thron-Leben. Erst wer auch das nicht mehr hat, fällt */
+    for(const p of G.players)if(!p.out&&p.stack<=0&&p.thron>SCHULD){p.thron-=SCHULD;p.stack=SCHULD_GOLD;if(p.human){render();await banner('Schuldschein',`${SCHULD} Thron für ${SCHULD_GOLD} Gold`,1600)}else p.say='Schuldschein'}
     for(const p of G.players)if(!p.out&&(p.stack<=0||p.thron<=0)){p.out=true;p.inHand=false}
     render();
     const alive=G.players.filter(p=>!p.out);
@@ -276,14 +283,16 @@ async function playHand(){
   const lvl=Math.min(BLINDS.length-1,Math.floor((G.hand-1)/HAND_EVERY));G.bb=BLINDS[lvl];G.ante=Math.round(G.bb*ANTE_F);
   do{G.dealer=(G.dealer+1)%G.players.length}while(G.players[G.dealer].out);
   const deck=shuffle(FULL.slice());
-  if(TUT.on&&G.hand===1)for(const id of['13-0','13-2','4-0'].reverse()){const i=deck.findIndex(c=>c.id===id);deck.unshift(deck.splice(i,1)[0])}  /* Lehrstunde: ein Königspaar mit Unterstützer zum Einstieg */
+  if(TUT.on&&G.hand===1)for(const id of['13-0','13-2'].reverse()){const i=deck.findIndex(c=>c.id===id);deck.unshift(deck.splice(i,1)[0])}  /* Lehrstunde: ein Königspaar mit Unterstützer zum Einstieg */
   for(const p of G.players){p.hole=[];p.sac=[];p.folded=false;p.bet=0;p.say='';p.team=null;p.peek=null;p.loot=0;p.inHand=!p.out;
     if(p.inHand&&G.ante){const a=Math.min(p.stack,G.ante);p.stack-=a;G.pot+=a}}
-  for(const p of G.players)if(p.inHand){p.hole=deck.splice(0,p.fourth?4:3);p.fourth=0}
+  for(const p of G.players)if(p.inHand){p.hole=deck.splice(0,p.fourth?3:2);p.fourth=0}
   G.deck=deck;
   const me=G.players[0];if(me.raven&&me.inHand){for(const p of G.players.slice(1))if(p.inHand)p.peek=p.hole[rnd(p.hole.length)];me.raven=0}
   au('music','tisch');au('sting','nacht',.8);au('sfx','mischen',{vol:.8,at:.2});
   render();await sleep(900);
+  if(G.hand===MAX_HANDS)await banner('Krönungsnacht','Letzte Nacht · doppelter Thron-Schaden',1500);
+  await draft();
   await coach('start');
   await betRound();if(await soleWinner())return;
   await banner('Der Flop','',G.fast?0:800);
@@ -295,6 +304,40 @@ async function playHand(){
   G.board.push(...G.deck.splice(0,2));[0,.14].forEach(t=>au('sfx','karte',{vol:.8,at:t}));render();await sleep(600);
   await betRound();if(await soleWinner())return;
   await showdown()}
+
+/* ---------- Kartenwahl: jeder nimmt eine von drei Karten auf die Hand, der Rest wandert unter den Stapel ---------- */
+async function draft(){
+  for(const p of G.players){if(!p.inHand)continue;
+    const offer=G.deck.splice(0,3);
+    if(p.human&&TUT.on&&G.hand===1){const i=G.deck.findIndex(c=>c.id==='4-0');if(i>=0){G.deck.push(offer.pop());offer.unshift(G.deck.splice(i,1)[0])}}  /* Lehrstunde: der Keiler-Unterstützer liegt zur Wahl */
+    let c;
+    if(p.human){const pr=ask('draft',{offer});if(G.ui&&G.ui.mode==='draft')draftOv(offer,p);await coach('draft');c=await pr;au('sfx','karte',{vol:.8})}
+    else c=aiDraft(p,offer);
+    p.hole.push(c);for(const x of offer)if(x!==c)G.deck.push(x)}
+  render()}
+function aiDraft(p,offer){let best=offer[0],bv=-1;
+  for(const c of offer){let v=c.r+Math.random()*3;
+    for(const h of p.hole){if(h.r===c.r)v+=40;if(h.s===c.s)v+=6;const d=Math.abs(h.r-c.r);if(d===1)v+=8;else if(d===2)v+=4}
+    if(v>bv){bv=v;best=c}}return best}
+function draftOv(offer,p){
+  showOv(`<div class="sheet draft"><h2>Kartenwahl</h2><p class="k">Nimm eine Karte auf die Hand. Die anderen beiden wandern unter den Stapel.</p>
+    <div class="dhand"><span>Deine Hand</span>${p.hole.map(c=>cardHTML(c,{cls:'xs',up:upOf(p,c)})).join('')}</div>
+    <div class="dpick">${offer.map((c,i)=>`<button class="dp" data-i="${i}" aria-label="${NAME[c.r]} nehmen">${cardHTML(c,{up:upOf(p,c)})}<small>${handLabel(p.hole.concat(c))}</small></button>`).join('')}</div></div>`,true);
+  $('#ov').onclick=e=>{const b=e.target.closest('.dp');if(!b)return;hideOv();snd('click');done(offer[+b.dataset.i])}}
+
+/* ---------- Scharmützel: wer geflohen ist, kämpft trotzdem, gegen einen anderen Geflohenen, um Thron und etwas Beute ---------- */
+async function skirmish(){
+  const me=G.players[0],F=shuffle(G.players.filter(p=>p.inHand&&p.folded&&!p.out));
+  const i=F.indexOf(me);if(i>0){F.splice(i,1);F.unshift(me)}
+  if(F.length<2)return;
+  const fill=G.board.concat(G.deck.slice(0,Math.max(0,5-G.board.length)));  /* fehlende Tafelkarten werden für das Scharmützel aufgedeckt */
+  for(let k=0;k+1<F.length;k+=2){const A=F[k],B=F[k+1];
+    for(const p of[A,B]){let five=pickTeam(p.hole.concat(fill,p.heer),p.up).five;five=mkTeam(five,p.up).team.map(f=>f.c);p.team=mkTeam(five,p.up,true)}
+    const r=battle(A.team.team,B.team.team,true),rec={A,B,r,w:r.w,skirm:true};
+    if(r.w>=0){const Wn=r.w===0?A:B,Lo=r.w===0?B:A;rec.dmg=SKIRM_DMG;if(Lo.shield){rec.dmg=0;rec.shield=true;Lo.shield=0}
+      Lo.thron=Math.max(0,Lo.thron-rec.dmg);const loot=Math.round(G.bb/2);Wn.stack+=loot;if(!Wn.human)Wn.say='Scharmützel gewonnen';if(!Lo.human)Lo.say=rec.dmg?'−'+rec.dmg+' Thron':''}
+    if(A===me){au('music','showdown');await banner('Scharmützel','Geflohene kämpfen um '+SKIRM_DMG+' Thron',1100);await playBattle(rec);au('music','tisch')}}
+  render()}
 
 async function soleWinner(){
   const l=live();if(l.length>1)return false;
@@ -395,7 +438,7 @@ async function showdown(){
     const A=L[i],B=L[j],r=battle(A.team.team,B.team.team,true),last=r.snaps[r.snaps.length-1];
     const aliveA=last.st[0].filter(x=>x.alive).length,aliveB=last.st[1].filter(x=>x.alive).length;
     const rec={A,B,r,w:r.w};pairs.push(rec);const bonus=Math.floor((G.hand-1)/DMG_EVERY);
-    const hit=(Wn,Lo,alive)=>{wins.set(Wn,wins.get(Wn)+1);rec.dmg=1+alive+bonus;if(Lo.shield){rec.dmg=0;rec.shield=true;Lo.shield=0}
+    const hit=(Wn,Lo,alive)=>{wins.set(Wn,wins.get(Wn)+1);rec.dmg=thronDmg(alive);if(Lo.shield){rec.dmg=0;rec.shield=true;Lo.shield=0}
       dmg.set(Lo,(dmg.get(Lo)||0)+rec.dmg);const loot=Math.round(G.bb/2)*(1+(Wn.bounty||0));Wn.stack+=loot;Wn.loot=(Wn.loot||0)+loot};
     if(r.w===0)hit(A,B,aliveA);else if(r.w===1)hit(B,A,aliveB)}
   const mine=pairs.filter(x=>x.A===me||x.B===me);
@@ -549,8 +592,7 @@ function rTable(){G.syn=null;G.sy=null;{const me=G.players[0];if(!me.out&&me.inH
   const me=G.players[0];let r='';
   if(!me.out&&me.inHand&&!me.folded&&me.hole.length){
     const cs=me.hole.concat(G.board);r=`<b>${handLabel(cs)}</b>`;const all7=cs.concat(me.heer);if(all7.length>=5)r+=gauge(pickTeam(all7,me.up));const sy=G.sy||[];if(sy.length)r+=`<span class="syn">${sy.slice(0,2).map(synChip).join('')}</span>`;
-    if(G.eq&&G.ui&&G.ui.mode==='bet'){r+=` · Chance <span class="${G.eq.eq>=1/G.eq.n?'g':'r'}">${G.eq.eq>=1/G.eq.n?'▲':'▼'} ${Math.round(G.eq.eq*100)}%</span>`;
-      if(G.eq.toCall>0)r+=` · nötig ${Math.round(G.eq.po*100)}%`}}
+  }
   else if(me.folded)r='Du hast geflohen';
   if(u&&u.mode==='sac')r='<b>Opfere eine Karte</b>Sie liegt danach offen auf dem Tisch.';
   if(u&&u.mode==='lineup'){const ch=u.sel.map(id=>cardById[id]);
@@ -582,7 +624,11 @@ function rCtrl(){
        <div class="chips"><button class="btn ghost" data-a="pre" data-v="half">½ Pot</button><button class="btn ghost" data-a="pre" data-v="pot">Pot</button><button class="btn ghost" data-a="pre" data-v="all">Alles</button></div></div>
        <div class="row"><button class="btn ghost" data-a="unraise">Zurück</button><button class="btn raise" data-a="doraise">${u.toCall>0?'Erhöhen':'Setzen'}<small>${v>=u.capT?'alles':v+' Gold'}</small></button></div>`;return}
     const cs=u.toCall>0?`Mitgehen<small>${Math.min(u.toCall,me.stack)} Gold</small>`:`Schieben<small>kostenlos</small>`;
-    el.innerHTML=`<div class="row"><button class="btn fold" data-a="fold">Fliehen<small>${u.toCall>0?'Einsatz verloren':'unnötig'}</small></button>
+    /* Siegchance groß: Balken mit Marke für das, was der Einsatz verlangt (Pot-Quote) bzw. den fairen Anteil */
+    const E=G.eq,eqm=E?(()=>{const q=Math.round(E.eq*100),need=E.toCall>0?Math.round(E.po*100):Math.round(100/E.n),ok=E.eq*100>=need,strong=E.eq*100>=need*1.45;
+      const tip=E.toCall>0?(strong?'Stark: Erhöhen lohnt':ok?'Mitgehen lohnt sich':'Zu teuer: eher fliehen'):(strong?'Stark: Setzen lohnt':'Schieben ist sicher');
+      return `<div class="eqm ${strong?'s':ok?'g':'r'}"><b class="num">${q}<small>%</small></b><div class="eqx"><span>Siegchance · ${E.n} im Pot</span><i class="eqb"><i style="width:${Math.min(100,q)}%"></i><i class="eqn" style="left:${Math.min(100,need)}%"></i></i><em>${tip}${E.toCall>0?` · nötig ${need} %`:''}</em></div></div>`})():'';
+    el.innerHTML=eqm+`<div class="row"><button class="btn fold" data-a="fold">Fliehen<small>${u.toCall>0?'Einsatz verloren':'unnötig'}</small></button>
       <button class="btn" data-a="call">${cs}</button>
       <button class="btn raise" data-a="raise" ${u.canRaise?'':'disabled'}>${u.toCall>0?'Erhöhen':'Setzen'}<small>${u.canRaise?(u.toCall>0?'auf '+u.minTo:u.minTo+' Gold'):(G.raises>=3?'Limit erreicht':'nicht möglich')}</small></button></div>`;return}
   if(u.mode==='sac'){
@@ -658,13 +704,13 @@ function showSheet(kind,d){
       const ups=Object.entries(me.up.rank).map(([r,v])=>`<li><b class="n">+${v}</b><div>${NAME[r]}-Karten</div></li>`).concat(Object.entries(me.up.realm).map(([s,v])=>`<li><b class="n">+${v}</b><div>Reich ${REALM[s].n}</div></li>`)).join('')||'<li><div><i>Noch keine Siegel gekauft.</i></div></li>';
       showOv(`<div class="sheet paper"><h2>Tavernenregeln</h2><p class="k">Poker um die Krone</p>
        <details open><summary>So läuft eine Hand</summary>
-        <p><b>Ziel.</b> Eine Partie dauert <b>12 Nächte</b>. Wer am Ende den meisten <b>Ruhm</b> hat (Gold + 10 je Thron-Leben), gewinnt. Wer vorher als Einziger übrig ist, gewinnt sofort.</p>
-        <p><b>1. Teilen und Kriegszoll.</b> Jeder bekommt <b>3 Kreaturenkarten</b>. Die beiden Plätze nach dem Geber zahlen vorher den <b>Kriegszoll</b>: einen halben und einen ganzen Einsatz. Wer den Flop sehen will, muss mitgehen, umsonst geht es nicht. Gesetzt wird mit <b>festen Beträgen</b>: Erhöhen geht immer um einen Einsatz, ab der Wende um zwei, höchstens dreimal pro Runde. Der Einsatz steigt alle drei Nächte.</p>
+        <p><b>Ziel.</b> Eine Partie dauert <b>8 Nächte</b>, die letzte ist die <b>Krönungsnacht</b> mit doppeltem Thron-Schaden. Wer am Ende den meisten <b>Ruhm</b> hat (Gold + 10 je Thron-Leben), gewinnt. Wer vorher als Einziger übrig ist, gewinnt sofort.</p>
+        <p><b>1. Teilen und Kriegszoll.</b> Jeder zieht <b>2 Kreaturenkarten</b> und wählt die dritte aus drei offenen. Die beiden Plätze nach dem Geber zahlen vorher den <b>Kriegszoll</b>: einen halben und einen ganzen Einsatz. Wer den Flop sehen will, muss mitgehen, umsonst geht es nicht. Gesetzt wird mit <b>festen Beträgen</b>: Erhöhen geht immer um einen Einsatz, ab der Wende um zwei, höchstens dreimal pro Runde. Der Einsatz steigt alle zwei Nächte.</p>
         <p><b>Heerlager.</b> In der Schmiede kannst du <b>Söldner</b> anwerben. Bis zu zwei ziehen dauerhaft in dein Heerlager und stehen dir jede Nacht beim Showdown zusätzlich zu Hand und Tisch zur Wahl. Die Heerlager der Gegner siehst du unter ihren Bannern.</p>
         <p><b>2. Flop, Opfer, Wende.</b> Nach dem Flop opfert jeder eine Handkarte, offen für alle. In der Wende kommen Turn und River zusammen, dann wird ein letztes Mal gesetzt.</p>
         <p><b>3. Der Showdown ist ein Kampf.</b> Du wählst 5 Karten aus Hand, Tisch und Heerlager. Ihre Pokerkombo ist die Formation und gibt allen fünf einen Bonus. Danach ordnest du die <b>Schlachtreihe</b>: Jede Karte kämpft gegen die gegenüber, Nachbarn stärken oder schützen sich. Die Teams schlagen sich automatisch, ohne Würfel. Fällt eine Karte, schwören ihre Verbündeten <b>Vergeltung</b> (+${K.rache} Angriff). Steht nur noch eine Karte gegen eine Übermacht, kämpft sie als <b>Letztes Aufgebot</b> (+${K.stand}/+${K.stand}). Wer mehr Kämpfe gewinnt, holt den Pot. Leuchtende Karten zeigen dir starke Synergien.</p>
-        <p><b>4. Thron und Beute.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers, alle drei Nächte einer mehr. Jeder gewonnene Kampf bringt <b>Beute</b> in Gold, auch ohne Pot. Wer flieht, bleibt unversehrt, zahlt aber mit Gold.</p>
-        <p><b>5. Aschenschmiede.</b> Zwischen den Händen kaufst du Verstärkungen: Schmiede (+${FORGE_UP}/+${FORGE_UP} für eine Kreatur), Schwur (+${OATH_UP}/+${OATH_UP} für ein Reich), Thron flicken, Kriegstrommel (Formation eine Stufe höher), Ahnenschild (nächste Niederlage ohne Thron-Verlust), Vierte Karte, Kopfgeld (mehr Beute) und Rabenauge (je eine Gegnerkarte sehen). Gold in der Schmiede fehlt dir am Tisch. Fällt Thron oder Gold auf 0, bist du raus.</p>
+        <p><b>4. Thron und Beute.</b> Wer einen Kampf verliert, verliert Thron-Leben: 1 plus die überlebenden Karten des Siegers, alle zwei Nächte einer mehr, das Ganze doppelt. Jeder gewonnene Kampf bringt <b>Beute</b> in Gold, auch ohne Pot. Wer flieht, verliert seinen Einsatz und muss ins <b>Scharmützel</b> gegen einen anderen Geflohenen: Es geht um ${SKIRM_DMG} Thron und etwas Beute.</p>
+        <p><b>5. Aschenschmiede.</b> Zwischen den Händen kaufst du Verstärkungen: Schmiede (+${FORGE_UP}/+${FORGE_UP} für eine Kreatur), Schwur (+${OATH_UP}/+${OATH_UP} für ein Reich), Thron flicken, Kriegstrommel (Formation eine Stufe höher), Ahnenschild (nächste Niederlage ohne Thron-Verlust), Vierte Karte, Kopfgeld (mehr Beute) und Rabenauge (je eine Gegnerkarte sehen). Gold in der Schmiede fehlt dir am Tisch. Wer pleite ist, bekommt einen <b>Schuldschein</b>: ${SCHULD} Thron gegen ${SCHULD_GOLD} Gold. Fällt der Thron auf 0, bist du raus.</p>
         <p><b>Kartenrand.</b> Der Rand zeigt das Reich: <b>weiß</b> Sonnenwacht, <b>rot</b> Aschelande, <b>blau</b> Nordmark, <b>schwarz</b> Blutmoor, dazu das Reichszeichen oben rechts. Die innere Metallkante zeigt den Wert: Eisen gemein, Silber ungewöhnlich, Messing selten, Gold mythisch. Könige und Drachen tragen die Krone.</p></details>
        <details><summary>Kombos &amp; Formation</summary><ul>${rows}</ul></details>
        <details><summary>Kreaturen</summary><ul>${cr}</ul></details>
@@ -680,11 +726,11 @@ function showSheet(kind,d){
       bindOnce(e=>{if(e.target.closest('[data-x=close]'))fin()});return}
     if(kind==='tavern'){
       const{offers}=d;
-      showOv(`<div class="sheet"><h2>Aschenschmiede</h2><p class="k">Gold wird hier zu Macht, und fehlt dir am Tisch.</p>
+      showOv(`<div class="sheet"><h2>Aschenschmiede</h2><p class="k">Gold wird hier zu Macht, und fehlt dir am Tisch. Wer pleite geht, zahlt mit ${SCHULD} Thron.</p>
         <div class="offers">${(()=>{const vals=offers.map(o=>offerValue(me,o)),ok=o=>!o.sold&&me.stack-o.cost>=1,top=Math.max(0,...vals.map((x,i)=>ok(offers[i])?x.v:0));
-          return offers.map((o,i)=>{const R=o.k==='oath'?REALM[o.s]:null,h=vals[i],tier=!top||h.v<=0?'weak':h.v>=top*.999?'top':h.v>=top*.55?'good':'weak',tight=!o.sold&&me.stack-o.cost<G.bb*8;
+          return offers.map((o,i)=>{const R=o.k==='oath'?REALM[o.s]:null,h=vals[i],tier=!top||h.v<=0?'weak':h.v>=top*.999?'top':h.v>=top*.55?'good':'weak',tight=!o.sold&&me.stack-o.cost<G.bb*10;
           const pic=o.k==='recruit'?`<img src="cards/s/pk-${o.c.r}-${o.c.s}.jpg" alt=""><b>${RL[o.c.r]}</b>`:o.k==='forge'?`<img src="cards/s/pk-${o.r}-${rnd(4)}.jpg" alt=""><b>+${FORGE_UP}</b>`:o.k==='oath'?`${R.ic}<b>+${OATH_UP}</b>`:(RIC[o.k]||IC.thron)+(o.k==='heal'?'<b>+8</b>':'');
-          return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span><em class="hint ${tier}">${tier==='top'&&ok(o)?'<b>Tipp</b>':''}${h.txt}${tight?' · danach wird dein Gold knapp':''}</em></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')})()}</div>
+          return `<button class="offer ${o.sold?'sold':''}" data-i="${i}" ${(o.sold||me.stack-o.cost<1)?'disabled':''} style="--oc:${R?R.col:'#efe6cf'}"><span class="pic">${pic}</span><span class="tx"><strong>${o.t}</strong><span>${o.d}</span><em class="hint ${tier}">${tier==='top'&&ok(o)?'<b>Tipp</b>':''}${h.txt}${tight?' · <b class="warnx">Vorsicht: danach ist dein Gold knapp. Pleite kostet '+SCHULD+' Thron</b>':''}</em></span><span class="pr">${IC.gold}${o.cost}</span></button>`}).join('')})()}</div>
         <p class="k">Du hast ${me.stack} Gold · Thron ${me.thron}</p>
         <div class="row"><button class="plate btn ghost" data-x="reroll" ${me.stack>price(6)+1?'':'disabled'}>Neu würfeln<small>${price(6)} Gold</small></button><button class="plate btn" data-x="done">Nächste Hand</button></div></div>`);
       bindOnce(e=>{const o=e.target.closest('.offer'),x=e.target.closest('[data-x]');
@@ -711,7 +757,7 @@ function showSheet(kind,d){
 /* ---------- Titel ---------- */
 function title(){
   document.body.classList.add('intro');au('music','titel');
-  showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">K</span>rug &amp; Krone</h1><h2>Zwölf Nächte am Tavernentisch</h2>
+  showOv(`<div class="title canvas page">${CORN}<h1><span class="ini">K</span>rug &amp; Krone</h1><h2>Acht Nächte am Tavernentisch</h2>
     <div class="cards">${cardHTML(cardById['7-0'])}${cardHTML(cardById['12-3'])}${cardHTML(cardById['14-1'])}</div>
     <p>Poker um Gold. Der Showdown ist eine Schlacht. Wer fällt, dessen Banner brennt.</p>
     <div class="rang">Rang: ${rankOf(FAME)} · Ruhm ${FAME}</div>

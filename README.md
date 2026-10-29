@@ -1,6 +1,6 @@
 # Krug & Krone
 
-Poker trifft Battlegrounds am Tavernentisch: zwölf Nächte, sechs Spieler. Zum Starten `index.html` über einen lokalen Server öffnen (z. B. `python3 -m http.server`).
+Poker trifft Battlegrounds am Tavernentisch: acht Nächte, sechs Spieler. Zum Starten `index.html` über einen lokalen Server öffnen (z. B. `python3 -m http.server`).
 
 - Gespielt wird Hold'em um Gold mit Kriegszoll (Blinds) und einer Opfer-Runde.
 - Der Showdown ist eine automatische Schlacht: Du stellst 5 von 7 Karten auf, die Pokerkombo wird zur Formation, und die Reihenfolge wählst du frei.
