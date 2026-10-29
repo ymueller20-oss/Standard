@@ -95,7 +95,7 @@ const saveMeta=()=>{try{localStorage.setItem('at-fame',FAME);localStorage.setIte
 const BLINDS=[10,15,20,25,30,40,50];
 const ZOLL=1,ANTE_F=0;  // Kriegszoll (Blinds): kleiner = ZOLL/2, großer = ZOLL Einsätze; Ante-Anteil am Einsatz
 const HEER_CAP=2;  // Heerlager: so viele dauerhafte Söldner-Karten stehen jeder Nacht zusätzlich zur Wahl
-const START_GOLD=500,START_THRON=30,HAND_EVERY=2,MAX_HANDS=8,DMG_EVERY=2;  // Format per Simulation geprüft: siehe qa/spiel.js
+const START_GOLD=500,START_THRON=20,HAND_EVERY=2,MAX_HANDS=8,DMG_EVERY=2;  // Format per Simulation geprüft: siehe qa/spiel.js
 const DMG_X=2,FINAL_X=2,SKIRM_DMG=1,SCHULD=8,SCHULD_GOLD=150;  // Thron-Schaden ×2, Krönungsnacht (letzte Nacht) nochmal ×2, Scharmützel kostet 1 Thron, Schuldschein: 8 Thron gegen 150 Gold
 /* Thron-Schaden eines verlorenen Kampfs: 1 + Überlebende des Siegers + Nacht-Zuschlag, verdoppelt, in der Krönungsnacht nochmals */
 const thronDmg=alive=>(1+alive+Math.floor((G.hand-1)/DMG_EVERY))*DMG_X*(G.hand>=MAX_HANDS?FINAL_X:1);
