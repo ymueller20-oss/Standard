@@ -63,6 +63,12 @@ const S={
  for(const k of Object.keys(M)){const f=S[k];S[k]=(...a)=>{if(!SND.on)return;if(typeof AU!=='undefined'&&AU.ready){M[k](...a);return}f(...a)}}}
 /* Kriegsruf eines Reichs, wenn ein Team aus mindestens drei seiner Karten besteht */
 const VS={vargo:'Ich zähl schon mal dein Gold.',grauweid:'Die Krähen haben deinen Namen gerufen.',ysa:'Leise jetzt.',anselm:'Möge das Licht dir gnädig sein.',kalla:'Ich schmiede dich in Form.'};
+/* Zwischenrufe der Gegner während der Schlacht: autsch = sie verlieren eine Karte, treffer = deine fällt */
+const MID={vargo:{autsch:['Die war eh billig.','Das zahlst du mir!'],treffer:['Ha! Eine weniger.','Sauber getroffen.']},
+  grauweid:{autsch:['Die Krähen lachen nicht mehr.','Ein Zeichen. Ein schlechtes.'],treffer:['Ich sah es kommen.','Die Knochen lügen nie.']},
+  ysa:{autsch:['…','Hm.'],treffer:['Eins.','Weiter.']},
+  anselm:{autsch:['Herr, steh mir bei!','Eine Prüfung, gewiss.'],treffer:['Das Licht richtet.','Gesegnet sei der Schlag.']},
+  kalla:{autsch:['Verbogenes Eisen!','Nachschmieden!'],treffer:['Hart wie mein Amboss!','Funken fliegen!']}};
 const RUF=['Für das letzte Licht!','Asche zu Asche!','Der Winter holt euch alle!','Blut für das Moor!'];
 
 /* ================= Partikel: eigene Leinwand über dem Kampf ================= */
@@ -146,7 +152,7 @@ async function playBattle(x){
     <div class="arena">
       ${heroBox(Pe,'e',Pe.name)}<div class="sp"></div>
       ${lane(Pe,'en')}
-      <div class="bmid"><div class="blbl" id="bl">&nbsp;</div><div class="tug" aria-hidden="true"><i class="tm"></i><i class="te"></i><b class="tk"></b></div><div class="bnote" id="bn"></div></div>
+      <div class="bmid"><div class="blbl" id="bl">&nbsp;</div><div class="tug" aria-hidden="true"><i class="tm"></i><i class="te"></i><b class="tk"></b></div><div class="bstake" id="bs"></div><div class="bnote" id="bn"></div></div>
       ${lane(Pm,'me')}
       <div class="sp"></div>${heroBox(Pm,'m','Du')}
       <div class="bfoot"><button class="plate btn ghost" data-x="fast">${speed>1?'Normal':'Schneller'}</button><button class="plate btn ghost" data-x="skip">Überspringen</button></div>
@@ -165,6 +171,9 @@ async function playBattle(x){
   const maxHp=(s,i)=>Math.max(1,teams[s][i].max);
   const cur=[snaps[0].st[0].map(o=>o.hp),snaps[0].st[1].map(o=>o.hp)],atk=[snaps[0].st[0].map(o=>o.atk),snaps[0].st[1].map(o=>o.atk)];
   const startTot=[0,1].map(s=>cur[s].reduce((a,b)=>a+b,0)||1);
+  /* Erzählung: wer liegt vorn, wer trifft wie oft, wer ist der Held der Schlacht */
+  const bonus=Math.floor((G.hand-1)/DMG_EVERY),kills=new Map(),dealt=new Map(),said=new Set();let leadBy=0,turned=0,blood=false,duel=false,midN=0,fought=false,streaks=0;
+  const key=a=>a[0]+':'+a[1];
   let alive=[snaps[0].st[0].map(o=>o.alive),snaps[0].st[1].map(o=>o.alive)];
 
   /* Anzeige der Werte */
@@ -175,7 +184,11 @@ async function playBattle(x){
     clearTimeout(g._t);g._t=setTimeout(()=>{g.style.width=pct*100+'%'},skip?0:D(380))};
   const bump=el=>{el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')};
   const tug=()=>{const t=[0,1].map(s=>cur[s].reduce((a,b,i)=>a+(alive[s][i]?Math.max(0,b):0),0)),m=t[myIdx],e=t[enIdx],sh=m+e?m/(m+e):.5;
-    B.querySelector('.tug .tm').style.width=sh*100+'%';B.querySelector('.tug .tk').style.left=sh*100+'%';return{m:m/startTot[myIdx],e:e/startTot[enIdx]}};
+    B.querySelector('.tug .tm').style.width=sh*100+'%';B.querySelector('.tug .tk').style.left=sh*100+'%';
+    /* Worum es gerade geht: Thron-Schaden, falls der Kampf jetzt endete (1 + Überlebende des Führenden + Nacht-Zuschlag) */
+    const n=[0,1].map(s=>alive[s].filter((v,i)=>v&&cur[s][i]>0).length),ld=n[myIdx]!==n[enIdx]?(n[myIdx]>n[enIdx]?myIdx:enIdx):(sh>.5?myIdx:sh<.5?enIdx:-1),bs=$('#bs');
+    if(bs){if(!fought){bs.className='bstake';bs.innerHTML=`Es geht um bis zu <b>${6+bonus}</b> Thron`}else if(ld<0)bs.innerHTML='Ausgeglichen';else{const d=1+n[ld]+bonus;bs.className='bstake '+(ld===myIdx?'up':'dn');bs.innerHTML=ld===myIdx?`${Pe.short} verliert <b>${d}</b> Thron`:`Du verlierst <b>${d}</b> Thron`}}
+    return{m:m/startTot[myIdx],e:e/startTot[enIdx],ld}};
   for(const s of[0,1])for(let i=0;i<5;i++)setStat(s,i,false);tug();
 
   /* Kamera und Bildschirm */
@@ -243,13 +256,16 @@ async function playBattle(x){
     /* Abwechselnd: deine Bahn 1, Gegner Bahn 1, deine Bahn 2 … */
     return acts.map((a,n)=>({a,n})).sort((p,q)=>p.a.pr-q.a.pr||(p.a.pr===1?(p.a.a[1]-q.a.a[1])||((p.a.a[0]===myIdx?0:1)-(q.a.a[0]===myIdx?0:1)):p.n-q.n)).map(p=>p.a)};
 
-  const applyHit=(h,{crit}={})=>{const c=cardEl(h.s,h.i);if(!c)return;const p=ctr(c);
+  const applyHit=(h,{crit}={})=>{const c=cardEl(h.s,h.i);if(!c)return;const p=ctr(c);fought=true;
     if(h.sh){S.clang();fx.gold(p.x,p.y,p.w,p.h);callout(c,'Gottesschild bricht!','gold');c.classList.remove('shd');vib(20);return}
     cur[h.s][h.i]-=h.d;setStat(h.s,h.i,true);
     const big=h.d/maxHp(h.s,h.i),kill=cur[h.s][h.i]<=0;crit=crit||big>=.45||kill;
     dmgNum(c,h.d,{crit,cls:h.k==='psn'?'psn':h.k==='fire'||h.k==='breath'?'fire':''});
     c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit');
     if(kill){c.classList.add('doom')}
+    if(h.a&&h.a[0]!==h.s){const k=key(h.a);dealt.set(k,(dealt.get(k)||0)+Math.max(0,h.d+Math.min(0,cur[h.s][h.i])));
+      if(kill){const n=(kills.get(k)||0)+1;kills.set(k,n);if(n>=2&&streaks++<2){const a=cardEl(h.a[0],h.a[1]);later(250,()=>callout(a,n===2?'Doppelschlag!':n===3?'Gemetzel!':'Unaufhaltsam!','gold'));S.clang()}}}
+    if(!kill&&cur[h.s][h.i]===1&&!said.has('1:'+key([h.s,h.i]))){said.add('1:'+key([h.s,h.i]));later(300,()=>callout(c,'Mit 1 Leben!','gold'))}
     tug()};
 
   const doAttack=async(act,slow)=>{const {a,main}=act,att=cardEl(a[0],a[1]),tgt=cardEl(main.s,main.i);if(!att||!tgt)return;
@@ -298,7 +314,14 @@ async function playBattle(x){
       else if(e.t==='fear'&&c){if(!skip)fx.smokeRow(p.r,'rgba(80,30,110,.45)');callout(c,'Grauen −2','dark');await wait(200)}
       else if(e.t==='pest'){const L=B.querySelector(e.s===myIdx?'#bp':'#be');if(!skip)fx.smokeRow(L.getBoundingClientRect(),'rgba(110,170,60,.35)');S.poison();callout(L.children[2].querySelector('.card'),'Pest!','psn');await wait(450)}
       else if(e.t==='frz'&&e.by&&c){const a=cardEl(e.by[0],e.by[1]);if(a&&!skip){const q=ctr(a);await new Promise(r=>fx.bolt(q,p,'rgba(140,200,255,.8)',D(340),r))}if(!skip)fx.ice(p.x,p.y);S.ice();callout(c,'Erstarrt','ice');c.classList.add('frz');await wait(200)}
+      else if(e.t==='stand'&&c){const r=c.getBoundingClientRect();B.classList.add('stamping');stamp('Letztes Aufgebot',e.s===myIdx?'Deine letzte Karte':'Die letzte Gegnerkarte','sm');
+        if(!skip)fx.column(r.left+r.width/2,r.top-50,r.bottom,'rgba(255,200,90,1)');S.roar();vib([40,30,80]);await wait(700);B.classList.remove('stamping');
+        atk[e.s][e.i]+=e.n;cur[e.s][e.i]+=e.n;setStat(e.s,e.i,true);c.classList.add('lastst');callout(c,'+'+e.n+'/+'+e.n,'gold');await wait(500)}
       else if(e.t==='skip'&&c){c.animate([{transform:'translateX(0)'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:D(260)});callout(c,'Erstarrt – setzt aus','ice');S.ice();await wait(220)}}
+    else if(phase==='after'){
+      if(e.t==='rache'&&!skip){const L=slots(e.s).filter((sl,i)=>alive[e.s][i]);if(!L.length)continue;S.rage();
+        L.forEach(sl=>{const q=ctr(sl.querySelector('.card'));fx.glow(q.x,q.y,'rgba(255,90,60,.8)',34,18,'rgba(160,20,10,.3)')});
+        callout(L[Math.floor(L.length/2)].querySelector('.card'),'Vergeltung +'+e.n,'blood');await wait(380)}}
     else{
       if(e.t==='heal'&&c){if(!skip)fx.heal(p.x,p.y);S.heal();cur[e.s][e.i]+=e.n;setStat(e.s,e.i,true);dmgNum(c,0,{cls:'heal'});const n=fl.lastChild;if(n)n.textContent='+'+e.n;await wait(160)}
       else if(e.t==='frz'&&!e.by&&c){if(!skip)fx.ice(p.x,p.y);S.ice();callout(c,'Erstarrt','ice');c.classList.add('frz');await wait(140)}
@@ -306,6 +329,15 @@ async function playBattle(x){
       else if(e.t==='grow'&&c){callout(c,'+'+e.n+'/+'+e.n,'dark');await wait(100)}
       else if(e.t==='buff'){S.rage();slots(e.s).forEach((sl,i)=>{if(alive[e.s][i]){const q=ctr(sl.querySelector('.card'));if(!skip)fx.glow(q.x,q.y,'rgba(255,230,150,.9)',40,20)}});callout(slots(e.s)[2].querySelector('.card'),'Herold: alle +'+e.n+' Angriff','gold');await wait(260)}}}};
 
+  const mid=kind=>{const L=MID[opp];if(skip||!L||midN>=2||Math.random()<.4)return;midN++;const h=B.querySelector('.bhero.e');if(!h)return;
+    const d=document.createElement('div');d.className='bsay';d.textContent='»'+L[kind][Math.floor(Math.random()*L[kind].length)]+'«';h.appendChild(d);setTimeout(()=>d.remove(),D(2200)+100)};
+  /* Nach jedem Schlagabtausch: erstes Blut, Wende, Duell */
+  const story=async fell=>{if(skip)return;
+    if(fell.length&&!blood){blood=true;const[s,i]=fell[0];callout(cardEl(s,i),'Erstes Blut!','blood');await wait(300)}
+    if(fell.some(([s])=>s===enIdx))mid('autsch');else if(fell.some(([s])=>s===myIdx))mid('treffer');
+    const t=tug();if(t.ld>=0){if(leadBy&&t.ld!==leadBy&&turned<2){turned++;stamp(t.ld===myIdx?'Das Blatt wendet sich':'Der Gegner dreht es','','sm wende');S.rise();await wait(900)}leadBy=t.ld}
+    const n=[0,1].map(s=>alive[s].filter(Boolean).length);
+    if(!duel&&n[0]===1&&n[1]===1){duel=true;B.classList.add('duel');stamp('Duell','Mann gegen Mann','sm');S.drum(1.2);startClutch();await wait(1000)}};
   const syncTo=async(st,quiet)=>{const fell=[],back=[];
     for(const s of[0,1])for(let i=0;i<5;i++){const o=st[s][i],c=cardEl(s,i);if(!c)continue;
       if(alive[s][i]&&!o.alive)fell.push([s,i]);if(!alive[s][i]&&o.alive)back.push([s,i]);
@@ -318,6 +350,7 @@ async function playBattle(x){
     for(const[s,i]of back){const c=cardEl(s,i);alive[s][i]=true;c.classList.remove('dead','doom');c.parentNode.classList.remove('down');
       if(!quiet&&!skip){const r=c.getBoundingClientRect();fx.column(r.left+r.width/2,r.top-40,r.bottom,'rgba(255,90,90,1)');S.rise();callout(c,'Kehrt zurück!','blood')}}
     if(fell.length&&!quiet)await wait(520);
+    if(!quiet)await story(fell);
     const t=tug();if(!clutch&&t.m>0&&t.e>0&&t.m<=.35&&t.e<=.35)startClutch()};
 
   for(let k=1;k<snaps.length&&!skip;k++){
@@ -344,6 +377,8 @@ async function playBattle(x){
     await doTicks(ticks);
     await doEvents(s.ev||[],'post');
     await syncTo(s.st,false);
+    /* Vergeltung erst zeigen, wenn die Gefallenen liegen; mehrere in einem Schlag zusammenfassen */
+    {const rv=[0,1].map(t=>(s.ev||[]).filter(e=>e.t==='rache'&&e.s===t).reduce((a,e)=>a+e.n,0));await doEvents(rv.map((n,t)=>n?{t:'rache',s:t,n}:null).filter(Boolean),'after')}
     await wait(rd?220:300)}
   /* Endstand sicher übernehmen (auch nach Überspringen) */
   await syncTo(endSt,skip);
@@ -358,7 +393,10 @@ async function playBattle(x){
   label(win==='w'?'Sieg':win==='l'?'Niederlage':'Unentschieden');$('#bn').textContent='';
   const end=document.createElement('div');end.className='bend '+win;
   const qq=Pe.q&&Pe.q[win==='w'?'lose':'win'],qt=win!=='d'&&qq?qq[0]:'';
-  end.innerHTML=`${win==='w'?'<div class="rays"></div>':''}<b>${win==='w'?'Sieg':win==='l'?'Niederlage':'Patt'}</b><span>${sub}</span>${qt?`<i class="bq">${Pe.short}: »${qt}«</i>`:''}`;B.appendChild(end);
+  /* Held der Schlacht: die Karte des Siegers mit den meisten Kills, dann dem meisten Schaden */
+  let hero=null;{const ws=win==='w'?myIdx:win==='l'?enIdx:-1;if(ws>=0)for(let i=0;i<5;i++){const k=key([ws,i]),v=(kills.get(k)||0)*100+(dealt.get(k)||0);if(v>0&&(!hero||v>hero.v))hero={v,i,k:kills.get(k)||0,d:dealt.get(k)||0,c:teams[ws][i].c}}}
+  const sens=win!=='d'&&Pm.team.b.cat!==Pe.team.b.cat&&(win==='w')===(Pm.team.b.cat<Pe.team.b.cat);
+  end.innerHTML=`${win==='w'?'<div class="rays"></div>':''}${sens?'<em class="sens">Sensation!</em>':''}<b>${win==='w'?'Sieg':win==='l'?'Niederlage':'Patt'}</b><span>${sub}</span>${hero?`<small class="mvp">Held der Schlacht: <b>${NAME[hero.c.r]}</b> · ${hero.k} Gegner besiegt · ${hero.d} Schaden</small>`:''}${qt?`<i class="bq">${Pe.short}: »${qt}«</i>`:''}`;B.appendChild(end);
   if(win==='w'){S.win();vib([50,50,50,50,120]);if(!QA){const h=ctr(B.querySelector('.bhero.m .hero'));fx.coins(h.x,h.y,40);const e2=ctr(B.querySelector('.bhero.e .hero'));fx.gold(e2.x,e2.y,60,60)}}
   else if(win==='l'){S.lose();vib([120,60,200]);B.classList.add('lost');if(!QA)for(let i=0;i<40;i++)add({type:'glow',x:R(0,innerWidth),y:R(-40,0),vx:R(-.5,.5),vy:R(.6,1.6),life:R(90,150),size:R(2,4),c:'rgba(255,140,60,1)',c2:'rgba(160,30,10,.5)'})}
   else S.drum(.7);

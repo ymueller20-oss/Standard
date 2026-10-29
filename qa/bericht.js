@@ -7,7 +7,15 @@ const r1=x=>(Math.round(x*10)/10).toLocaleString('de-DE');
 
 async function main(){
   const regeln=require('./regeln')(),technik=await require('./technik')(),aus=require('./auswertung')(),R=aus.runs;
-  const all=[...regeln.checks,...technik.checks,...aus.checks],cnt=s=>all.filter(c=>c.status===s).length;
+  /* Kampf als Schauspiel: 6000 Showdown-Paare direkt in der Engine */
+  const km=require('./kampf')(),kc=[],kk=(n,v,ok,warn,z,d)=>kc.push({bereich:'Kampf',name:n,status:ok?'ok':warn?'warn':'fail',wert:v,ziel:z,detail:d||''});
+  kk('Knappe Ausgänge (Sieger mit ≤ 1 Überlebenden)',r1(km.knapp)+' %',km.knapp>=35,km.knapp>=28,'mind. 35 %');
+  kk('Glatte Siege (Sieger verliert keine Karte)',r1(km.glatt)+' %',km.glatt<=8,km.glatt<=12,'höchstens 8 %','Einseitige Kämpfe sind langweilig anzusehen');
+  kk('Wende im Kampf (Sieger lag zurück)',r1(km.wende)+' %',km.wende>=40,km.wende>=30,'mind. 40 %');
+  kk('Duell zum Schluss (eine Karte gegen eine)',r1(km.duell)+' %',km.duell>=10,km.duell>=6,'mind. 10 %');
+  kk('Ausgelöste Fähigkeiten je Kampf',r1(km.faehigkeiten),km.faehigkeiten>=8,km.faehigkeiten>=6,'mind. 8','Abwechslung beim Zusehen');
+  kk('Bessere Formation gewinnt trotzdem',r1(km.besser)+' %',km.besser>=70&&km.besser<=82,km.besser>=65,'70–82 %','Drama darf das Können nicht aushebeln');
+  const all=[...regeln.checks,...technik.checks,...aus.checks,...kc],cnt=s=>all.filter(c=>c.status===s).length;
   const img=f=>'data:image/jpeg;base64,'+fs.readFileSync(path.join(__dirname,'bilder',f)).toString('base64');
   const k=R.ki,S=R.schaden||k,P=R.pleite||k,Ku=R.kurz||k,H=R.hart||k;
   const ST={ok:'In Ordnung',warn:'Beobachten',fail:'Handeln'};
@@ -43,10 +51,10 @@ async function main(){
      warum:`Eine Partie dauert geschätzt ${r1(k.minuten)} Minuten (${r1(k.minMin)} bis ${r1(k.maxMin)}). Für ein Handyspiel ist das an der oberen Grenze, und die Führung wechselt nur ${r1(k.spitzeWechsel)}-mal.`,
      wie:'8 Nächte, Zoll steigt alle 2 Nächte. Die letzte Nacht ist die »Krönungsnacht«: dreifacher Thron-Schaden, damit Abgehängte noch eine echte Chance haben.',
      mess:`Gemessen (8 Nächte ohne Finalnacht): ${r1(Ku.minuten)} statt ${r1(k.minuten)} Minuten, aber nur ${r1(Ku.ausgeschieden)} Ausgeschiedene und ${r1(Ku.spitzeWechsel)} Führungswechsel. Kürzer allein reicht nicht, die Finalnacht ist der wichtige Teil.`},
-    {t:'Kämpfe straffen',w:'mittel',a:'klein',
-     warum:`Ein Kampf läuft geschätzt ${Math.round(k.zuschauSek)} Sekunden beim ersten Zusehen. Bei mehreren Kämpfen pro Showdown summiert sich das.`,
-     wie:'Ab dem zweiten Kampf einer Nacht doppelte Geschwindigkeit, und eine Einstellung »Schnelle Kämpfe«. Unentschiedene oder klare Kämpfe (Sieger mit 3 oder mehr Überlebenden) automatisch verkürzen.',
-     mess:'Nicht simuliert, reine Darstellung.'},
+    {t:'Kampf unterhaltsamer machen (umgesetzt)',w:'hoch',a:'mittel',
+     warum:'Die Länge der Kämpfe ist kein Problem, solange es spannend ist, zuzusehen. Vorher gewann fast jeder zweite Kampf, wer vom ersten Schlag an vorne lag; jeder zehnte war ein glatter Sieg ohne Verlust.',
+     wie:'Vergeltung und Letztes Aufgebot als Regeln. Dazu die Anzeige, um wie viel Thron es gerade geht, Ansagen (Erstes Blut, Doppelschlag, Das Blatt wendet sich, Duell), Zwischenrufe der Gegner und der Held der Schlacht am Ende.',
+     mess:`Gemessen: knappe Kämpfe 30 % auf ${r1(km.knapp)} %, glatte Siege 10 % auf ${r1(km.glatt)} %, die bessere Formation gewinnt weiter ${r1(km.besser)} %. In ganzen Partien: Wende im Kampf ${r1(k.wende)} %.`},
     {t:'Mehr echte Entscheidungen pro Nacht',w:'mittel',a:'groß',
      warum:`Im Schnitt musst du nur ${r1(k.echteEinsatzEntscheidungen)}-mal pro Nacht auf einen Einsatz reagieren. Opfer, Aufstellung und Reihenfolge sind gute Entscheidungen, kommen aber nur im Showdown vor.`,
      wie:'Nach dem Flop eine Karte aus drei offenen ziehen (Draft wie bei Battlegrounds). Das ist eine Entscheidung für jeden, der noch dabei ist, und sie stärkt die Brücke zwischen Poker und Heer.',
@@ -120,6 +128,7 @@ ${table(by('Spielspaß').concat(by('Können'),by('Ablauf')))}</section>
 
 <section><h2>Läufe im Vergleich</h2><p>Je Lauf 40 Partien. Die erste Spalte ist der Maßstab: der Bot spielt und kauft wie die KI-Gegner.</p>${cmp}</section>
 
+<section><h2>Der Kampf als Schauspiel</h2><p>Gemessen an 6000 Showdown-Paaren mit geteilter Tafel. Neu: Vergeltung (+${2} Angriff für die Verbündeten einer gefallenen Karte) und Letztes Aufgebot (+4/+4 für die letzte Karte gegen eine Übermacht). Dazu zeigt die Inszenierung, worum es gerade geht, ruft erstes Blut, Doppelschläge, Wenden und Duelle aus, lässt Gegner dazwischenrufen und kürt am Ende den Held der Schlacht.</p>${table(by('Kampf'))}</section>
 <section><h2>Regeln und Balance</h2>${table(by('Regeln').concat(by('Balance')))}</section>
 
 <section><h2>Technik, Ton und Layout</h2>${table(by('Technik').concat(by('Ton'),by('Layout')))}

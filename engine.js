@@ -13,10 +13,11 @@ function eval5(cs){const r=cs.map(c=>c.r).sort((a,b)=>b-a),s0=cs[0].s;const fl=c
 
 /* Balance-Parameter */
 const K={
-  FB:[0,0,2,7,9,11,14,22,28,36],       // Formationsbonus je Kombo für alle 5 Teamkarten: Paare helfen wenig, ab dem Rudel (Drilling, ~5 % der Hände) entscheidet die Kombo meist (Rudel ~82 %, Plage ~99 %)
+  rache:2, stand:4,                    // Vergeltung: fällt eine Karte, erhalten ihre Verbündeten +2 Angriff · Letztes Aufgebot: die letzte Karte gegen eine Übermacht +4/+4 (qa/kampf.js: mehr knappe Kämpfe, weniger glatte Siege)
+  FB:[0,0,2,7,9,11,14,24,28,36],       // Formationsbonus je Kombo für alle 5 Teamkarten: Paare helfen wenig, ab dem Rudel (Drilling, ~5 % der Hände) entscheidet die Kombo meist (Rudel ~82 %, Plage ~99 %)
   fa:1, fh:1,                          // Anteil des Formationsbonus auf Angriff / Leben
-  son:4, sonR:3, sonSh1:4, sonSh2:5,  // Sonnenwacht · Gottesschild: Zwillinge gleicher Stärke tragen Schild, +4/+4 je Zwilling; +3/+3 je weitere Sonnenwacht-Karte; ab 4 Karten die stärkste, ab 5 alle mit Schild
-  ashA:3, ashH:2, ashN:2, ashNH:2, glutN:0,  // Aschelande · Glut: +3/+2 je Kettenglied, +2/+2 je weitere Aschelande-Karte; Glut zu Kampfbeginn = Kettenlänge
+  son:4, sonR:4, sonSh1:4, sonSh2:5,  // Sonnenwacht · Gottesschild: Zwillinge gleicher Stärke tragen Schild, +4/+4 je Zwilling; +4/+4 je weitere Sonnenwacht-Karte; ab 4 Karten die stärkste, ab 5 alle mit Schild
+  ashA:3, ashH:2, ashN:2, ashNH:5, glutN:0,  // Aschelande · Glut: +3/+2 je Kettenglied, +2/+5 je weitere Aschelande-Karte; Glut zu Kampfbeginn = Kettenlänge
   norH:1, norA:1, norFrost:3,  // Nordmark · Frost: +1/+1 je weitere Nordmark-Karte; ab 3 Karten frieren ihre Treffer ein
   blut:2, blutPer:1, blutF:0, rw:0.01,  // Blutmoor · Blutrausch: jede Runde +2 Angriff, +1 je weitere Blutmoor-Karte; Todesstoß im Fallen. rw: Blutrausch-Gewicht der KI-Schätzung
   knappe:1, herold:5, banner:8,       // Sonnenwacht-Unterstützer
@@ -72,6 +73,7 @@ function battle(A0,B0,rec){
     last.forEach(a=>{const j=target(a.s,a.i,a.f);if(j>=0){note('Blutmoor: Todesstoß im Fallen');hurt(1-a.s,j,a.f.atk,{s:a.s,i:a.i,f:a.f},'last');ev({t:'last',s:a.s,i:a.i})}});
     note(died.length===1?'Eine Karte fällt':died.length+' Karten fallen');
     died.forEach(({s,i,f})=>{
+      if(T[s].some(o=>o.alive)){T[s].forEach(o=>{if(o.alive)o.atk+=K.rache});ev({t:'rache',s,n:K.rache});note('Vergeltung: Verbündete +'+K.rache+' Angriff')}
       const br=hasSup(1-s,'brand');if(br){[i-1,i+1].forEach(k=>hurt(s,k,K.brand*br,null,'fire'));note('Flächenbrand greift über')}
       T[1-s].forEach(o=>{if(o.alive&&o.r===3&&!o.sup)o.atk+=1});
       for(const t of[0,1])T[t].forEach((o,oi)=>{if(o.alive&&o.sup==='aas'){o.atk+=K.aas;o.hp+=K.aas;o.max+=K.aas;ev({t:'grow',s:t,i:oi,n:K.aas});note('Aaskrähe frisst: +'+K.aas+'/+'+K.aas)}});
@@ -100,6 +102,7 @@ function battle(A0,B0,rec){
   if(hits.length){deaths();snap('Kampfbeginn')}else{hits=[];notes=notes.filter(x=>x.startsWith('Frostbiss'));evs=evs.filter(e=>e.t==='frz');if(notes.length)snap('Kampfbeginn')}
   let round=0;
   while(live(0)&&live(1)&&round<8){round++;
+    for(const s of[0,1]){const al=T[s].filter(f=>f.alive);if(al.length===1&&T[1-s].filter(f=>f.alive).length>=2&&!T[s].stood){T[s].stood=1;const f=al[0];f.atk+=K.stand;f.hp+=K.stand;f.max+=K.stand;ev({t:'stand',s,i:T[s].indexOf(f),n:K.stand});note('Letztes Aufgebot: +'+K.stand+'/+'+K.stand)}}
     let any=false;for(const s of[0,1])T[s].forEach((f,i)=>{if(f.alive&&f.rage){f.atk+=f.rage;any=true;ev({t:'rage',s,i,n:f.rage})}});if(any){note('Blutrausch: Blutmoor-Karten werden stärker');snap(`Runde ${round} · Blutrausch`)}
     if(strike(f=>f.r===13)){deaths();snap(`Runde ${round} · Erstschlag`)}
     if(!live(0)||!live(1))break;

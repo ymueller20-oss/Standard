@@ -810,3 +810,19 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .gauge small{margin-right:5px;font:italic 400 .8rem/1 var(--f-fell);color:#cbb48a;text-shadow:0 1px 2px #000}
 .bi .bq,.bend .bq{display:block;max-width:300px;text-align:center;font:italic 400 1.05rem/1.3 var(--f-fell);color:#f3e4c0;text-shadow:0 1px 2px #000,0 0 10px rgba(0,0,0,.9)}
 .bend .bq{position:relative;z-index:1;margin-top:2px}
+/* Schlacht-Erzählung: Einsatz, Zwischenrufe, Letztes Aufgebot, Held der Schlacht */
+.bstake{font:400 1rem/1.1 var(--f-fsc);letter-spacing:.03em;min-height:1.1em;margin-top:2px;color:var(--tav-ink)}
+.bstake b{font:700 1.15rem/1 var(--f-got)}
+.bstake.up b{color:#ffd25a}.bstake.dn b{color:#ff7a5a}
+#battle.stamping .bmid .bstake{opacity:0;transition:opacity .15s}
+.bsay{position:absolute;left:50%;top:100%;z-index:27;transform:translate(-50%,6px);max-width:230px;padding:5px 10px;border-radius:6px;background:#f3e6c6;color:#2a1a0c;font:italic 400 .95rem/1.2 var(--f-fell);white-space:nowrap;box-shadow:0 0 0 1px #000,0 4px 10px rgba(0,0,0,.5);animation:saying 2.2s ease both}
+.bsay::before{content:'';position:absolute;left:50%;top:-6px;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#f3e6c6}
+#battle .bhero{position:relative}
+@keyframes saying{0%{opacity:0;transform:translate(-50%,0) scale(.85)}10%,85%{opacity:1;transform:translate(-50%,6px) scale(1)}100%{opacity:0}}
+.card.lastst{box-shadow:0 0 0 2px #ffd25a,0 0 18px 4px rgba(255,190,70,.75)!important}
+.bstamp.wende b{font-size:2.6rem;text-align:center;max-width:90vw;line-height:1}
+#battle.duel .slotc.down{opacity:.35}
+.bend .sens{position:relative;z-index:1;font:400 1.5rem/1 var(--f-fsc);letter-spacing:.2em;color:#ffe39a;text-shadow:0 2px 0 #2a1406,0 0 16px rgba(255,190,60,.8)}
+.bend .mvp{position:relative;z-index:1;padding:4px 12px;border-radius:4px;background:rgba(20,12,6,.75);box-shadow:0 0 0 1px rgba(232,200,120,.6);font:400 .95rem/1.2 var(--f-fell);color:#f3e4c0}
+.bend .mvp b,.bend.w .mvp b,.bend.l .mvp b{font:700 1rem/1 var(--f-got);color:#ffd25a;background:none;-webkit-text-fill-color:currentColor;filter:none;text-shadow:none}
+@media (prefers-reduced-motion:reduce){.bsay{animation:none}}
