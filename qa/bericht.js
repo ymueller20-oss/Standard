@@ -34,31 +34,36 @@ async function main(){
   /* Zeitbudget einer Partie: Kampf gegen Rest */
   const kampfMin=k.kaempfeIch*k.zuschauSek/60,restMin=k.minuten-kampfMin,kp=100*kampfMin/k.minuten;
 
+  /* Umgesetzt am 29.10.2026; Messwerte aus den aktuellen Läufen. Vorher-Werte aus dem ersten Bericht (12 Nächte, alte Regeln). */
   const alt=[
-    {t:'Jede Nacht endet für alle in der Schlacht',w:'hoch',a:'mittel',
-     warum:`Du erreichst nur in ${r1(k.showdownIch)} % der Nächte den Showdown und kämpfst ${r1(k.kaempfeIch)}-mal pro Partie. Die Schlacht ist das, was das Spiel von Poker unterscheidet, aber sie füllt nur rund ${Math.round(kp)} % der Spielzeit.`,
-     wie:'Wer flieht, verliert nur den Topf, nicht die Schlacht: Geflohene kämpfen ein »Scharmützel« mit ihren Handkarten und der Tafel gegen einen zufälligen anderen Geflohenen. Es geht um 1 Thron und eine kleine Beute. Alternativ: Fliehen kostet 1 Thron.',
-     mess:'Nicht simuliert. Erwartung: Kämpfe je Partie verdreifacht, ohne dass Pokerentscheidungen wegfallen.'},
-    {t:'Der Thron entscheidet, nicht das Gold',w:'hoch',a:'klein',
-     warum:`Ausgeschieden wird fast nur durch Pleite: ${r1(100-k.rausDurchThron)} % aller Aus passieren beim Setzen, nicht in der Schlacht. Im Schnitt scheiden nur ${r1(k.ausgeschieden)} Spieler je Partie aus, ${r1(k.ende.zeit)} % der Partien enden per Punktestand nach Nacht 12. Niemand gewinnt als Letzter am Tisch.`,
-     wie:'Doppelter Thron-Schaden und ein Schuldschein bei Pleite (8 Thron gegen 150 Gold) statt sofortigem Aus. Dann fallen Spieler in der Schlacht, und das Ende kommt durch Kämpfe.',
-     mess:`Gemessen. Doppelter Schaden: ${r1(S.ausgeschieden)} statt ${r1(k.ausgeschieden)} Ausgeschiedene, Ende per Limit ${r1(S.ende.zeit)} % statt ${r1(k.ende.zeit)} %, Thron verbraucht ${r1(100-S.thronRest*100)} % statt ${r1(100-k.thronRest*100)} %. Schuldschein allein: Führungswechsel ${r1(P.spitzeWechsel)} statt ${r1(k.spitzeWechsel)}, knappe Kämpfe ${r1(P.knapp)} % statt ${r1(k.knapp)} %. Beides zusammen ist der stärkste Hebel.`},
-    {t:'Taverne darf nicht ins Aus führen',w:'hoch',a:'klein',
-     warum:`Wer in der Taverne viel kauft, fliegt in ${r1(R.profi?R.profi.ende.raus:0)} % der Partien raus, wer maßvoll kauft nur in ${r1(k.ende.raus)} %. Echte Spieler kaufen gern, das Spiel bestraft genau das, ohne es zu zeigen.`,
-     wie:'Taverne mit eigener Währung bezahlen: Beute aus gewonnenen Kämpfen (Kriegsbeute) statt Poker-Gold. Mindestens: Warnung, wenn ein Kauf unter 10 Zoll Rücklage drückt, und der Hinweis »Gold ist dein Leben am Tisch«.',
-     mess:'Teilweise gemessen: Vielkäufer gegen Maßvolle (siehe Tabelle).'},
-    {t:'Kürzere Partie mit Finalnacht',w:'mittel',a:'klein',
-     warum:`Eine Partie dauert geschätzt ${r1(k.minuten)} Minuten (${r1(k.minMin)} bis ${r1(k.maxMin)}). Für ein Handyspiel ist das an der oberen Grenze, und die Führung wechselt nur ${r1(k.spitzeWechsel)}-mal.`,
-     wie:'8 Nächte, Zoll steigt alle 2 Nächte. Die letzte Nacht ist die »Krönungsnacht«: dreifacher Thron-Schaden, damit Abgehängte noch eine echte Chance haben.',
-     mess:`Gemessen (8 Nächte ohne Finalnacht): ${r1(Ku.minuten)} statt ${r1(k.minuten)} Minuten, aber nur ${r1(Ku.ausgeschieden)} Ausgeschiedene und ${r1(Ku.spitzeWechsel)} Führungswechsel. Kürzer allein reicht nicht, die Finalnacht ist der wichtige Teil.`},
-    {t:'Kampf unterhaltsamer machen (umgesetzt)',w:'hoch',a:'mittel',
-     warum:'Die Länge der Kämpfe ist kein Problem, solange es spannend ist, zuzusehen. Vorher gewann fast jeder zweite Kampf, wer vom ersten Schlag an vorne lag; jeder zehnte war ein glatter Sieg ohne Verlust.',
-     wie:'Vergeltung und Letztes Aufgebot als Regeln. Dazu die Anzeige, um wie viel Thron es gerade geht, Ansagen (Erstes Blut, Doppelschlag, Das Blatt wendet sich, Duell), Zwischenrufe der Gegner und der Held der Schlacht am Ende.',
-     mess:`Gemessen: knappe Kämpfe 30 % auf ${r1(km.knapp)} %, glatte Siege 10 % auf ${r1(km.glatt)} %, die bessere Formation gewinnt weiter ${r1(km.besser)} %. In ganzen Partien: Wende im Kampf ${r1(k.wende)} %.`},
-    {t:'Mehr echte Entscheidungen pro Nacht',w:'mittel',a:'groß',
-     warum:`Im Schnitt musst du nur ${r1(k.echteEinsatzEntscheidungen)}-mal pro Nacht auf einen Einsatz reagieren. Opfer, Aufstellung und Reihenfolge sind gute Entscheidungen, kommen aber nur im Showdown vor.`,
-     wie:'Nach dem Flop eine Karte aus drei offenen ziehen (Draft wie bei Battlegrounds). Das ist eine Entscheidung für jeden, der noch dabei ist, und sie stärkt die Brücke zwischen Poker und Heer.',
-     mess:'Nicht simuliert, größerer Umbau.'}];
+    {t:'Kampf als Schauspiel (umgesetzt)',w:'hoch',a:'groß',
+     warum:'Kampfkarten waren winzige Sammelkarten mit kleinen Zahlen; jeder Angriff sah gleich aus.',
+     wie:'Kampfkarten mit randlosem Bild, Rahmen in Reichsfarbe und großen Werten. Jede Kreatur hat eine eigene Angriffsbewegung (Keiler stürmt, Greif stößt herab, Riese wirft, Nachtmahr springt durch den Schatten …), jedes Reich ein eigenes Element beim Einschlag. Dazu Vergeltung und Letztes Aufgebot als Regeln.',
+     mess:`Knappe Kämpfe in der Engine ${r1(km.knapp)} % (vorher 30 %), glatte Siege ${r1(km.glatt)} % (vorher 10 %). Die bessere Formation gewinnt weiter ${r1(km.besser)} %.`},
+    {t:'Schlacht für alle: Scharmützel (umgesetzt)',w:'hoch',a:'mittel',
+     warum:'Nur in gut jeder fünften Nacht kam man in den Showdown, also etwa 3 Kämpfe pro Partie.',
+     wie:'Wer flieht, kämpft danach gegen einen anderen Geflohenen um 1 Thron und etwas Beute.',
+     mess:`Eigene Kämpfe je Partie: ${r1(k.kaempfeIch)} (vorher 3,2).`},
+    {t:'Thron statt Pleite (umgesetzt)',w:'hoch',a:'klein',
+     warum:'Ausgeschieden wurde nur durch Pleite, nie in der Schlacht.',
+     wie:'Doppelter Thron-Schaden und Schuldschein: Pleite kostet 8 Thron statt sofort raus.',
+     mess:`Thron verbraucht ${r1(100-k.thronRest*100)} %. Aus durch Kampf: ${r1(k.rausDurchThron)} % (vorher 0 %). Offen: Es scheidet weiter nur etwa ${r1(k.ausgeschieden)} Spieler je Partie aus, ${r1(k.ende.zeit)} % der Partien enden nach der letzten Nacht.`},
+    {t:'Taverne ohne Falle (umgesetzt)',w:'mittel',a:'klein',
+     warum:'Viel kaufen führte unbemerkt ins Aus (35 % gegen 5 %).',
+     wie:'Rote Warnung, wenn ein Kauf das Gold unter 10 Einsätze drückt, und der Schuldschein fängt Pleiten ab.',
+     mess:`Vielkäufer raus: ${r1(R.profi?R.profi.ende.raus:0)} %, Maßvolle: ${r1(k.ende.raus)} %.`},
+    {t:'8 Nächte mit Krönungsnacht (umgesetzt)',w:'mittel',a:'klein',
+     warum:'12 Nächte waren lang, die Führung wechselte selten.',
+     wie:'8 Nächte, Einsatz steigt alle 2 Nächte, die letzte Nacht doppelter Thron-Schaden.',
+     mess:`Partiedauer ${r1(k.minuten)} min, davon gut ${Math.round(kp)} % Schlacht. Führungswechsel ${r1(k.spitzeWechsel)}: weniger als vorher, weil kürzer. Offen.`},
+    {t:'Kartenwahl jede Nacht (umgesetzt)',w:'mittel',a:'mittel',
+     warum:'Pro Nacht gab es nur etwa eine echte Einsatzentscheidung.',
+     wie:'2 Karten ziehen, die dritte aus 3 offenen wählen, mit Vorschau, was sie aus der Hand macht.',
+     mess:`Bot auf KI-Niveau gewinnt ${r1(k.sieg)} % (fair 17 %), Zufall 0 %: Können zählt.`},
+    {t:'Nächster Schritt: mehr Ausscheiden, mehr Führungswechsel',w:'hoch',a:'mittel',
+     warum:`Noch immer enden ${r1(k.ende.zeit)} % der Partien per Punktestand, und die Spitze wechselt nur ${r1(k.spitzeWechsel)}-mal.`,
+     wie:'Vorschläge: Thron-Start 20 statt 30, oder wer in einer Nacht alle Kämpfe verliert, verliert zusätzlich Thron; Kopfgeld auf den Führenden, damit alle auf ihn gehen.',
+     mess:'Noch nicht gemessen.'}];
 
   const html=`<title>Prüfbuch Krug &amp; Krone</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -112,10 +117,10 @@ tr.fail td:first-child{box-shadow:inset 3px 0 var(--fail)}tr.warn td:first-child
 
 <section class="verdict"><h2>Urteil</h2><ol>
 <li><b>Die Technik und die Regeln sind solide.</b> Die Kombos stimmen an allen 2.598.960 möglichen Händen, ${Object.values(R).reduce((s,x)=>s+x.n,0)} Partien liefen ohne einen Absturz, das Zip ist vollständig. Ein echter Fehler im Kampf wurde gefunden und behoben: Nach langen Blutmoor-Ketten blieb eine Karte mit 0 Leben stehen.</li>
-<li><b>Das Spiel ist fair, aber zu ruhig.</b> Auf KI-Niveau gewinnst du ${r1(k.sieg)} % der Partien (fair wären 17 %), Können zahlt sich aus. Aber du erlebst nur ${r1(k.kaempfeIch)} eigene Kämpfe in ${r1(k.minuten)} Minuten.</li>
-<li><b>Der Thron, das Herz der Schlacht, entscheidet fast nichts.</b> Wer ausscheidet, scheidet durch Pleite aus. ${r1(k.ende.zeit)} % der Partien enden per Punktestand nach Nacht 12.</li>
-<li><b>Die Taverne ist eine versteckte Falle.</b> Viel kaufen führt ins Aus, ohne dass das Spiel es zeigt.</li>
-<li><b>Der größte Hebel:</b> mehr Schlacht pro Nacht und Thron-Schaden, der Spieler wirklich fallen lässt. Beides ist unten mit Messwerten beschrieben.</li></ol></section>
+<li><b>Fair, und Können zählt.</b> Auf KI-Niveau gewinnst du ${r1(k.sieg)} % der Partien (fair wären 17 %), zufälliges Spiel gewinnt nie.</li>
+<li><b>Viel mehr Schlacht.</b> ${r1(k.kaempfeIch)} eigene Kämpfe pro Partie statt 3, jeder Kampf mit eigener Bewegung je Kreatur und eigenem Element je Reich.</li>
+<li><b>Der Thron zählt jetzt.</b> Die Hälfte der Thron-Leben wird verbraucht, Pleite kostet Thron statt sofort das Aus, die Taverne ist keine versteckte Falle mehr.</li>
+<li><b>Noch offen:</b> Es scheidet kaum jemand aus (${r1(k.ausgeschieden)} je Partie), ${r1(k.ende.zeit)} % der Partien enden per Punktestand, die Führung wechselt selten. Vorschläge stehen unten.</li></ol></section>
 
 <section><h2>Spielspaß und Ablauf</h2>
 <p>Ein Bot spielt auf deinem Platz gegen die fünf KI-Gegner, so wie ein Mensch es per Tippen täte. Bedenkzeit wird mit wenigen Sekunden je Entscheidung angenommen. Kampfdauer gilt für das erste Zusehen.</p>
@@ -126,7 +131,7 @@ ${table(by('Spielspaß').concat(by('Können'),by('Ablauf')))}</section>
 <div class="alts">${alt.map((a,i)=>`<article class="alt"><header><h3>${i+1}. ${esc(a.t)}</h3><b>Wirkung ${a.w} · Aufwand ${a.a}</b></header>
 <dl><dt>Befund</dt><dd>${esc(a.warum)}</dd><dt>Vorschlag</dt><dd>${esc(a.wie)}</dd><dt>Messung</dt><dd>${esc(a.mess)}</dd></dl></article>`).join('')}</div></section>
 
-<section><h2>Läufe im Vergleich</h2><p>Je Lauf 40 Partien. Die erste Spalte ist der Maßstab: der Bot spielt und kauft wie die KI-Gegner.</p>${cmp}</section>
+<section><h2>Läufe im Vergleich</h2><p>Je Lauf 40 Partien mit den neuen Regeln. Die erste Spalte ist der Maßstab: der Bot spielt und kauft wie die KI-Gegner.</p>${cmp}</section>
 
 <section><h2>Der Kampf als Schauspiel</h2><p>Gemessen an 6000 Showdown-Paaren mit geteilter Tafel. Neu: Vergeltung (+${2} Angriff für die Verbündeten einer gefallenen Karte) und Letztes Aufgebot (+4/+4 für die letzte Karte gegen eine Übermacht). Dazu zeigt die Inszenierung, worum es gerade geht, ruft erstes Blut, Doppelschläge, Wenden und Duelle aus, lässt Gegner dazwischenrufen und kürt am Ende den Held der Schlacht.</p>${table(by('Kampf'))}</section>
 <section><h2>Regeln und Balance</h2>${table(by('Regeln').concat(by('Balance')))}</section>
