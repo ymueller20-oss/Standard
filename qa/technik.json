@@ -1,0 +1,132 @@
+{
+ "checks": [
+  {
+   "bereich": "Technik",
+   "name": "Syntax engine.js",
+   "status": "ok",
+   "wert": "fehlerfrei",
+   "ziel": "fehlerfrei",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Syntax game.js",
+   "status": "ok",
+   "wert": "fehlerfrei",
+   "ziel": "fehlerfrei",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Syntax battle.js",
+   "status": "ok",
+   "wert": "fehlerfrei",
+   "ziel": "fehlerfrei",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Syntax audio.js",
+   "status": "ok",
+   "wert": "fehlerfrei",
+   "ziel": "fehlerfrei",
+   "detail": ""
+  },
+  {
+   "bereich": "Ton",
+   "name": "Tonliste vollständig",
+   "status": "ok",
+   "wert": "64 Dateien, 0 fehlen",
+   "ziel": "0 fehlen",
+   "detail": ""
+  },
+  {
+   "bereich": "Ton",
+   "name": "Keine ungenutzten Tondateien",
+   "status": "ok",
+   "wert": "0 ungenutzt",
+   "ziel": "0",
+   "detail": ""
+  },
+  {
+   "bereich": "Ton",
+   "name": "Alle aufgerufenen Klänge vorhanden",
+   "status": "ok",
+   "wert": "29 Aufrufe, 0 unbekannt",
+   "ziel": "0",
+   "detail": ""
+  },
+  {
+   "bereich": "Ton",
+   "name": "Keine Übersteuerung",
+   "status": "ok",
+   "wert": "0 Dateien bei 0 dB",
+   "ziel": "Spitze unter 0 dB",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Zip-Größe",
+   "status": "ok",
+   "wert": "24.7 MB",
+   "ziel": "unter 50 MB (itch.io, CrazyGames)",
+   "detail": ""
+  },
+  {
+   "bereich": "Layout",
+   "name": "Nichts ragt aus dem Bild (Tisch)",
+   "status": "ok",
+   "wert": "0 Stellen",
+   "ziel": "0",
+   "detail": ""
+  },
+  {
+   "bereich": "Layout",
+   "name": "Tippflächen mindestens 40 px",
+   "status": "warn",
+   "wert": "2 zu klein",
+   "ziel": "0",
+   "detail": "360: »sq« 39×39"
+  },
+  {
+   "bereich": "Technik",
+   "name": "Keine Skriptfehler",
+   "status": "ok",
+   "wert": "0",
+   "ziel": "0",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Alle Dateien im Zip",
+   "status": "ok",
+   "wert": "0 fehlen",
+   "ziel": "0",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Keine fremden Server",
+   "status": "ok",
+   "wert": "0",
+   "ziel": "0",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Ladezeit lokal",
+   "status": "ok",
+   "wert": "481 ms",
+   "ziel": "unter 3 s",
+   "detail": ""
+  },
+  {
+   "bereich": "Technik",
+   "name": "Startgewicht",
+   "status": "ok",
+   "wert": "3.6 MB",
+   "ziel": "unter 8 MB für Mobilfunk",
+   "detail": ""
+  }
+ ]
+}
