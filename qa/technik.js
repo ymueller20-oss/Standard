@@ -47,7 +47,7 @@ async function main(){
     const t0=Date.now();await p.goto(`http://localhost:${port}/?qa`,{waitUntil:'load'});load.push(Date.now()-t0);
     await p.waitForTimeout(400);await p.screenshot({path:path.join(SHOT,`titel-${w}.jpg`),quality:70,type:'jpeg'});
     await p.click('[data-x="go"]');
-    await p.waitForFunction(()=>G&&G.ui&&G.ui.mode==='bet',null,{timeout:30000});await p.waitForTimeout(300);
+    for(let i=0;i<150&&!(await p.evaluate(()=>G&&G.ui&&G.ui.mode==='bet'));i++){if(await p.$('.sheet.draft .dp'))await p.click('.sheet.draft .dp');await p.waitForTimeout(200)}  /* Kartenwahl zuerst */await p.waitForTimeout(300);
     await p.screenshot({path:path.join(SHOT,`tisch-${w}.jpg`),quality:70,type:'jpeg'});
     const m=await p.evaluate(()=>{const W=innerWidth,H=innerHeight,r=[];
       for(const b of document.querySelectorAll('button,[data-x],.card')){const q=b.getBoundingClientRect();if(!q.width||getComputedStyle(b).visibility==='hidden')continue;

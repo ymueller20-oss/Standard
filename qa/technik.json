@@ -116,7 +116,7 @@
    "bereich": "Technik",
    "name": "Ladezeit lokal",
    "status": "ok",
-   "wert": "481 ms",
+   "wert": "563 ms",
    "ziel": "unter 3 s",
    "detail": ""
   },
@@ -124,7 +124,7 @@
    "bereich": "Technik",
    "name": "Startgewicht",
    "status": "ok",
-   "wert": "3.6 MB",
+   "wert": "4.0 MB",
    "ziel": "unter 8 MB für Mobilfunk",
    "detail": ""
   }
