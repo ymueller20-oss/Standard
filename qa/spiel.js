@@ -104,7 +104,7 @@ async function main(){
   async function worker(){
     const ctx=await br.newContext({viewport:{width:390,height:844}});
     while(next<jobs.length){const R=jobs[next++],page=await ctx.newPage();const errs=[];
-      page.on('pageerror',e=>errs.push(String(e.message||e)));
+      page.on('pageerror',e=>errs.push(String(e.stack||e.message||e).slice(0,400)));
       if(R.rep)await page.route('**/game.js',async rt=>{let s=src;for(const[a,b]of R.rep)s=s.replace(a,b);rt.fulfill({contentType:'text/javascript',body:s})});
       try{await page.goto(`http://localhost:${port}/?qa`);await page.waitForFunction(()=>typeof newGame==='function');
         await page.evaluate(`(${bot})(${JSON.stringify(R.strat)})`);
