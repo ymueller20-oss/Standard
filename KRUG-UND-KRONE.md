@@ -90,6 +90,7 @@ Poker trifft Battlegrounds am Tavernentisch.
   - Preise und Gewinne sind auf den Wert pro Gold abgestimmt (`FORGE_UP=6`, `OATH_UP=3`, `MERC_GAIN`, `mercCost`).
   - Angebote zeigen ein „Tipp“-Abzeichen, wenn sie sich für das eigene Blatt lohnen.
   - Die KI kauft nach demselben Wert (`offerValue`, `aiShop`).
+  - Söldner sind echte Karten: Wer einen hält, nimmt genau diese Karte (Stärke + Reich) aus dem Stapel (`heldIds`), und angeboten wird nur, was niemand hält. Vorher waren es Kopien, dadurch gab es unmögliche Kombos wie Fünflinge oder doppelte Karten. Das darf nie wieder passieren.
 - **Effekte ohne Zahlen:**
   - Symbole auf den Karten zeigen Formation, Schild, Glut, Frost, Blutrausch, Reichsbonus, Siegel und Leibwächter in drei Stufen.
   - Eine Stärke-Anzeige bewertet das Team von Schwach bis Legendär.

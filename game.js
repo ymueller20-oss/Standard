@@ -216,7 +216,7 @@ function handLabel(cs){return cs.length>=5?comboLabel(bestFive(cs)):partLabel(cs
 
 /* ---------- Gewinnchance (Monte-Carlo über echte Kämpfe) ---------- */
 function equity(p,samples){
-  const known=[...p.hole,...G.board,...G.players.flatMap(q=>q.sac)];
+  const known=[...p.hole,...G.board,...G.players.flatMap(q=>q.sac),...[...heldIds()].map(id=>({id}))];
   const opps=G.players.filter(q=>q!==p&&q.inHand&&!q.folded).map(q=>({n:q.hole.length,up:q.up,heer:q.heer}));
   return battleEquity({hole:p.hole,up:p.up,heer:p.heer},G.board,opps,known,samples)}
 
@@ -282,7 +282,7 @@ async function playHand(){
   G.hand++;G.fast=false;G.board=[];G.pot=0;G.seen=new Set();
   const lvl=Math.min(BLINDS.length-1,Math.floor((G.hand-1)/HAND_EVERY));G.bb=BLINDS[lvl];G.ante=Math.round(G.bb*ANTE_F);
   do{G.dealer=(G.dealer+1)%G.players.length}while(G.players[G.dealer].out);
-  const deck=shuffle(FULL.slice());
+  const held=heldIds(),deck=shuffle(FULL.filter(c=>!held.has(c.id)));
   if(TUT.on&&G.hand===1)for(const id of['13-0','13-2'].reverse()){const i=deck.findIndex(c=>c.id===id);deck.unshift(deck.splice(i,1)[0])}  /* Lehrstunde: ein Königspaar mit Unterstützer zum Einstieg */
   for(const p of G.players){p.hole=[];p.sac=[];p.folded=false;p.bet=0;p.say='';p.team=null;p.peek=null;p.loot=0;p.inHand=!p.out;
     if(p.inHand&&G.ante){const a=Math.min(p.stack,G.ante);p.stack-=a;G.pot+=a}}
@@ -469,7 +469,7 @@ function orderLineup(five,p){return new Promise(res=>{let ord=five.slice(),pick=
 function perms(a){if(a.length<=1)return[a];const out=[];a.forEach((x,i)=>{for(const r of perms(a.slice(0,i).concat(a.slice(i+1))))out.push([x,...r])});return out}
 /* Starke Gegner stellen auf: jede Reihenfolge gegen die Teams der anderen am Tisch testen */
 function aiOrder(p,five,L){/* fair: Gegnerhände werden ausgelost, nicht gelesen */
-  const known=new Set([...p.hole,...G.board,...G.players.flatMap(q=>q.sac)].map(c=>c.id)),deck=FULL.filter(c=>!known.has(c.id)),foes=[];
+  const known=new Set([...p.hole,...G.board,...G.players.flatMap(q=>q.sac)].map(c=>c.id).concat([...heldIds()])),deck=FULL.filter(c=>!known.has(c.id)),foes=[];
   for(let s=0;s<1;s++){const d=shuffle(deck.slice());let k=0;for(const q of L){if(q===p)continue;const h=d.slice(k,k+q.hole.length);k+=q.hole.length;foes.push(pickTeam(h.concat(G.board,q.heer),q.up))}}
   let best=five,bv=-1;
   const cand=[five];for(let i=0;i<5;i++)for(let j=i+1;j<5;j++){const o=five.slice();[o[i],o[j]]=[o[j],o[i]];cand.push(o)}
@@ -495,10 +495,13 @@ function mkOffers(){
   a.push({k:'forge',r:r1,cost:price(26),t:`Schmiede: ${NAME[r1]}`,d:`Alle ${NAME[r1]}-Karten dauerhaft +${FORGE_UP}/+${FORGE_UP}.`});
   const s=rnd(4);a.push({k:'oath',s,cost:price(46),t:`Schwur: ${REALM[s].n}`,d:`Alle Karten dieses Reichs dauerhaft +${OATH_UP}/+${OATH_UP}.`});
   const ks=Object.keys(RELIC),k=ks[rnd(ks.length)];a.push({k,cost:price(RELIC[k].c),t:RELIC[k].t,d:RELIC[k].d});
-  for(let i=0;i<2;i++){const r=2+rnd(13),sv=rnd(4),c=mkMerc(r,sv);
+  const held=heldIds();
+  for(let i=0;i<2;i++){let r,sv;do{r=2+rnd(13);sv=rnd(4)}while(held.has(r+'-'+sv));held.add(r+'-'+sv);const c=mkMerc(r,sv);
     a.push({k:'recruit',c,cost:price(mercCost(r)),t:`Söldner: ${NAME[r]}`,d:`Dauerhaft im Heerlager. ${abil(c)[0]}: ${abil(c)[2]}`})}
   return a}
 let MERC=0;function mkMerc(r,s){const c={r,s,id:'H'+(++MERC)+'-'+r+'-'+s,merc:true};cardById[c.id]=c;return c}
+/* Jede Karte gibt es nur einmal: wer einen Söldner hält, hat genau diese Karte aus dem Stapel genommen */
+const heldIds=()=>new Set(G.players.flatMap(q=>q.heer.map(c=>c.r+'-'+c.s)));
 function heerAdd(p,c){if(p.heer.length<HEER_CAP)p.heer.push(c);else{const i=p.heer.reduce((a,x,j)=>x.r<p.heer[a].r?j:a,0);p.heer[i]=c}}
 function applyOffer(p,o){
   if(o.k==='recruit')heerAdd(p,o.c);
